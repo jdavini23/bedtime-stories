@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import React, { FC, useState, useCallback } from 'react';
 import { Story } from '@/types/story';
 import { Button } from '../common/Button';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -8,10 +8,11 @@ interface StoryDisplayProps {
 }
 
 // Helper function to format story paragraphs with animations
-const formatStoryParagraphs = (content: string) => {
-  const paragraphs = content.split('\n\n')
-    .filter(paragraph => paragraph.trim().length > 0)
-    .map((paragraph, index) => (
+const formatStoryParagraphs = (content: string): React.ReactNode[] => {
+  const paragraphs: React.ReactNode[] = content
+    .split('\n\n')
+    .filter((paragraph: string) => paragraph.trim().length > 0)
+    .map((paragraph: string, index: number) => (
       <motion.p
         key={index}
         initial={{ opacity: 0, y: 20 }}
@@ -30,11 +31,11 @@ const formatStoryParagraphs = (content: string) => {
 };
 
 export const StoryDisplay: FC<StoryDisplayProps> = ({ story }) => {
-  const [copySuccess, setCopySuccess] = useState(false);
-  const [isSharing, setIsSharing] = useState(false);
+  const [copySuccess, setCopySuccess] = useState<boolean>(false);
+  const [isSharing, setIsSharing] = useState<boolean>(false);
 
   // Helper function to get theme emoji
-  const getThemeEmoji = (theme: string): string => {
+  const getThemeEmoji = useCallback((theme: string): string => {
     const emojiMap: Record<string, string> = {
       adventure: '🌟',
       fantasy: '🦄',
@@ -47,10 +48,10 @@ export const StoryDisplay: FC<StoryDisplayProps> = ({ story }) => {
       nature: '🌿',
       science: '🔬'
     };
-    return emojiMap[theme] || '✨';
-  };
+    return emojiMap[theme.toLowerCase()] || '✨';
+  }, []);
 
-  const handleCopy = async () => {
+  const handleCopy = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(story.content);
       setCopySuccess(true);
@@ -58,9 +59,9 @@ export const StoryDisplay: FC<StoryDisplayProps> = ({ story }) => {
     } catch (err) {
       console.error('Failed to copy text:', err);
     }
-  };
+  }, [story.content]);
 
-  const handleShare = async () => {
+  const handleShare = useCallback(async () => {
     setIsSharing(true);
     try {
       const mailtoLink = `mailto:?subject=A Bedtime Story for ${story.input.childName}&body=${encodeURIComponent(story.content)}`;
@@ -68,7 +69,7 @@ export const StoryDisplay: FC<StoryDisplayProps> = ({ story }) => {
     } finally {
       setTimeout(() => setIsSharing(false), 1000);
     }
-  };
+  }, [story.input.childName, story.content]);
 
   return (
     <div className="relative w-full max-w-3xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
