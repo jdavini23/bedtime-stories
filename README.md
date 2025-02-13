@@ -1,36 +1,61 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Bedtime Story Magic 
 
-## Getting Started
+## Overview
+Bedtime Story Magic is an AI-powered application that generates personalized, enchanting bedtime stories for children. Using advanced AI technology, it creates unique stories tailored to a child's name, interests, and preferred theme.
 
-First, run the development server:
+## Features
+- AI-generated personalized stories
+- Multiple story themes (Adventure, Fantasy, Educational, etc.)
+- Customizable story inputs
+- Engaging and child-friendly design
+- Responsive web application
 
+## Technologies
+- Next.js 14
+- TypeScript
+- Tailwind CSS
+- Framer Motion
+- OpenAI GPT
+- Vercel KV (Caching)
+
+## Prerequisites
+- Node.js 18+
+- npm or yarn
+- OpenAI API Key (optional)
+
+## Setup and Installation
+1. Clone the repository
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/yourusername/bedtime-stories.git
+cd bedtime-stories
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Set up environment variables
+```bash
+cp .env.example .env.local
+# Add your OpenAI API Key in .env.local
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. Run the development server
+```bash
+npm run dev
+```
 
-## Learn More
+## Customization
+- Modify themes in `src/types/story.ts`
+- Adjust AI prompts in `src/app/api/generateStory/route.ts`
+- Update interests in `src/components/story/StoryForm.tsx`
 
-To learn more about Next.js, take a look at the following resources:
+## Contributing
+Contributions are welcome! Please check our [Contributing Guidelines](CONTRIBUTING.md).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## License
+This project is licensed under the MIT License.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Support
+Star this repository if you find it helpful! For issues, please open a GitHub issue.
