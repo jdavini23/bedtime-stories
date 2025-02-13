@@ -15,6 +15,7 @@ interface ErrorResponse {
   error: string;
   code: string;
   retryAfter?: number;
+  details?: string[];
 }
 
 interface ApiError {
@@ -77,10 +78,20 @@ export async function POST(request: Request): Promise<NextResponse> {
   try {
     const input: StoryInput = await request.json();
     
-    // Input validation
-    if (!input.childName || !input.interests?.length || !input.theme || !input.gender) {
+    // Enhanced input validation
+    const validationErrors: string[] = [];
+    if (!input.childName?.trim()) validationErrors.push('Child name is required');
+    if (!input.interests?.length) validationErrors.push('At least one interest is required');
+    if (!input.theme?.trim()) validationErrors.push('Story theme is required');
+    if (!input.gender?.trim()) validationErrors.push('Child gender is required');
+
+    if (validationErrors.length > 0) {
       return NextResponse.json(
-        { error: 'Missing required fields', code: 'INVALID_INPUT' },
+        { 
+          error: 'Invalid input', 
+          details: validationErrors,
+          code: 'VALIDATION_ERROR' 
+        },
         { status: 400 }
       );
     }
@@ -219,13 +230,15 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
 
   } catch (error: unknown) {
-    console.error('Unexpected error:', error);
-    return NextResponse.json(
-      { 
-        error: 'An unexpected error occurred',
-        code: 'INTERNAL_ERROR'
-      } as ErrorResponse,
-      { status: 500 }
-    );
+    console.error('Unexpected error in story generation:', error);
+    
+    // Comprehensive error response
+    const errorResponse = {
+      error: 'Story generation failed',
+      code: 'GENERATION_ERROR',
+      message: error instanceof Error ? error.message : 'Unknown error occurred'
+    };
+
+    return NextResponse.json(errorResponse, { status: 500 });
   }
 }

@@ -55,6 +55,33 @@ cp .env.example .env.local
 npm run dev
 ```
 
+## Deployment on Vercel
+
+### Prerequisites
+- Vercel Account
+- Optional: OpenAI API Key
+
+### Environment Variables
+1. Copy `.env.example` to `.env.local`
+2. Fill in the required environment variables:
+   - `OPENAI_API_KEY`: OpenAI API key (optional)
+   - `KV_REST_API_URL`: Vercel KV Redis URL
+   - `KV_REST_API_TOKEN`: Vercel KV Redis Token
+
+### Deployment Steps
+1. Connect your GitHub repository to Vercel
+2. Set environment variables in Vercel Project Settings
+3. Deploy the project
+
+### Local Development
+```bash
+npm install
+npm run dev
+```
+
+### Fallback Story Generation
+If no OpenAI API key is provided, the app will generate mock stories.
+
 ## Customization
 
 - Modify themes in `src/types/story.ts`
