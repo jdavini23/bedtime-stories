@@ -14,6 +14,7 @@ interface SelectProps {
   value: SelectOption;
   onChange: (value: SelectOption) => void;
   error?: string;
+  className?: string;
 }
 
 export const Select = ({
@@ -21,10 +22,11 @@ export const Select = ({
   options,
   value,
   onChange,
-  error
+  error,
+  className
 }: SelectProps) => {
   return (
-    <div className="w-full">
+    <div className={clsx("w-full", className)}>
       {label && (
         <label className="block text-sm font-medium text-gray-700 mb-1">
           {label}
