@@ -17,7 +17,7 @@ interface ErrorResponse {
   retryAfter?: number;
 }
 
-const isQuotaError = (error: any): boolean => {
+const isQuotaError = (error: { status?: number; message?: string; headers?: Record<string, string> }): boolean => {
   return error?.status === 429 || 
     error?.message?.includes('quota') || 
     error?.message?.includes('billing');
@@ -62,7 +62,7 @@ const processStoryText = (story: string): string => {
   return processedStory;
 };
 
-export async function POST(request: Request) {
+export async function POST(request: Request): Promise<NextResponse> {
   try {
     const input: StoryInput = await request.json();
     
@@ -181,11 +181,13 @@ export async function POST(request: Request) {
 
       return NextResponse.json(response);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('OpenAI API error:', error);
 
-      if (isQuotaError(error)) {
-        const retryAfter = parseInt(error.headers?.['retry-after'] || '60', 10);
+      const apiError = error as { status?: number; message?: string; headers?: Record<string, string> };
+
+      if (isQuotaError(apiError)) {
+        const retryAfter = parseInt(apiError.headers?.['retry-after'] || '60', 10);
         return NextResponse.json(
           {
             error: 'API rate limit exceeded',
@@ -207,7 +209,7 @@ export async function POST(request: Request) {
       });
     }
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Unexpected error:', error);
     return NextResponse.json(
       { 

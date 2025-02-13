@@ -71,128 +71,91 @@ export const StoryDisplay: FC<StoryDisplayProps> = ({ story }) => {
   };
 
   return (
-    <motion.div
-      className="space-y-6"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
-      <motion.div 
-        className="bg-white rounded-lg shadow-lg p-8 prose prose-lg max-w-none"
-        initial={{ y: 20 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
-      >
+    <div className="relative w-full max-w-3xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+      {story && (
         <motion.div
-          className="mb-8 text-center"
-          initial={{ scale: 0.9 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="bg-white shadow-xl rounded-2xl p-6 sm:p-8 relative overflow-hidden"
         >
-          <div className="flex flex-col items-center space-y-4">
-            <motion.div
-              initial={{ rotate: -5 }}
-              animate={{ rotate: 5 }}
-              transition={{ 
-                duration: 2,
-                repeat: Infinity,
-                repeatType: "reverse",
-                ease: "easeInOut"
-              }}
-              className="inline-block"
-            >
-              <span className="text-5xl mb-2">{getThemeEmoji(story.input.theme)}</span>
-            </motion.div>
-            
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 text-transparent bg-clip-text mb-3">
-              {story.input.childName}'s Magical Story
-            </h1>
-            
-            <motion.div 
-              className="flex items-center gap-2 text-lg text-gray-600"
-              initial={{ y: 10, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.6 }}
-            >
-              <span className="px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 font-medium">
-                {story.input.theme.charAt(0).toUpperCase() + story.input.theme.slice(1)}
-              </span>
-              <span className="text-gray-400">•</span>
-              <span className="text-gray-500 font-medium">
-                {new Date(story.createdAt).toLocaleDateString(undefined, {
+          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
+          
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6">
+            <div>
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-pink-600">
+                {story.input.childName}&apos;s Magical Story
+              </h2>
+              <p className="text-sm text-gray-500 mt-2">
+                Generated on {new Date(story.createdAt).toLocaleDateString(undefined, {
                   month: 'short',
                   day: 'numeric',
                   year: 'numeric'
                 })}
-              </span>
-            </motion.div>
-
-            <motion.div
-              className="mt-4 flex flex-wrap gap-2 justify-center"
-              initial={{ y: 10, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.8 }}
-            >
+              </p>
+            </div>
+            
+            <div className="flex items-center space-x-2 mt-4 sm:mt-0">
               {story.input.interests.map((interest, index) => (
-                <span
-                  key={index}
-                  className="px-2 py-1 rounded-full bg-purple-50 text-purple-600 text-sm font-medium"
+                <span 
+                  key={index} 
+                  className="px-3 py-1 text-xs font-medium text-indigo-700 bg-indigo-100 rounded-full"
                 >
                   {interest}
                 </span>
               ))}
-            </motion.div>
+            </div>
           </div>
+          
+          <div className="story-content">
+            {formatStoryParagraphs(story.content)}
+          </div>
+          
+          <motion.div 
+            className="flex gap-4"
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.6 }}
+          >
+            <Button
+              variant="outline"
+              onClick={handleCopy}
+              className="flex-1 transition-all duration-200 hover:bg-indigo-50"
+            >
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key={copySuccess ? 'copied' : 'copy'}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {copySuccess ? '✓ Copied!' : 'Copy Story'}
+                </motion.span>
+              </AnimatePresence>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleShare}
+              className="flex-1 transition-all duration-200 hover:bg-indigo-50"
+              disabled={isSharing}
+            >
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key={isSharing ? 'sharing' : 'share'}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {isSharing ? 'Opening Email...' : 'Share via Email'}
+                </motion.span>
+              </AnimatePresence>
+            </Button>
+          </motion.div>
         </motion.div>
-
-        <div className="story-content">
-          {formatStoryParagraphs(story.content)}
-        </div>
-      </motion.div>
-
-      <motion.div 
-        className="flex gap-4"
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.6 }}
-      >
-        <Button
-          variant="outline"
-          onClick={handleCopy}
-          className="flex-1 transition-all duration-200 hover:bg-indigo-50"
-        >
-          <AnimatePresence mode="wait">
-            <motion.span
-              key={copySuccess ? 'copied' : 'copy'}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              {copySuccess ? '✓ Copied!' : 'Copy Story'}
-            </motion.span>
-          </AnimatePresence>
-        </Button>
-        <Button
-          variant="outline"
-          onClick={handleShare}
-          className="flex-1 transition-all duration-200 hover:bg-indigo-50"
-          disabled={isSharing}
-        >
-          <AnimatePresence mode="wait">
-            <motion.span
-              key={isSharing ? 'sharing' : 'share'}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              {isSharing ? 'Opening Email...' : 'Share via Email'}
-            </motion.span>
-          </AnimatePresence>
-        </Button>
-      </motion.div>
-    </motion.div>
+      )}
+    </div>
   );
 };
 

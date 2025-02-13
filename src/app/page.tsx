@@ -32,8 +32,9 @@ export default function Home() {
       setError(null);
       const newStory = await generateStory(input);
       setStory(newStory);
-    } catch (err: any) {
-      setError(err.message || 'Failed to generate story');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to generate story';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
