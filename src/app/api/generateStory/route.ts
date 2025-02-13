@@ -17,10 +17,21 @@ interface ErrorResponse {
   retryAfter?: number;
 }
 
-const isQuotaError = (error: { status?: number; message?: string; headers?: Record<string, string> }): boolean => {
-  return error?.status === 429 || 
-    error?.message?.includes('quota') || 
-    error?.message?.includes('billing');
+interface ApiError {
+  status?: number;
+  message?: string;
+  headers?: Record<string, string>;
+}
+
+const isQuotaError = (error: unknown): error is ApiError => {
+  if (typeof error !== 'object' || error === null) return false;
+
+  const apiError = error as ApiError;
+  return (
+    apiError.status === 429 || 
+    (typeof apiError.message === 'string' && 
+      (apiError.message.includes('quota') || apiError.message.includes('billing')))
+  );
 };
 
 const generateCacheKey = (input: StoryInput): string => {
@@ -184,10 +195,8 @@ export async function POST(request: Request): Promise<NextResponse> {
     } catch (error: unknown) {
       console.error('OpenAI API error:', error);
 
-      const apiError = error as { status?: number; message?: string; headers?: Record<string, string> };
-
-      if (isQuotaError(apiError)) {
-        const retryAfter = parseInt(apiError.headers?.['retry-after'] || '60', 10);
+      if (isQuotaError(error)) {
+        const retryAfter = parseInt((error as ApiError).headers?.['retry-after'] || '60', 10);
         return NextResponse.json(
           {
             error: 'API rate limit exceeded',
