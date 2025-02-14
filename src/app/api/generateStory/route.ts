@@ -96,6 +96,23 @@ export async function POST(request: Request): Promise<NextResponse> {
       );
     }
 
+    // Check if OpenAI API key is available
+    const hasOpenAIKey = !!process.env.OPENAI_API_KEY;
+    
+    // If no API key, generate mock story
+    if (!hasOpenAIKey) {
+      console.warn('No OpenAI API key provided. Generating mock story.');
+      const mockStory = generateMockStory(input);
+      
+      return NextResponse.json({
+        id: Math.random().toString(36).substr(2, 9),
+        content: processStoryText(mockStory),
+        createdAt: new Date().toISOString(),
+        input,
+        generatedWith: 'mock'
+      });
+    }
+
     // Check cache first
     const cacheKey = generateCacheKey(input);
     try {
@@ -106,27 +123,6 @@ export async function POST(request: Request): Promise<NextResponse> {
       }
     } catch (error) {
       console.warn('Cache read error:', error);
-    }
-
-    // Use mock generator if OpenAI API key is not available
-    if (!process.env.OPENAI_API_KEY) {
-      console.log('Falling back to mock story generator');
-      const mockStory = generateMockStory(input);
-      const response = {
-        id: Math.random().toString(36).substr(2, 9),
-        content: processStoryText(mockStory),
-        createdAt: new Date().toISOString(),
-        input,
-      };
-
-      // Try to cache the response
-      try {
-        await kv?.set(cacheKey, response, { ex: CACHE_TTL });
-      } catch (error) {
-        console.warn('Cache write error:', error);
-      }
-
-      return NextResponse.json(response);
     }
 
     try {
