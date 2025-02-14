@@ -38,7 +38,7 @@
   ],
   "crons": [],
   "functions": {
-    "api/generateStory": {
+    "src/app/api/generateStory/route.ts": {
       "maxDuration": 30
     }
   }
