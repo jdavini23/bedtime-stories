@@ -46,10 +46,14 @@ const processStoryText = (story: string): string => {
   // Remove leading/trailing whitespace
   let processedStory = story.trim();
 
-  // Ensure story has a title
-  if (!processedStory.startsWith('#')) {
-    const firstLine = processedStory.split('\n')[0];
-    processedStory = `# ${firstLine}\n\n${processedStory}`;
+  // Extract title if it exists in markdown format
+  const titleMatch = processedStory.match(/^#\s*(.+)$/m);
+  if (titleMatch) {
+    // Remove the markdown title line and any "Title:" prefix in the content
+    processedStory = processedStory
+      .replace(/^#\s*.+\n+/, '') // Remove markdown title
+      .replace(/^Title:\s*(.+)\n+/m, '') // Remove "Title:" prefix if present
+      .trim();
   }
 
   // Ensure paragraphs are separated by double newlines
@@ -70,6 +74,11 @@ const processStoryText = (story: string): string => {
   
   // Add emphasis to character dialogue
   processedStory = processedStory.replace(/"([^"]+)"/g, '*"$1"*');
+
+  // If we found a title, add it back at the beginning with markdown formatting
+  if (titleMatch) {
+    processedStory = `# ${titleMatch[1]}\n\n${processedStory}`;
+  }
 
   return processedStory;
 };
