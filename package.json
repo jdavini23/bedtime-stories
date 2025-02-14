@@ -12,6 +12,7 @@
     "@headlessui/react": "^2.2.0",
     "@heroicons/react": "^2.2.0",
     "@vercel/kv": "^3.0.0",
+    "@vercel/speed-insights": "^1.2.0",
     "axios": "^1.7.9",
     "clsx": "^2.1.1",
     "framer-motion": "^12.4.2",
