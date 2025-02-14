@@ -1,4 +1,6 @@
-import React, { FC, useState, useCallback } from 'react';
+'use client';
+
+import React, { FC, useState, useCallback, memo } from 'react';
 import { Story } from '@/types/story';
 import { Button } from '../common/Button';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -30,7 +32,7 @@ const formatStoryParagraphs = (content: string): React.ReactNode[] => {
   return paragraphs;
 };
 
-export const StoryDisplay: FC<StoryDisplayProps> = ({ story }) => {
+const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
   const [copySuccess, setCopySuccess] = useState<boolean>(false);
   const [isSharing, setIsSharing] = useState<boolean>(false);
 
@@ -78,7 +80,7 @@ export const StoryDisplay: FC<StoryDisplayProps> = ({ story }) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="bg-white shadow-xl rounded-2xl p-6 sm:p-8 relative overflow-hidden"
+          className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl p-8 mt-8"
         >
           <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
           
@@ -162,6 +164,8 @@ export const StoryDisplay: FC<StoryDisplayProps> = ({ story }) => {
       )}
     </div>
   );
-};
+});
 
 StoryDisplay.displayName = 'StoryDisplay';
+export { StoryDisplay };
+export default StoryDisplay;

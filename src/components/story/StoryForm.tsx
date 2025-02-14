@@ -1,10 +1,17 @@
-import { FC, useState, useEffect } from 'react';
-import { Button } from '../common/Button';
-import { Input } from '../common/Input';
-import { Select } from '../common/Select';
-import { SelectOption } from '@/types/select';
-import { StoryInput, StoryTheme, StoryGender } from '@/types/story';
+'use client';
+
+import React, { useState, memo, FC, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { StoryInput } from '@/types/story';
+import { Select, SelectOption } from '@/components/common/Select';
+import { Input } from '@/components/common/Input';
+
+const COMMON_INTERESTS = [
+  'Dinosaurs', 'Space', 'Superheroes', 'Unicorns', 'Pirates', 
+  'Princesses', 'Animals', 'Magic', 'Adventure', 'Science', 
+  'Robots', 'Dragons', 'Exploration', 'Nature', 'Cooking',
+  'Sports', 'Music', 'Art', 'Dancing', 'Reading'
+];
 
 const THEME_OPTIONS: SelectOption[] = [
   { value: 'adventure', label: 'Adventure' },
@@ -22,72 +29,92 @@ const THEME_OPTIONS: SelectOption[] = [
 const GENDER_OPTIONS: SelectOption[] = [
   { value: 'boy', label: 'Boy' },
   { value: 'girl', label: 'Girl' },
-  { value: 'neutral', label: 'Neutral' }
-];
-
-// Common interests for auto-suggestions
-const COMMON_INTERESTS = [
-  'dinosaurs', 'space', 'animals', 'music', 'art',
-  'sports', 'magic', 'robots', 'dragons', 'princesses',
-  'superheroes', 'science', 'nature', 'cars', 'cooking'
+  { value: 'neutral', label: 'Other' }
 ];
 
 interface StoryFormProps {
-  onSubmit: (input: StoryInput) => void;
+  onSubmit: (input: StoryInput) => Promise<void>;
   isLoading?: boolean;
 }
 
-export const StoryForm: FC<StoryFormProps> = ({ onSubmit, isLoading }) => {
-  const [childName, setChildName] = useState('');
+const StoryForm: FC<StoryFormProps> = memo(({ onSubmit, isLoading = false }) => {
+  const [characterName, setCharacterName] = useState('');
+  const [selectedTheme, setSelectedTheme] = useState(THEME_OPTIONS[0]);
+  const [selectedGender, setSelectedGender] = useState(GENDER_OPTIONS[2]);
   const [interests, setInterests] = useState('');
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [selectedTheme, setSelectedTheme] = useState(THEME_OPTIONS[0]);
-  const [selectedGender, setSelectedGender] = useState(GENDER_OPTIONS[2]);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const suggestionsRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
+  // Handle click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node) &&
+          inputRef.current && !inputRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Auto-suggestion logic
   useEffect(() => {
     if (interests.trim()) {
-      const lastInterest = interests.split(',').pop()?.trim().toLowerCase() || '';
-      if (lastInterest) {
-        const filtered = COMMON_INTERESTS.filter(
-          interest => interest.toLowerCase().startsWith(lastInterest)
-        ).slice(0, 5);
+      const interestArray = interests.split(',');
+      const currentInput = interestArray[interestArray.length - 1].trim().toLowerCase();
+      
+      if (currentInput) {
+        const filtered = COMMON_INTERESTS.filter(interest => 
+          interest.toLowerCase().startsWith(currentInput) &&
+          !interestArray.slice(0, -1).map(i => i.trim().toLowerCase()).includes(interest.toLowerCase())
+        );
         setSuggestions(filtered);
         setShowSuggestions(filtered.length > 0);
       } else {
+        setSuggestions([]);
         setShowSuggestions(false);
       }
     } else {
+      setSuggestions([]);
       setShowSuggestions(false);
     }
   }, [interests]);
 
   const addSuggestion = (suggestion: string) => {
-    const currentInterests = interests.split(',').slice(0, -1);
-    setInterests([...currentInterests, suggestion].join(', '));
+    const interestArray = interests.split(',').map(i => i.trim()).filter(Boolean);
+    interestArray.pop(); // Remove the partial interest
+    
+    const newInterests = interestArray.length > 0
+      ? [...interestArray, suggestion].join(', ') + ', '
+      : suggestion + ', ';
+    
+    setInterests(newInterests);
     setShowSuggestions(false);
+    inputRef.current?.focus();
   };
 
-  const validateForm = (): boolean => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
     const newErrors: Record<string, string> = {};
 
-    if (!childName.trim()) {
-      newErrors.childName = 'Child\'s name is required';
+    if (!characterName.trim()) {
+      newErrors.characterName = 'Character name is required';
     }
 
     if (!interests.trim()) {
-      newErrors.interests = 'At least one interest is required';
+      newErrors.interests = 'Interests are required';
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!validateForm()) {
+    if (Object.keys(newErrors).length > 0) {
       return;
     }
 
@@ -96,127 +123,115 @@ export const StoryForm: FC<StoryFormProps> = ({ onSubmit, isLoading }) => {
       .map(interest => interest.trim())
       .filter(Boolean);
 
-    onSubmit({
-      childName: childName.trim(),
+    await onSubmit({
+      childName: characterName.trim(),
       interests: interestsList,
-      theme: selectedTheme.value as StoryTheme,
-      gender: selectedGender.value as StoryGender,
+      theme: selectedTheme.value as StoryInput['theme'],
+      gender: selectedGender.value as StoryInput['gender']
     });
   };
 
   return (
-    <motion.form 
-      onSubmit={handleSubmit} 
-      className="space-y-6"
+    <motion.div 
+      className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl p-8 mb-8"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
+      transition={{ duration: 0.5, delay: 0.8 }}
     >
-      <motion.div
-        whileHover={{ scale: 1.01 }}
-        transition={{ duration: 0.2 }}
-      >
+      <form onSubmit={handleSubmit} className="space-y-6">
         <Input
-          label="Child's Name"
-          placeholder="Enter child's name"
-          value={childName}
-          onChange={(e) => setChildName(e.target.value)}
-          error={errors.childName}
-          className="transition-all duration-200 focus:ring-2 focus:ring-indigo-500"
+          label="Character Name"
+          id="characterName"
+          value={characterName}
+          onChange={(e) => setCharacterName(e.target.value)}
+          required
+          error={errors.characterName}
+          placeholder="Enter character name"
         />
-      </motion.div>
 
-      <div className="relative">
-        <motion.div
-          whileHover={{ scale: 1.01 }}
-          transition={{ duration: 0.2 }}
-        >
+        <div className="relative">
           <Input
+            ref={inputRef}
             label="Interests"
-            placeholder="Enter interests (comma-separated)"
+            id="interests"
             value={interests}
             onChange={(e) => setInterests(e.target.value)}
+            onFocus={() => {
+              const lastInterest = interests.split(',').pop()?.trim() || '';
+              if (lastInterest) {
+                setShowSuggestions(true);
+              }
+            }}
+            required
             error={errors.interests}
-            className="transition-all duration-200 focus:ring-2 focus:ring-indigo-500"
+            placeholder="Enter interests (comma-separated)"
           />
-        </motion.div>
+          
+          <AnimatePresence>
+            {showSuggestions && suggestions.length > 0 && (
+              <motion.div
+                ref={suggestionsRef}
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="absolute z-50 left-0 right-0 mt-1 bg-white rounded-md shadow-lg border border-gray-200"
+              >
+                {suggestions.map((suggestion) => (
+                  <motion.button
+                    key={suggestion}
+                    type="button"
+                    whileHover={{ backgroundColor: '#EEF2FF' }}
+                    onClick={() => addSuggestion(suggestion)}
+                    className="w-full px-4 py-2 text-left text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 first:rounded-t-md last:rounded-b-md transition-colors duration-150"
+                  >
+                    {suggestion}
+                  </motion.button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
-        <AnimatePresence>
-          {showSuggestions && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="absolute z-50 w-full mt-1 bg-white rounded-md shadow-lg border border-gray-200"
-            >
-              {suggestions.map((suggestion) => (
-                <motion.button
-                  key={suggestion}
-                  type="button"
-                  whileHover={{ backgroundColor: '#EEF2FF' }}
-                  onClick={() => addSuggestion(suggestion)}
-                  className="w-full px-4 py-2 text-left text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 first:rounded-t-md last:rounded-b-md transition-colors duration-150"
-                >
-                  {suggestion}
-                </motion.button>
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
-      <div className="relative z-40">
-        <motion.div
-          whileHover={{ scale: 1.01 }}
-          transition={{ duration: 0.2 }}
-        >
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">
+            Story Theme
+          </label>
           <Select
-            label="Story Theme"
             options={THEME_OPTIONS}
             value={selectedTheme}
             onChange={setSelectedTheme}
-            className="transition-all duration-200"
+            className="w-full"
           />
-        </motion.div>
-      </div>
+        </div>
 
-      <div className="relative z-30">
-        <motion.div
-          whileHover={{ scale: 1.01 }}
-          transition={{ duration: 0.2 }}
-        >
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">
+            Character Gender
+          </label>
           <Select
-            label="Child's Gender"
             options={GENDER_OPTIONS}
             value={selectedGender}
             onChange={setSelectedGender}
-            className="transition-all duration-200"
+            className="w-full"
           />
-        </motion.div>
-      </div>
+        </div>
 
-      <motion.div
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        className="relative z-20"
-      >
-        <Button
+        <button
           type="submit"
-          className="w-full"
           disabled={isLoading}
+          className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white 
+            ${isLoading 
+              ? 'bg-purple-300 cursor-not-allowed' 
+              : 'bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500'
+            }`}
         >
-          {isLoading ? (
-            <div className="flex items-center justify-center">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
-              Generating Story...
-            </div>
-          ) : (
-            'Generate Story'
-          )}
-        </Button>
-      </motion.div>
-    </motion.form>
+          {isLoading ? 'Generating Story...' : 'Generate Story'}
+        </button>
+      </form>
+    </motion.div>
   );
-};
+});
 
 StoryForm.displayName = 'StoryForm';
+export { StoryForm };
+export default StoryForm;

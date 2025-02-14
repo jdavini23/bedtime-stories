@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import { motion } from 'framer-motion';
-import { StoryForm } from '@/components/story/StoryForm';
-import { StoryDisplay } from '@/components/story/StoryDisplay';
 import { Story, StoryInput } from '@/types/story';
 import { generateStory } from '@/services/api';
+import Spinner from '@/components/common/Spinner';
 
+// Static animation configuration
 const floatingAnimation = {
   initial: { y: 0 },
   animate: {
@@ -19,6 +20,17 @@ const floatingAnimation = {
   }
 };
 
+// Dynamically import components
+const StoryForm = dynamic(() => import('@/components/story/StoryForm'), { 
+  loading: () => <Spinner />,
+  ssr: false 
+});
+
+const StoryDisplay = dynamic(() => import('@/components/story/StoryDisplay'), { 
+  loading: () => <Spinner />,
+  ssr: false 
+});
+
 const titleEmojis = ['🌙', '⭐', '📚', '🌟'];
 
 export default function Home() {
@@ -26,7 +38,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleGenerateStory = async (input: StoryInput) => {
+  const handleGenerateStory = useCallback(async (input: StoryInput) => {
     try {
       setIsLoading(true);
       setError(null);
@@ -38,7 +50,7 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-indigo-50 via-purple-50 to-pink-50">
@@ -89,14 +101,7 @@ export default function Home() {
           </motion.div>
         </motion.div>
 
-        <motion.div 
-          className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl p-8 mb-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.8 }}
-        >
-          <StoryForm onSubmit={handleGenerateStory} isLoading={isLoading} />
-        </motion.div>
+        <StoryForm onSubmit={handleGenerateStory} isLoading={isLoading} />
 
         {error && (
           <motion.div 
@@ -108,6 +113,8 @@ export default function Home() {
             {error}
           </motion.div>
         )}
+
+        {isLoading && <Spinner />}
 
         {story && <StoryDisplay story={story} />}
       </main>
