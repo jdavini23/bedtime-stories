@@ -8,6 +8,7 @@
   "regions": ["iad1"],
   "routes": [
     { "src": "/", "dest": "/" },
-    { "src": "/api/generateStory", "dest": "/api/generateStory" }
+    { "src": "/api/generateStory", "dest": "/api/generateStory" },
+    { "src": "/googlea781ebaa82a0d190.html", "dest": "/googlea781ebaa82a0d190.html" }
   ]
 }
