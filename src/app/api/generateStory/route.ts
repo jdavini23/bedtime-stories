@@ -20,8 +20,9 @@ interface ErrorResponse {
 
 interface ApiError {
   status?: number;
-  message?: string;
+  message: string;
   headers?: Record<string, string>;
+  code?: string;
 }
 
 // Check if caching is available
