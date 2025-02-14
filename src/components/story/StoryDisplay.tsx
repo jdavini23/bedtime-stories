@@ -87,13 +87,20 @@ export const StoryDisplay: FC<StoryDisplayProps> = ({ story }) => {
               <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-pink-600">
                 {story.input.childName}&apos;s Bedtime Story
               </h2>
-              <p className="text-sm text-gray-500 mt-2 flex items-center">
-                <span className="mr-2">{getThemeEmoji(story.input.theme)}</span>
-                {new Date(story.createdAt).toLocaleDateString()}
-              </p>
+              <div className="flex items-center gap-2 mt-2 text-sm text-gray-500">
+                <span className="text-lg">{getThemeEmoji(story.input.theme)}</span>
+                <span>•</span>
+                <time dateTime={story.createdAt}>
+                  {new Date(story.createdAt).toLocaleDateString(undefined, {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                  })}
+                </time>
+              </div>
             </div>
             
-            <div className="flex items-center space-x-2 mt-4 sm:mt-0">
+            <div className="flex flex-wrap items-center gap-2 mt-4 sm:mt-0">
               {story.input.interests.map((interest) => (
                 <span 
                   key={interest} 
@@ -105,12 +112,12 @@ export const StoryDisplay: FC<StoryDisplayProps> = ({ story }) => {
             </div>
           </div>
           
-          <div className="story-content">
+          <div className="prose prose-lg max-w-none">
             {formatStoryParagraphs(story.content)}
           </div>
           
           <motion.div 
-            className="flex gap-4"
+            className="flex gap-4 mt-8"
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.6 }}
