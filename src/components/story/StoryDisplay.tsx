@@ -85,21 +85,18 @@ export const StoryDisplay: FC<StoryDisplayProps> = ({ story }) => {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6">
             <div>
               <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-pink-600">
-                {story.input.childName}&apos;s Magical Story
+                {story.input.childName}&apos;s Bedtime Story
               </h2>
-              <p className="text-sm text-gray-500 mt-2">
-                Generated on {new Date(story.createdAt).toLocaleDateString(undefined, {
-                  month: 'short',
-                  day: 'numeric',
-                  year: 'numeric'
-                })}
+              <p className="text-sm text-gray-500 mt-2 flex items-center">
+                <span className="mr-2">{getThemeEmoji(story.input.theme)}</span>
+                {new Date(story.createdAt).toLocaleDateString()}
               </p>
             </div>
             
             <div className="flex items-center space-x-2 mt-4 sm:mt-0">
-              {story.input.interests.map((interest, index) => (
+              {story.input.interests.map((interest) => (
                 <span 
-                  key={index} 
+                  key={interest} 
                   className="px-3 py-1 text-xs font-medium text-indigo-700 bg-indigo-100 rounded-full"
                 >
                   {interest}
