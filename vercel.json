@@ -8,11 +8,6 @@
     "NODE_OPTIONS": "--max_old_space_size=4096"
   },
   "regions": ["iad1"],
-  "routes": [
-    { "src": "/", "dest": "/" },
-    { "src": "/api/generateStory", "dest": "/api/generateStory" },
-    { "src": "/googlea781ebaa82a0d190.html", "dest": "/googlea781ebaa82a0d190.html" }
-  ],
   "headers": [
     {
       "source": "/(.*)",
