@@ -13,14 +13,6 @@
     { "src": "/api/generateStory", "dest": "/api/generateStory" },
     { "src": "/googlea781ebaa82a0d190.html", "dest": "/googlea781ebaa82a0d190.html" }
   ],
-  "optimization": {
-    "bundle": {
-      "excludeFiles": [
-        "**/*.map",
-        "**/*.d.ts"
-      ]
-    }
-  },
   "headers": [
     {
       "source": "/(.*)",
