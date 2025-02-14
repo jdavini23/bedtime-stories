@@ -24,6 +24,11 @@ interface ApiError {
   headers?: Record<string, string>;
 }
 
+// Check if caching is available
+const isCachingEnabled = () => {
+  return !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
+};
+
 const isQuotaError = (error: unknown): error is ApiError => {
   if (typeof error !== 'object' || error === null) return false;
 
@@ -105,6 +110,21 @@ export async function POST(request: Request): Promise<NextResponse> {
       );
     }
 
+    // Check cache if enabled
+    if (isCachingEnabled()) {
+      const cacheKey = generateCacheKey(input);
+      try {
+        const cachedStory = await kv.get(cacheKey);
+        if (cachedStory) {
+          console.log('Cache hit for:', cacheKey);
+          return NextResponse.json(cachedStory);
+        }
+      } catch (error) {
+        console.warn('Cache read error:', error);
+        // Continue without cache
+      }
+    }
+
     // Check if OpenAI API key is available
     const hasOpenAIKey = !!process.env.OPENAI_API_KEY;
     
@@ -120,18 +140,6 @@ export async function POST(request: Request): Promise<NextResponse> {
         input,
         generatedWith: 'mock'
       });
-    }
-
-    // Check cache first
-    const cacheKey = generateCacheKey(input);
-    try {
-      const cachedStory = await kv?.get(cacheKey);
-      if (cachedStory) {
-        console.log('Cache hit for:', cacheKey);
-        return NextResponse.json(cachedStory);
-      }
-    } catch (error) {
-      console.warn('Cache read error:', error);
     }
 
     try {
@@ -199,18 +207,21 @@ export async function POST(request: Request): Promise<NextResponse> {
         input,
       };
 
-      // Try to cache the response
-      try {
-        await kv?.set(cacheKey, response, { ex: CACHE_TTL });
-      } catch (error) {
-        console.warn('Cache write error:', error);
+      // Try to cache the response if caching is enabled
+      if (isCachingEnabled()) {
+        try {
+          await kv.set(generateCacheKey(input), response, { ex: CACHE_TTL });
+        } catch (error) {
+          console.warn('Cache write error:', error);
+          // Continue without cache
+        }
       }
 
       return NextResponse.json(response);
 
     } catch (error: unknown) {
       console.error('OpenAI API error:', error);
-
+      
       if (isQuotaError(error)) {
         const retryAfter = parseInt((error as ApiError).headers?.['retry-after'] || '60', 10);
         return NextResponse.json(
@@ -223,7 +234,7 @@ export async function POST(request: Request): Promise<NextResponse> {
         );
       }
 
-      // Fall back to mock generator for other errors
+      // Fall back to mock story generator for other errors
       console.log('Falling back to mock story generator due to API error');
       const mockStory = generateMockStory(input);
       return NextResponse.json({
@@ -231,6 +242,7 @@ export async function POST(request: Request): Promise<NextResponse> {
         content: processStoryText(mockStory),
         createdAt: new Date().toISOString(),
         input,
+        generatedWith: 'mock'
       });
     }
 
