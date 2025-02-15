@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { motion } from 'framer-motion';
 import { Story, StoryInput } from '@/types/story';
-import { generateStory } from '@/services/api';
+import { storyApi } from '@/services/api';
 import Spinner from '@/components/common/Spinner';
 
 // Static animation configuration
@@ -42,7 +42,7 @@ export default function Home() {
     try {
       setIsLoading(true);
       setError(null);
-      const newStory = await generateStory(input);
+      const newStory = await storyApi.generateStory(input);
       setStory(newStory);
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to generate story';

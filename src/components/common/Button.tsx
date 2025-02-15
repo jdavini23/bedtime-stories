@@ -2,7 +2,7 @@ import { ButtonHTMLAttributes, FC } from 'react';
 import clsx from 'clsx';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline';
+  variant?: 'primary' | 'secondary' | 'outline' | 'default';
   isLoading?: boolean;
 }
 
@@ -19,14 +19,18 @@ export const Button: FC<ButtonProps> = ({
   const variants = {
     primary: 'bg-indigo-600 text-white hover:bg-indigo-700 disabled:bg-indigo-300',
     secondary: 'bg-gray-200 text-gray-900 hover:bg-gray-300 disabled:bg-gray-100',
-    outline: 'border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50 disabled:border-indigo-300 disabled:text-indigo-300'
+    outline: 'border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50 disabled:border-indigo-300 disabled:text-indigo-300',
+    default: 'bg-indigo-600 text-white hover:bg-indigo-700 disabled:bg-indigo-300'
   };
+
+  // Normalize variant to ensure it's a valid key
+  const normalizedVariant = variants[variant] ? variant : 'default';
 
   return (
     <button
       className={clsx(
         baseStyles,
-        variants[variant],
+        variants[normalizedVariant],
         isLoading && 'cursor-wait',
         className
       )}
