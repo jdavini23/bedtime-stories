@@ -1,4 +1,4 @@
-import NextAuth, { AuthOptions } from 'next-auth';
+import NextAuth from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 
 // Only validate on server side
@@ -6,24 +6,24 @@ const isServer = typeof window === 'undefined';
 
 if (isServer) {
   // Validate required environment variables on server side only
-  const requiredVars = {
-    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
-    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
-    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
-  };
+  if (!process.env.GOOGLE_CLIENT_ID) {
+    throw new Error('GOOGLE_CLIENT_ID is not set');
+  }
 
-  Object.entries(requiredVars).forEach(([key, value]) => {
-    if (!value) {
-      throw new Error(`${key} is not set`);
-    }
-  });
+  if (!process.env.GOOGLE_CLIENT_SECRET) {
+    throw new Error('GOOGLE_CLIENT_SECRET is not set');
+  }
+
+  if (!process.env.NEXTAUTH_SECRET) {
+    throw new Error('NEXTAUTH_SECRET is not set');
+  }
 }
 
-export const authOptions: AuthOptions = {
+const handler = NextAuth({
   providers: [
     GoogleProvider({
-      clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '',
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       authorization: {
         params: {
           access_type: 'offline',
@@ -99,7 +99,6 @@ export const authOptions: AuthOptions = {
     newUser: '/onboarding'
   },
   debug: true
-};
+});
 
-const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };
