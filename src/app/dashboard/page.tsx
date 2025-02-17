@@ -3,23 +3,27 @@
 import React, { Suspense } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
+import { useSession } from 'next-auth/react';
 import { redirect } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { BookOpen, Star, Sparkles, Settings } from 'lucide-react';
 import UserPreferencesService from '@/services/userPreferencesService';
 import DashboardStatisticsSkeleton from '@/components/dashboard/DashboardStatisticsSkeleton';
 import DashboardStatistics from '@/components/dashboard/DashboardStatistics';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
-export default async function DashboardPage() {
-  const session = await getServerSession(authOptions);
+export default function DashboardPage() {
+  const { data: session, status } = useSession({
+    required: true,
+    onUnauthenticated() {
+      redirect('/login');
+    },
+  });
 
-  if (!session) {
-    redirect('/login');
+  if (status === 'loading') {
+    return <div>Loading...</div>;
   }
 
-  const userPreferences = await UserPreferencesService.getUserPreferences(session.user.id);
+  const userPreferences = UserPreferencesService.getUserPreferences(session.user.id);
 
   const dashboardCards = [
     {

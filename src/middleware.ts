@@ -5,6 +5,12 @@ export default withAuth(
   function middleware(req) {
     const path = req.nextUrl.pathname;
     const isAuthPage = path === '/login';
+    const isCallbackPage = path.startsWith('/api/auth/callback');
+
+    // Allow callback URLs to pass through
+    if (isCallbackPage) {
+      return NextResponse.next();
+    }
 
     // If user is authenticated and tries to access login page,
     // redirect them to dashboard
@@ -16,7 +22,20 @@ export default withAuth(
   },
   {
     callbacks: {
-      authorized: ({ token }) => !!token
+      authorized: ({ token, req }) => {
+        const path = req.nextUrl.pathname;
+        
+        // Always allow access to auth-related paths
+        if (
+          path === '/login' ||
+          path.startsWith('/api/auth/')
+        ) {
+          return true;
+        }
+
+        // Require authentication for all other protected routes
+        return !!token;
+      }
     }
   }
 );
@@ -28,6 +47,7 @@ export const config = {
     '/stories/:path*',
     '/profile/:path*',
     '/generate/:path*',
-    '/login'
+    '/login',
+    '/api/auth/callback/:path*'
   ]
 };
