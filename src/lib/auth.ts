@@ -30,3 +30,5 @@ export const authConfig = {
     error: '/auth/error',
   },
 };
+
+

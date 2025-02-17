@@ -252,3 +252,5 @@ export class FirestoreService {
 
 // Singleton instance for easy import
 export const firestoreService = new FirestoreService();
+
+

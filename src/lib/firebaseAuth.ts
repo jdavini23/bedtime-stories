@@ -68,3 +68,5 @@ export async function getIdToken(): Promise<string | null> {
   const user = getCurrentUser();
   return user ? await user.getIdToken() : null;
 }
+
+

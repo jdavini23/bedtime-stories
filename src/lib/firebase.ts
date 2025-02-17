@@ -19,3 +19,5 @@ export const githubProvider = new GithubAuthProvider();
 export const firestore = getFirestore(app);
 
 export default app;
+
+

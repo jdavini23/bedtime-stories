@@ -5,12 +5,10 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import * as LucideIcons from 'lucide-react';
 
-import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/common/Button';
 
 export default function SignInPage() {
   const router = useRouter();
-  const { loginWithGoogle, loginWithGithub } = useAuth();
   const [isLoading, setIsLoading] = useState({
     google: false,
     github: false
@@ -98,3 +96,5 @@ export default function SignInPage() {
     </div>
   );
 }
+
+

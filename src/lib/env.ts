@@ -14,3 +14,5 @@ export function isProduction(): boolean {
 export function isDevelopment(): boolean {
   return env.NODE_ENV === 'development';
 }
+
+
