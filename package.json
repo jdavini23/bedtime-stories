@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "prepare": "npx husky install",
+    "secrets:generate": "powershell -ExecutionPolicy Bypass -File ./scripts/setup-secrets.ps1",
+    "secrets:scan": "npx trufflehog filesystem .",
+    "pre-commit": "npx trufflehog filesystem ."
   },
   "dependencies": {
     "@firebase/auth": "^1.9.0",
@@ -34,10 +38,25 @@
     "@types/react": "^19.0.10",
     "autoprefixer": "^10.4.19",
     "dotenv": "^16.4.7",
+    "dotenv-safe": "^9.1.0",
+    "env-cmd": "^10.1.0",
     "eslint": "^8.57.0",
     "eslint-config-next": "^14.2.3",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.4.3",
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.3",
+    "trufflehog": "^0.0.5",
     "typescript": "^5.4.5"
+  },
+  "lint-staged": {
+    "*": [
+      "npx trufflehog filesystem ."
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run pre-commit"
+    }
   }
 }
