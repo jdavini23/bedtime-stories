@@ -71,8 +71,11 @@ export default function OnboardingPage() {
             label="Child's Age"
             value={childAge}
             onChange={(e) => setChildAge(e.target.value)}
-            options={Array.from({length: 12}, (_, i) => `${i + 3}`)}
-            placeholder="Select age"
+            options={Array.from({length: 12}, (_, i) => ({
+              value: `${i + 3}`,
+              label: `${i + 3} years old`
+            }))}
+            defaultValue="Select age"
           />
 
           <div>
@@ -83,7 +86,7 @@ export default function OnboardingPage() {
               {interestOptions.map(interest => (
                 <Button
                   key={interest}
-                  variant={interests.includes(interest) ? 'default' : 'outline'}
+                  variant={interests.includes(interest) ? 'primary' : 'secondary'}
                   size="sm"
                   onClick={() => handleInterestToggle(interest)}
                   className={`

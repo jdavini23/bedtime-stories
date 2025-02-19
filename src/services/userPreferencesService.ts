@@ -11,6 +11,7 @@ import {
 import { firestore } from "@/lib/firebase/clientApp";
 import { signOut } from "next-auth/react";
 import { logger as log } from "@/utils/logger";
+import AuthService from "./authService";
 
 export interface UserPreferences {
   id?: string;
@@ -63,45 +64,45 @@ class UserPreferencesService {
       // Check network status before attempting operation
       if (!navigator.onLine) {
         log.warn(`Offline: Skipping operation (Attempt ${attempt})`, {
-          context: 'UserPreferencesService.retry'
+          context: "UserPreferencesService.retry",
         });
-        throw new Error('Client is offline');
+        throw new Error("Client is offline");
       }
 
       return await operation();
     } catch (error) {
-      const firestoreError = error as { 
-        code?: string, 
-        message?: string, 
-        stack?: string 
+      const firestoreError = error as {
+        code?: string;
+        message?: string;
+        stack?: string;
       };
 
       // Determine if error is related to offline status
-      const isOfflineError = 
-        firestoreError.code === 'unavailable' || 
-        firestoreError.message?.includes('offline') ||
+      const isOfflineError =
+        firestoreError.code === "unavailable" ||
+        firestoreError.message?.includes("offline") ||
         !navigator.onLine;
 
       log.error(`Retry attempt ${attempt} failed`, {
         error: firestoreError,
         isOfflineError,
-        context: 'UserPreferencesService.retry'
+        context: "UserPreferencesService.retry",
       });
 
       // Stop retrying if max attempts reached or not an offline-related error
       if (attempt >= this.retryAttempts) {
-        log.error('Max retry attempts reached', {
+        log.error("Max retry attempts reached", {
           error: firestoreError,
-          context: 'UserPreferencesService.retry'
+          context: "UserPreferencesService.retry",
         });
         throw error;
       }
 
       // If offline, stop retrying immediately
       if (isOfflineError) {
-        log.warn('Operating in offline mode. Stopping retry attempts.', {
+        log.warn("Operating in offline mode. Stopping retry attempts.", {
           attempt,
-          context: 'UserPreferencesService.retry'
+          context: "UserPreferencesService.retry",
         });
         throw error;
       }
@@ -109,16 +110,16 @@ class UserPreferencesService {
       // Exponential backoff with jitter for non-offline errors
       const jitter = Math.random() * 500; // Add up to 500ms of randomness
       const delay = this.retryDelay * Math.pow(2, attempt - 1) + jitter;
-      
+
       log.warn(`Retrying operation in ${delay}ms`, {
         attempt,
         delay,
-        context: 'UserPreferencesService.retry'
+        context: "UserPreferencesService.retry",
       });
 
       // Wait before retrying
-      await new Promise(resolve => setTimeout(resolve, delay));
-      
+      await new Promise((resolve) => setTimeout(resolve, delay));
+
       // Recursive retry
       return this.retry(operation, attempt + 1);
     }
@@ -169,74 +170,89 @@ class UserPreferencesService {
     try {
       // Validate userId
       if (!userId) {
-        log.warn('Attempted to fetch preferences with empty userId', {
-          context: 'UserPreferencesService.getUserPreferences'
+        log.warn("Attempted to fetch preferences with empty userId", {
+          context: "UserPreferencesService.getUserPreferences",
         });
         return null;
       }
 
       // Check cache first
       if (this.cache.has(userId)) {
-        log.info('Returning cached user preferences', { userId });
+        log.info("Returning cached user preferences", { userId });
         return this.cache.get(userId) ?? null;
       }
 
       // Check if online
       if (!navigator.onLine) {
-        log.warn('Client is offline. Attempting to retrieve from cache', { 
+        log.warn("Client is offline. Attempting to retrieve from cache", {
           userId,
-          context: 'UserPreferencesService.getUserPreferences'
+          context: "UserPreferencesService.getUserPreferences",
         });
         return this.getDefaultPreferences(userId);
       }
 
       const docRef = doc(firestore, COLLECTION_NAME, userId);
-      
+
       // Use a timeout to prevent hanging
       const docSnap = await Promise.race([
         this.retry(() => getDoc(docRef)),
-        new Promise<DocumentSnapshot>((_, reject) => 
-          setTimeout(() => reject(new Error('Firestore fetch timeout')), 20000) // Increased timeout
-        )
+        new Promise<DocumentSnapshot>(
+          (_, reject) =>
+            setTimeout(
+              () => reject(new Error("Firestore fetch timeout")),
+              20000
+            ) // Increased timeout
+        ),
       ]);
 
       if (docSnap.exists()) {
         const data = docSnap.data() as UserPreferences;
-        
+
         // Convert Firestore Timestamps to Date with null checks
-        const convertTimestamp = (timestamp: { toDate?: () => Date } | null | undefined): Date | undefined => 
+        const convertTimestamp = (
+          timestamp: { toDate?: () => Date } | null | undefined
+        ): Date | undefined =>
           timestamp && timestamp.toDate ? timestamp.toDate() : undefined;
 
-        data.lastStoryGeneratedAt = convertTimestamp(data.lastStoryGeneratedAt as { toDate?: () => Date } | null | undefined);
-        data.createdAt = convertTimestamp(data.createdAt as { toDate?: () => Date } | null | undefined);
-        data.updatedAt = convertTimestamp(data.updatedAt as { toDate?: () => Date } | null | undefined);
+        data.lastStoryGeneratedAt = convertTimestamp(
+          data.lastStoryGeneratedAt as
+            | { toDate?: () => Date }
+            | null
+            | undefined
+        );
+        data.createdAt = convertTimestamp(
+          data.createdAt as { toDate?: () => Date } | null | undefined
+        );
+        data.updatedAt = convertTimestamp(
+          data.updatedAt as { toDate?: () => Date } | null | undefined
+        );
 
         this.cache.set(userId, data);
-        
-        log.info('Successfully fetched user preferences', { userId });
+
+        log.info("Successfully fetched user preferences", { userId });
         return data;
       }
 
       // If no preferences exist, create default ones
       const defaultPrefs = this.getDefaultPreferences(userId);
       await this.createUserPreferences(defaultPrefs);
-      
-      log.info('Created default user preferences', { userId });
-      
+
+      log.info("Created default user preferences", { userId });
+
       this.cache.set(userId, defaultPrefs);
       return defaultPrefs;
     } catch (error) {
-      const firestoreError = error as { code?: string, message?: string };
+      const firestoreError = error as { code?: string; message?: string };
 
       // Specific handling for offline errors
       if (
-        firestoreError.code === 'unavailable' || 
-        firestoreError.message?.includes('offline')
+        firestoreError.code === "unavailable" ||
+        firestoreError.message?.includes("offline")
       ) {
-        log.warn('Unable to fetch preferences due to offline status', {
+        log.warn("Unable to fetch preferences due to offline status", {
           error: firestoreError,
           userId,
-          context: 'UserPreferencesService.getUserPreferences'
+          context: "UserPreferencesService.getUserPreferences",
         });
 
         // Return cached or default preferences
@@ -244,10 +260,10 @@ class UserPreferencesService {
         return cachedPrefs ?? this.getDefaultPreferences(userId);
       }
 
-      log.error('Error fetching user preferences', {
+      log.error("Error fetching user preferences", {
         error,
         userId,
-        context: 'UserPreferencesService.getUserPreferences'
+        context: "UserPreferencesService.getUserPreferences",
       });
 
       // Return cached data if available, otherwise null

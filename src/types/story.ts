@@ -35,14 +35,20 @@ export interface StoryInput {
 
 export interface Story {
   id: string;
+  title: string;
   content: string;
+  theme: StoryTheme;
   createdAt: string;
   input: StoryInput;
+  userId?: string | null;
+  metadata?: {
+    pronouns: string;
+    possessivePronouns: string;
+    generatedAt: string;
+  };
 }
 
 export interface StoryError {
   message: string;
   code?: string;
 }
-
-

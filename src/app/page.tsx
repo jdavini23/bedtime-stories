@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { motion } from 'framer-motion';
 import { Story, StoryInput } from '@/types/story';
-import { storyApi } from '@/services/api';
+import { useStoryApi } from '@/services/api';
 import Spinner from '@/components/common/Spinner';
 
 // Static animation configuration
@@ -24,13 +24,11 @@ const floatingAnimation = {
 const StoryForm = dynamic(() => import('@/components/story/StoryForm'), { 
   loading: () => <Spinner />,
   ssr: false,
-// Removed 'suspense' as it is not a valid property for DynamicOptions
 });
 
 const StoryDisplay = dynamic(() => import('@/components/story/StoryDisplay'), { 
   loading: () => <Spinner />,
   ssr: false,
-// Removed 'suspense' as it is not a valid property for DynamicOptions
 });
 
 const titleEmojis = ['🌙', '⭐', '📚', '🌟'];
@@ -39,12 +37,13 @@ export default function Home() {
   const [story, setStory] = useState<Story | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const storyApi = useStoryApi();
 
   const handleGenerateStory = useCallback(async (event: React.FormEvent<HTMLFormElement>, input: StoryInput) => {
     event.preventDefault();
+    setIsLoading(true);
+    setError(null);
     try {
-      setIsLoading(true);
-      setError(null);
       const newStory = await storyApi.generateStory(input);
       setStory(newStory);
     } catch (err: unknown) {
@@ -54,7 +53,7 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [storyApi]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-indigo-50 via-purple-50 to-pink-50">

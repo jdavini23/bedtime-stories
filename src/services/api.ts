@@ -1,104 +1,107 @@
-import axios, { AxiosError, AxiosResponse, AxiosInstance } from 'axios';
-import { Story, StoryInput, StoryTheme } from '@/types/story';
-import { storyPersonalizationEngine } from './personalizationEngine';
-import { logger } from '@/utils/logger';
+'use client';
+
+import axios, { AxiosError, AxiosResponse, AxiosInstance } from "axios";
+import { Story, StoryInput, StoryTheme } from "@/types/story";
+import { logger } from "@/utils/logger";
+import { useClientAuth } from "./clientAuth";
+import { useMemo } from "react";
 
 // Simplified error handling
 export class ApiError extends Error {
   constructor(
-    public message: string, 
+    public message: string,
     public code?: number,
     public details?: Record<string, any>
   ) {
     super(message);
-    this.name = 'ApiError';
+    this.name = "ApiError";
   }
 }
 
-class StoryApiService {
-  private api: AxiosInstance;
+const handleApiError = (error: AxiosError): never => {
+  if (error.response) {
+    throw new ApiError(
+      error.response.data.message || "An error occurred",
+      error.response.status,
+      error.response.data
+    );
+  }
+  throw new ApiError(error.message || "Network error occurred");
+};
 
-  constructor() {
-    this.api = axios.create({
-      baseURL: '/api',
+export const useStoryApi = () => {
+  const { getToken } = useClientAuth();
+
+  const api = useMemo(() => {
+    const instance = axios.create({
+      baseURL: "/api",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
-      timeout: 30000  // 30 seconds timeout
+      timeout: 30000,
     });
-  }
 
-  // Enhanced story generation without Firebase dependencies
-  async generateStory(input: StoryInput): Promise<Story> {
-    try {
-      // Validate input
-      this.validateStoryInput(input);
-
-      // Log input details for debugging
-      logger.info('Generating story', { 
-        input: {
-          childName: input.childName,
-          theme: input.theme,
-          interests: input.interests
+    // Update auth interceptor
+    instance.interceptors.request.use(async (config) => {
+      try {
+        const token = await getToken();
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
         }
-      });
+      } catch (error) {
+        logger.error("Error getting auth token:", error);
+      }
+      return config;
+    });
 
-      // Personalize story generation
-      const personalizedStory = await storyPersonalizationEngine.generatePersonalizedStory(
-        input, 
-        null  // Remove user ID dependency
-      );
+    return instance;
+  }, [getToken]);
 
-      logger.info('Story generated successfully', { 
-        theme: input.theme, 
-        interests: input.interests 
-      });
+  return {
+    async generateStory(input: StoryInput): Promise<Story> {
+      // Input validation
+      if (!input.childName || input.childName.trim() === '') {
+        throw new ApiError('Child name is required', 400, { field: 'childName' });
+      }
 
-      return personalizedStory;
-    } catch (error) {
-      const errorContext = {
-        input,
-        error: {
-          name: error instanceof Error ? error.name : 'Unknown Error',
-          message: error instanceof Error ? error.message : String(error),
-          stack: error instanceof Error ? error.stack : 'No stack trace'
+      if (!input.interests || input.interests.length === 0) {
+        throw new ApiError('At least one interest is required', 400, { field: 'interests' });
+      }
+
+      if (!input.theme) {
+        throw new ApiError('Story theme is required', 400, { field: 'theme' });
+      }
+
+      if (!input.gender) {
+        throw new ApiError('Child gender is required', 400, { field: 'gender' });
+      }
+
+      try {
+        const response: AxiosResponse<Story> = await api.post(
+          "/story", 
+          input
+        );
+        return response.data;
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          return handleApiError(error);
         }
-      };
+        throw new ApiError('Unexpected error generating story', 500);
+      }
+    },
 
-      const apiError = new ApiError(
-        'Failed to generate story', 
-        500,
-        errorContext
-      );
-
-      logger.error('Story generation failed', errorContext);
-      throw apiError;
+    async getStoryThemes(): Promise<StoryTheme[]> {
+      try {
+        const response: AxiosResponse<StoryTheme[]> = await api.get(
+          "/story/themes"
+        );
+        return response.data;
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          return handleApiError(error);
+        }
+        throw new ApiError('Failed to fetch story themes', 500);
+      }
     }
-  }
-
-  // Input validation method
-  private validateStoryInput(input: StoryInput): void {
-    const errors: string[] = [];
-
-    if (!input.childName || input.childName.length < 2) {
-      errors.push('Child name must be at least 2 characters long');
-    }
-
-    if (!input.theme) {
-      errors.push('Story theme is required');
-    }
-
-    if (input.interests && input.interests.length > 3) {
-      errors.push('Maximum of 3 interests allowed');
-    }
-
-    if (errors.length > 0) {
-      throw new ApiError('Invalid story input', 400, { validationErrors: errors });
-    }
-  }
-}
-
-// Singleton instance
-export const storyApi = new StoryApiService();
-
-export default storyApi;
+  };
+};

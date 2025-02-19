@@ -1,10 +1,20 @@
 import { Story, StoryInput, StoryTheme } from "@/types/story";
 import { logger } from "@/utils/logger";
-import { v4 as uuidv4 } from "uuid";
 import OpenAI from "openai";
+import { v4 as uuidv4 } from "uuid";
+
+// Define interface for user preferences
+export interface UserPreferences {
+  preferredThemes: string[];
+  mostLikedCharacterTypes: string[];
+  learningInterests: string[];
+  ageGroups: string[];
+  educationalGoals: string[];
+  generatedStories?: number;
+}
 
 // Comprehensive default user preferences
-const DEFAULT_PREFERENCES = {
+export const DEFAULT_PREFERENCES: UserPreferences = {
   preferredThemes: ["adventure", "friendship", "curiosity", "creativity"],
   mostLikedCharacterTypes: ["brave", "curious", "kind", "imaginative"],
   learningInterests: [
@@ -17,12 +27,15 @@ const DEFAULT_PREFERENCES = {
   ],
   ageGroups: ["4-6", "7-9"],
   educationalGoals: ["emotional intelligence", "creativity", "curiosity"],
+  generatedStories: 0
 };
 
 class StoryPersonalizationEngine {
   private openai: OpenAI | undefined;
+  private userId: string | null = null;
 
-  constructor() {
+  constructor(userId: string | null) {
+    this.userId = userId;
     this.openai = new OpenAI({
       apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
       dangerouslyAllowBrowser: true, // Only for client-side usage
@@ -37,17 +50,101 @@ class StoryPersonalizationEngine {
     }
   }
 
+  async getUserPreferences(): Promise<UserPreferences> {
+    if (!this.userId) return DEFAULT_PREFERENCES;
+
+    try {
+      // Get preferences from localStorage, fall back to default if not found
+      const storedPreferences = localStorage.getItem('preferences');
+      if (!storedPreferences) {
+        return DEFAULT_PREFERENCES;
+      }
+
+      // Parse and validate preferences
+      const parsed = JSON.parse(storedPreferences);
+      
+      // Type guard to validate preferences object
+      const isValidPreferences = (obj: unknown): obj is Partial<UserPreferences> => {
+        if (typeof obj !== 'object' || obj === null) return false;
+        
+        const pref = obj as Record<string, unknown>;
+        
+        // Check if properties are arrays of strings when present
+        const isStringArray = (arr: unknown): arr is string[] =>
+          Array.isArray(arr) && arr.every(item => typeof item === 'string');
+
+        return (
+          (!pref.preferredThemes || isStringArray(pref.preferredThemes)) &&
+          (!pref.mostLikedCharacterTypes || isStringArray(pref.mostLikedCharacterTypes)) &&
+          (!pref.learningInterests || isStringArray(pref.learningInterests)) &&
+          (!pref.ageGroups || isStringArray(pref.ageGroups)) &&
+          (!pref.educationalGoals || isStringArray(pref.educationalGoals)) &&
+          (!pref.generatedStories || typeof pref.generatedStories === 'number')
+        );
+      };
+
+      if (!isValidPreferences(parsed)) {
+        logger.error('Invalid preferences format in localStorage');
+        return DEFAULT_PREFERENCES;
+      }
+
+      // Now TypeScript knows parsed is a valid Partial<UserPreferences>
+      return {
+        preferredThemes: parsed.preferredThemes || DEFAULT_PREFERENCES.preferredThemes,
+        mostLikedCharacterTypes: parsed.mostLikedCharacterTypes || DEFAULT_PREFERENCES.mostLikedCharacterTypes,
+        learningInterests: parsed.learningInterests || DEFAULT_PREFERENCES.learningInterests,
+        ageGroups: parsed.ageGroups || DEFAULT_PREFERENCES.ageGroups,
+        educationalGoals: parsed.educationalGoals || DEFAULT_PREFERENCES.educationalGoals,
+        generatedStories: parsed.generatedStories || 0
+      };
+    } catch (error) {
+      logger.error('Error fetching user preferences:', error);
+      return DEFAULT_PREFERENCES;
+    }
+  }
+
+  async updateUserPreferences(newPreferences: Partial<UserPreferences>): Promise<boolean> {
+    if (!this.userId) return false;
+
+    try {
+      const currentPreferences = await this.getUserPreferences();
+      const updatedPreferences = {
+        ...currentPreferences,
+        ...newPreferences
+      };
+      
+      localStorage.setItem('preferences', JSON.stringify(updatedPreferences));
+      return true;
+    } catch (error) {
+      logger.error('Error updating user preferences:', error);
+      return false;
+    }
+  }
+
+  async incrementGeneratedStories() {
+    const currentPreferences = await this.getUserPreferences();
+    if (currentPreferences) {
+      const updatedPreferences = {
+        ...currentPreferences,
+        generatedStories: (currentPreferences.generatedStories || 0) + 1
+      };
+      await this.updateUserPreferences(updatedPreferences);
+    }
+  }
+
   // Generate personalized story using OpenAI
   async generatePersonalizedStory(
     input: StoryInput,
-    preferences: typeof DEFAULT_PREFERENCES = DEFAULT_PREFERENCES
+    preferences?: UserPreferences
   ): Promise<Story> {
-    const { childName, interests, theme, gender } = input;
+    // If preferences not provided, fetch them
+    const userPreferences: UserPreferences = preferences || await this.getUserPreferences();
 
-    const pronouns =
-      gender === "boy" ? "he" : gender === "girl" ? "she" : "they";
-    const possessivePronouns =
-      gender === "boy" ? "his" : gender === "girl" ? "her" : "their";
+    // Determine pronouns based on gender
+    const pronouns: string = input.gender === 'boy' ? 'he' : 
+      input.gender === 'girl' ? 'she' : 'they';
+    const possessivePronouns: string = input.gender === 'boy' ? 'his' : 
+      input.gender === 'girl' ? 'her' : 'their';
 
     try {
       let storyContent: string;
@@ -64,7 +161,7 @@ class StoryPersonalizationEngine {
           possessivePronouns
         );
       } else {
-        // Generate story using OpenAI (existing OpenAI implementation)
+        // Generate story content using OpenAI
         storyContent = await this.generateOpenAIStory(
           input,
           pronouns,
@@ -72,20 +169,28 @@ class StoryPersonalizationEngine {
         );
       }
 
-      // Create and return a proper Story object
-      return {
-        id: uuidv4(),
+      // Create story object
+      const story: Story = {
+        id: this.generateUniqueId(),
+        title: `A Special Story for ${input.childName}`,
         content: storyContent,
-        input,
-        createdAt: new Date().toISOString(),
-        // @ts-ignore
-        readingTime: Math.ceil(storyContent.split(" ").length / 200), // Approximate reading time in minutes
         theme: input.theme,
-        status: "completed",
+        createdAt: new Date().toISOString(),
+        input,
+        metadata: {
+          pronouns,
+          possessivePronouns,
+          generatedAt: new Date().toISOString(),
+        },
       };
+
+      // Increment generated stories count
+      await this.incrementGeneratedStories();
+
+      return story;
     } catch (error) {
-      logger.error("Story generation failed", { error, input });
-      throw new Error("Failed to generate story. Please try again.");
+      logger.error("Error generating personalized story", error);
+      throw error;
     }
   }
 
@@ -97,20 +202,21 @@ class StoryPersonalizationEngine {
     const { childName, interests, theme } = input;
 
     // Enhanced fallback story generation based on theme
-    const themeBasedIntros = {
+    const themeBasedIntros: Record<StoryTheme, string> = {
       adventure: `In a world full of endless possibilities, ${childName} embarked on an incredible journey.`,
       fantasy: `In a magical realm where dreams come true, ${childName} discovered something extraordinary.`,
       science: `Curious about the wonders of science, ${childName} began an amazing experiment.`,
       nature: `On a beautiful day surrounded by nature, ${childName} made an incredible discovery.`,
       friendship: `${childName} learned the true meaning of friendship on a special day.`,
-      family: `During a wonderful time with family, ${childName} experienced something magical.`,
+      educational: `${childName} discovered something fascinating to learn about today.`,
+      courage: `${childName} faced a challenge with bravery and determination.`,
+      kindness: `${childName} learned how a small act of kindness can make a big difference.`,
+      curiosity: `${childName}'s curiosity led to an amazing discovery.`,
+      creativity: `${childName} let imagination soar and created something wonderful.`
     };
 
-    const intro =
-      themeBasedIntros[theme as keyof typeof themeBasedIntros] ||
-      `Once upon a time, there was a wonderful child named ${childName} who loved ${interests.join(
-        " and "
-      )}.`;
+    const intro = themeBasedIntros[theme] || 
+      `Once upon a time, there was a wonderful child named ${childName} who loved ${interests.join(" and ")}.`;
 
     return `${intro}\n\n${this.generateStoryMiddle(
       input,
@@ -190,4 +296,4 @@ class StoryPersonalizationEngine {
 }
 
 // Singleton instance of the personalization engine
-export const storyPersonalizationEngine = new StoryPersonalizationEngine();
+export const storyPersonalizationEngine = new StoryPersonalizationEngine(null);

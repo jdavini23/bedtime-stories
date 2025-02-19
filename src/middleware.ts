@@ -1,53 +1,42 @@
-import { withAuth } from 'next-auth/middleware';
-import { NextResponse } from 'next/server';
+import { withClerkMiddleware, getAuth } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-export default withAuth(
-  function middleware(req) {
-    const path = req.nextUrl.pathname;
-    const isAuthPage = path === '/auth/signin';
-    const isCallbackPage = path.startsWith('/api/auth/callback');
+// Public routes that don't require authentication
+const publicRoutes = [
+  "/",
+  "/auth/signin",
+  "/auth/signup",
+  "/api/webhook/clerk",
+];
 
-    // Allow callback URLs to pass through
-    if (isCallbackPage) {
-      return NextResponse.next();
-    }
+// Routes that can be accessed while signed in or not
+const ignoredRoutes = [
+  "/about",
+  "/contact",
+  "/_next/static",
+  "/favicon.ico",
+];
 
-    // If user is authenticated and tries to access login page,
-    // redirect them to dashboard
-    if (isAuthPage && req.nextauth.token) {
-      return NextResponse.redirect(new URL('/dashboard', req.url));
-    }
+export default withClerkMiddleware((request: NextRequest) => {
+  const { userId } = getAuth(request);
+  const path = request.nextUrl.pathname;
 
+  // Check if the route is public or ignored
+  if (publicRoutes.includes(path) || ignoredRoutes.some(route => path.startsWith(route))) {
     return NextResponse.next();
-  },
-  {
-    callbacks: {
-      authorized: ({ token, req }) => {
-        const path = req.nextUrl.pathname;
-        
-        // Always allow access to auth-related paths
-        if (
-          path === '/auth/signin' ||
-          path.startsWith('/api/auth/')
-        ) {
-          return true;
-        }
-
-        // Require authentication for all other protected routes
-        return !!token;
-      }
-    }
   }
-);
 
-// Specify which routes this middleware should run on
+  // If the user is not signed in and the route is protected, redirect to sign-in
+  if (!userId) {
+    const signInUrl = new URL('/auth/signin', request.url);
+    signInUrl.searchParams.set('redirect_url', request.url);
+    return NextResponse.redirect(signInUrl);
+  }
+
+  return NextResponse.next();
+});
+
 export const config = {
-  matcher: [
-    '/dashboard/:path*',
-    '/stories/:path*',
-    '/profile/:path*',
-    '/generate/:path*',
-    '/auth/signin',
-    '/api/auth/callback/:path*'
-  ]
+  matcher: ['/((?!.+\\.[\\w]+$|_next).*)', '/', '/(api|trpc)(.*)'],
 };

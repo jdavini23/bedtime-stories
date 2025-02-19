@@ -27,7 +27,22 @@ interface UserPreferences {
   lastStoryDate?: Date;
 }
 
-export default function DashboardPage() {
+import { auth } from "@clerk/nextjs";
+
+export default async function DashboardPage() {
+  const { userId } = auth();
+
+  if (!userId) {
+    redirect("/sign-in");
+  }
+
+  return (
+    <div>
+      {/* Your dashboard content */}
+    </div>
+  );
+}
+
   const { data: session, status } = useSession({
     required: true,
     onUnauthenticated() {
@@ -85,7 +100,7 @@ export default function DashboardPage() {
   if (isOffline) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center bg-gray-100">
-        <WifiOff className="w-16 h-16 text-gray-500 mb-4" />
+        <WifiOffIcon className="w-16 h-16 text-gray-500 mb-4" />
         <h2 className="text-2xl font-bold mb-2">You're Offline</h2>
         <p className="text-gray-600 mb-4">
           Some features may be limited while you're offline. 
@@ -120,21 +135,21 @@ export default function DashboardPage() {
     {
       title: 'Create Story',
       description: 'Start a new magical adventure',
-      icon: <WandSparkles className="w-8 h-8 text-purple-600" />,
+      icon: <Wand className="w-8 h-8 text-purple-600" />,
       link: '/story/create',
       color: 'bg-purple-50'
     },
     {
       title: 'Story History',
       description: 'View your generated stories',
-      icon: <BookOpen className="w-8 h-8 text-blue-600" />,
+      icon: <Book className="w-8 h-8 text-blue-600" />,
       link: '/stories',
       color: 'bg-blue-50'
     },
     {
       title: 'Preferences',
       description: 'Customize your experience',
-      icon: <Cog className="w-8 h-8 text-green-600" />,
+      icon: <Settings className="w-8 h-8 text-green-600" />,
       link: '/preferences',
       color: 'bg-green-50'
     }
@@ -148,7 +163,7 @@ export default function DashboardPage() {
       </div>
       
       <Suspense fallback={<DashboardStatisticsSkeleton />}>
-        <DashboardStatistics preferences={userPreferences ?? undefined} />
+        <DashboardStatistics preferences={userPreferences as import('@/services/userPreferencesService').UserPreferences | undefined} />
       </Suspense>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
