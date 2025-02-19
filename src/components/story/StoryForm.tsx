@@ -32,6 +32,19 @@ const GENDER_OPTIONS: SelectOption[] = [
   { value: 'neutral', label: 'Other' }
 ];
 
+const MOOD_OPTIONS: SelectOption[] = [
+  { value: 'humorous', label: '😄 Humorous' },
+  { value: 'adventurous', label: '🌟 Adventurous' },
+  { value: 'calming', label: '🌙 Calming' },
+  { value: 'mysterious', label: '🔮 Mysterious' },
+  { value: 'exciting', label: '✨ Exciting' },
+  { value: 'whimsical', label: '🦄 Whimsical' },
+  { value: 'dramatic', label: '🎭 Dramatic' },
+  { value: 'peaceful', label: '🕊️ Peaceful' },
+  { value: 'inspiring', label: '💫 Inspiring' },
+  { value: 'magical', label: '🌈 Magical' }
+];
+
 interface StoryFormProps {
   onSubmit: (event: React.FormEvent<HTMLFormElement>, input: StoryInput) => Promise<void>;
   isLoading?: boolean;
@@ -41,7 +54,9 @@ const StoryForm: FC<StoryFormProps> = memo(({ onSubmit, isLoading = false }) => 
   const [characterName, setCharacterName] = useState('');
   const [selectedTheme, setSelectedTheme] = useState(THEME_OPTIONS[0]);
   const [selectedGender, setSelectedGender] = useState(GENDER_OPTIONS[2]);
+  const [selectedMood, setSelectedMood] = useState(MOOD_OPTIONS[0]);
   const [interests, setInterests] = useState('');
+  const [favoriteCharacters, setFavoriteCharacters] = useState('');
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -112,6 +127,10 @@ const StoryForm: FC<StoryFormProps> = memo(({ onSubmit, isLoading = false }) => 
       newErrors.interests = 'Interests are required';
     }
 
+    if (!favoriteCharacters.trim()) {
+      newErrors.favoriteCharacters = 'At least one favorite character is recommended';
+    }
+
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length > 0) {
@@ -135,7 +154,12 @@ const StoryForm: FC<StoryFormProps> = memo(({ onSubmit, isLoading = false }) => 
           childName: characterName.trim(),
           interests: interestsList,
           theme: selectedTheme.value as StoryInput['theme'],
-          gender: selectedGender.value as StoryInput['gender']
+          gender: selectedGender.value as StoryInput['gender'],
+          mood: selectedMood.value as StoryInput['mood'],
+          favoriteCharacters: favoriteCharacters
+            .split(',')
+            .map(char => char.trim())
+            .filter(Boolean)
         }),
         timeoutPromise
       ]);
@@ -228,6 +252,29 @@ const StoryForm: FC<StoryFormProps> = memo(({ onSubmit, isLoading = false }) => 
             value={selectedGender}
             onChange={setSelectedGender}
             className="w-full"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">
+            Story Mood
+          </label>
+          <Select
+            options={MOOD_OPTIONS}
+            value={selectedMood}
+            onChange={setSelectedMood}
+            className="w-full"
+          />
+        </div>
+
+        <div className="relative">
+          <Input
+            label="Favorite Characters"
+            id="favoriteCharacters"
+            value={favoriteCharacters}
+            onChange={(e) => setFavoriteCharacters(e.target.value)}
+            placeholder="Enter favorite characters (comma-separated)"
+            error={errors.favoriteCharacters}
           />
         </div>
 

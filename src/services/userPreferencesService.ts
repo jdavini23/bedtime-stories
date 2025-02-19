@@ -150,7 +150,7 @@ class UserPreferencesService {
   // Static method for backwards compatibility
   static async logout(): Promise<void> {
     try {
-      await signOut({ callbackUrl: "/login" });
+      await signOut({ callbackUrl: "/auth/signin" });
     } catch (error) {
       console.error("Logout error:", error);
       throw error;

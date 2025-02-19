@@ -153,16 +153,17 @@ class StoryPersonalizationEngine {
           {
             role: "system",
             content: `You are a creative storyteller specializing in personalized children's stories. Create an engaging, age-appropriate story that:
-            1. Features talking animals as main characters alongside ${input.childName}
+            1. Features ${input.favoriteCharacters ? input.favoriteCharacters.join(', ') + ' and' : 'talking animals as main characters'} alongside ${input.childName}
             2. Incorporates ${input.childName}'s interests: ${input.interests.join(', ')}
             3. Is themed around ${input.theme}
-            4. Teaches a valuable life lesson while maintaining a sense of wonder
-            5. Uses ${pronouns} and ${possessivePronouns} pronouns for ${input.childName}
-            6. Includes magical elements and vivid descriptions
-            7. Is structured with a clear beginning, middle, and end
-            8. Is approximately 500-800 words long
-            9. Uses child-friendly language and short paragraphs
-            10. Ends with a positive, uplifting message`
+            4. Matches the desired mood: ${input.mood || 'cheerful and uplifting'}
+            5. Teaches a valuable life lesson while maintaining a sense of wonder
+            6. Uses ${pronouns} and ${possessivePronouns} pronouns for ${input.childName}
+            7. Includes magical elements and vivid descriptions
+            8. Is structured with a clear beginning, middle, and end
+            9. Is approximately 500-800 words long
+            10. Uses child-friendly language and short paragraphs
+            11. Ends with a positive, uplifting message that resonates with the chosen mood`
           },
           {
             role: "user",

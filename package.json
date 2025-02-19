@@ -15,10 +15,8 @@
     "test:firebase": "ts-node --project tsconfig.json scripts/test-firebase.ts"
   },
   "dependencies": {
-    "@firebase/auth": "^1.9.0",
     "@headlessui/react": "^2.2.0",
     "@heroicons/react": "^2.2.0",
-    "@types/firebase": "^2.4.32",
     "@types/uuid": "^10.0.0",
     "@vercel/analytics": "^1.5.0",
     "@vercel/kv": "^3.0.0",

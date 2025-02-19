@@ -17,7 +17,9 @@ export default function SignInPage() {
   const handleGoogleLogin = async () => {
     setIsLoading(prev => ({ ...prev, google: true }));
     try {
-      await loginWithGoogle();
+      // TODO: Implement proper Google OAuth login
+      // For now, throwing error to indicate missing implementation
+      throw new Error('Google login not implemented');
       router.push('/dashboard');
     } catch (error) {
       console.error('Google Login Failed', error);
@@ -30,7 +32,9 @@ export default function SignInPage() {
   const handleGithubLogin = async () => {
     setIsLoading(prev => ({ ...prev, github: true }));
     try {
-      await loginWithGithub();
+      // TODO: Implement proper GitHub OAuth login
+      // For now, throwing error to indicate missing implementation
+      throw new Error('GitHub login not implemented');
       router.push('/dashboard');
     } catch (error) {
       console.error('GitHub Login Failed', error);
@@ -65,7 +69,7 @@ export default function SignInPage() {
             variant="outline"
           >
             {isLoading.google ? (
-              <LucideIcons.Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <LucideIcons.Loader className="mr-2 h-4 w-4 animate-spin" />
             ) : (
               <LucideIcons.Chrome className="mr-2 h-5 w-5" />
             )}
@@ -81,7 +85,7 @@ export default function SignInPage() {
             {isLoading.github ? (
               <LucideIcons.Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
-              <LucideIcons.GithubIcon className="mr-2 h-5 w-5" />
+              <LucideIcons.Github className="mr-2 h-5 w-5" />
             )}
             Continue with GitHub
           </Button>
@@ -96,5 +100,3 @@ export default function SignInPage() {
     </div>
   );
 }
-
-

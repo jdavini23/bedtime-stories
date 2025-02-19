@@ -6,11 +6,11 @@ import { redirect } from 'next/navigation';
 import { safeFirebaseOperation } from '@/lib/firebase/client';
 import { motion } from 'framer-motion';
 import { 
-  BookOpen, 
+  Book,
   Star, 
-  WandSparkles, 
-  Cog, 
-  WifiOff 
+  Wand,
+  Settings,
+  WifiOff as WifiOffIcon
 } from 'lucide-react';
 import UserPreferencesService from '@/services/userPreferencesService';
 import DashboardStatisticsSkeleton from '@/components/dashboard/DashboardStatisticsSkeleton';
@@ -31,7 +31,7 @@ export default function DashboardPage() {
   const { data: session, status } = useSession({
     required: true,
     onUnauthenticated() {
-      redirect('/login');
+      redirect('/auth/signin');
     },
   });
 

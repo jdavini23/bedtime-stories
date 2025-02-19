@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 export default withAuth(
   function middleware(req) {
     const path = req.nextUrl.pathname;
-    const isAuthPage = path === '/login';
+    const isAuthPage = path === '/auth/signin';
     const isCallbackPage = path.startsWith('/api/auth/callback');
 
     // Allow callback URLs to pass through
@@ -27,7 +27,7 @@ export default withAuth(
         
         // Always allow access to auth-related paths
         if (
-          path === '/login' ||
+          path === '/auth/signin' ||
           path.startsWith('/api/auth/')
         ) {
           return true;
@@ -47,7 +47,7 @@ export const config = {
     '/stories/:path*',
     '/profile/:path*',
     '/generate/:path*',
-    '/login',
+    '/auth/signin',
     '/api/auth/callback/:path*'
   ]
 };
