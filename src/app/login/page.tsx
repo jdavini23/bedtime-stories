@@ -1,95 +1,92 @@
 'use client';
 
-import React from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { signIn } from 'next-auth/react';
-import { useSession } from '@/hooks/useSession';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Button } from '@/components/ui/Button';
-import { Chrome, Book, AlertCircle } from 'lucide-react';
+import { signInWithGoogle, signInWithGithub } from '@/lib/firebaseAuth';
+import { useRouter } from 'next/navigation';
+import { FcGoogle } from 'react-icons/fc';
+import { FaGithub } from 'react-icons/fa';
 
 export default function LoginPage() {
-  const { isAuthenticated } = useSession();
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const error = searchParams?.get('error');
 
-  // If already authenticated, redirect to dashboard
-  React.useEffect(() => {
-    if (isAuthenticated) {
-      router.replace('/dashboard');
-    }
-  }, [isAuthenticated, router]);
-
-  const handleSignIn = async () => {
+  const handleSocialLogin = async (provider: 'google' | 'github') => {
     try {
-      await signIn('google', {
-        callbackUrl: '/dashboard',
-        redirect: true
-      });
-    } catch (error) {
-      console.error('Sign in error:', error);
+      setError(null);
+      const loginMethod = provider === 'google' ? signInWithGoogle : signInWithGithub;
+      
+      const user = await loginMethod();
+      
+      if (user) {
+        // Redirect to home or dashboard after successful login
+        router.push('/');
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error 
+        ? err.message 
+        : `${provider.charAt(0).toUpperCase() + provider.slice(1)} login failed`;
+      
+      setError(errorMessage);
+      console.error(`${provider} login error:`, err);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
       <motion.div 
+        className="bg-white shadow-2xl rounded-2xl p-8 w-full max-w-md"
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ 
-          duration: 0.5, 
-          type: "spring", 
-          stiffness: 120 
-        }}
-        className="max-w-md w-full space-y-8 p-10 bg-white rounded-2xl shadow-2xl border border-gray-100"
+        transition={{ duration: 0.5 }}
       >
+        <h2 className="text-3xl font-bold text-center mb-6 text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600">
+          Welcome Back
+        </h2>
+
         {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
+          <motion.div 
+            className="bg-red-50 text-red-700 p-4 rounded-lg mb-6 text-center"
+            initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="p-4 mb-4 text-sm rounded-lg bg-red-50 text-red-600 flex items-center"
           >
-            <AlertCircle className="w-5 h-5 mr-2" />
-            <span>There was an error signing in. Please try again.</span>
+            {error}
           </motion.div>
         )}
 
-        <div className="text-center">
-          <div className="mx-auto mb-6 w-20 h-20 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center shadow-lg">
-            <Book className="w-10 h-10 text-white" />
-          </div>
-          <h2 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">
-            Bedtime Stories
-          </h2>
-          <p className="mt-4 text-lg text-gray-600">
-            Create magical stories for your children
-          </p>
-        </div>
-        
-        <div className="space-y-6">
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+        <div className="space-y-4">
+          <motion.button
+            onClick={() => handleSocialLogin('google')}
+            className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 rounded-lg py-3 px-4 hover:bg-gray-50 transition-colors"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
-            <Button 
-              onClick={handleSignIn}
-              variant="default" 
-              className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-            >
-              <Chrome className="mr-2 h-6 w-6" />
-              Sign in with Google
-            </Button>
-          </motion.div>
+            <FcGoogle className="text-2xl" />
+            <span className="font-semibold text-gray-700">
+              Continue with Google
+            </span>
+          </motion.button>
+
+          <motion.button
+            onClick={() => handleSocialLogin('github')}
+            className="w-full flex items-center justify-center gap-3 bg-gray-800 text-white rounded-lg py-3 px-4 hover:bg-gray-700 transition-colors"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <FaGithub className="text-2xl" />
+            <span className="font-semibold">
+              Continue with GitHub
+            </span>
+          </motion.button>
         </div>
 
-        <div className="text-center text-sm text-gray-500 mt-6">
+        <div className="mt-6 text-center text-sm text-gray-500">
           By signing in, you agree to our{' '}
-          <a href="/terms" className="underline hover:text-purple-600">
+          <a href="/terms" className="text-indigo-600 hover:underline">
             Terms of Service
           </a>{' '}
           and{' '}
-          <a href="/privacy" className="underline hover:text-purple-600">
+          <a href="/privacy" className="text-indigo-600 hover:underline">
             Privacy Policy
           </a>
         </div>

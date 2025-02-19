@@ -144,6 +144,10 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
 
     try {
+      // Set up a timeout for the OpenAI request
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 25000); // 25 second timeout
+
       const completion = await openai.chat.completions.create({
         model: "gpt-3.5-turbo",
         messages: [
@@ -194,7 +198,12 @@ export async function POST(request: Request): Promise<NextResponse> {
         max_tokens: 600,
         presence_penalty: 0.2,
         frequency_penalty: 0.5,
+      }, {
+        signal: controller.signal,
+        timeout: 25000 // 25 second timeout
       });
+
+      clearTimeout(timeoutId);
 
       const story = completion.choices[0]?.message?.content;
       if (!story) {
@@ -222,6 +231,17 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     } catch (error: unknown) {
       console.error('OpenAI API error:', error);
+      
+      if (error instanceof Error && error.name === 'AbortError') {
+        return NextResponse.json(
+          {
+            error: 'Story generation timed out',
+            code: 'TIMEOUT_ERROR',
+            message: 'Please try again'
+          },
+          { status: 408 }
+        );
+      }
       
       if (isQuotaError(error)) {
         const retryAfter = parseInt((error as ApiError).headers?.['retry-after'] || '60', 10);
@@ -260,5 +280,3 @@ export async function POST(request: Request): Promise<NextResponse> {
     return NextResponse.json(errorResponse, { status: 500 });
   }
 }
-
-

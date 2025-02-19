@@ -3,7 +3,7 @@ import { Book, Star, Clock } from 'lucide-react';
 import { UserPreferences } from '@/services/userPreferencesService';
 
 interface DashboardStatisticsProps {
-  preferences: UserPreferences;
+  preferences?: UserPreferences;
 }
 
 const StatCard: React.FC<{
@@ -24,24 +24,33 @@ const StatCard: React.FC<{
 );
 
 export default function DashboardStatistics({ preferences }: DashboardStatisticsProps) {
+  // Provide default values if preferences are undefined
+  const defaultPreferences: Partial<UserPreferences> = {
+    generatedStoryCount: 0,
+    preferredThemes: [],
+    lastStoryGeneratedAt: undefined
+  };
+
+  const safePreferences = preferences || defaultPreferences;
+
   const statistics = [
     {
       icon: <Book className="text-blue-500" />,
       title: 'Stories Generated',
-      value: preferences.generatedStoryCount || 0,
+      value: safePreferences.generatedStoryCount ?? 0,
       color: 'text-blue-500'
     },
     {
       icon: <Star className="text-yellow-500" />,
       title: 'Favorite Themes',
-      value: preferences.preferredThemes?.length || 0,
+      value: safePreferences.preferredThemes?.length ?? 0,
       color: 'text-yellow-500'
     },
     {
       icon: <Clock className="text-green-500" />,
       title: 'Last Story Generated',
-      value: preferences.lastStoryGeneratedAt 
-        ? new Date(preferences.lastStoryGeneratedAt).toLocaleDateString() 
+      value: safePreferences.lastStoryGeneratedAt 
+        ? new Date(safePreferences.lastStoryGeneratedAt).toLocaleDateString() 
         : 'Never',
       color: 'text-green-500'
     }
@@ -61,5 +70,3 @@ export default function DashboardStatistics({ preferences }: DashboardStatistics
     </div>
   );
 }
-
-

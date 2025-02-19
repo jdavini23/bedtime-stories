@@ -335,6 +335,9 @@ export function FirebaseAdapter(): Adapter {
           expires,
         };
 
+        if (!this.getUser) {
+          throw new Error("getUser method is not defined");
+        }
         const user = await this.getUser(userId);
         if (!user) return null;
 

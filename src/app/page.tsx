@@ -20,15 +20,17 @@ const floatingAnimation = {
   }
 };
 
-// Dynamically import components
+// Dynamically import components with improved configuration
 const StoryForm = dynamic(() => import('@/components/story/StoryForm'), { 
   loading: () => <Spinner />,
-  ssr: false 
+  ssr: false,
+// Removed 'suspense' as it is not a valid property for DynamicOptions
 });
 
 const StoryDisplay = dynamic(() => import('@/components/story/StoryDisplay'), { 
   loading: () => <Spinner />,
-  ssr: false 
+  ssr: false,
+// Removed 'suspense' as it is not a valid property for DynamicOptions
 });
 
 const titleEmojis = ['🌙', '⭐', '📚', '🌟'];
@@ -38,7 +40,8 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleGenerateStory = useCallback(async (input: StoryInput) => {
+  const handleGenerateStory = useCallback(async (event: React.FormEvent<HTMLFormElement>, input: StoryInput) => {
+    event.preventDefault();
     try {
       setIsLoading(true);
       setError(null);
@@ -47,6 +50,7 @@ export default function Home() {
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to generate story';
       setError(errorMessage);
+      console.error('Story generation error:', err);
     } finally {
       setIsLoading(false);
     }
@@ -121,5 +125,3 @@ export default function Home() {
     </div>
   );
 }
-
-

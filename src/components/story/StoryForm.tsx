@@ -33,7 +33,7 @@ const GENDER_OPTIONS: SelectOption[] = [
 ];
 
 interface StoryFormProps {
-  onSubmit: (input: StoryInput) => Promise<void>;
+  onSubmit: (event: React.FormEvent<HTMLFormElement>, input: StoryInput) => Promise<void>;
   isLoading?: boolean;
 }
 
@@ -99,7 +99,7 @@ const StoryForm: FC<StoryFormProps> = memo(({ onSubmit, isLoading = false }) => 
     inputRef.current?.focus();
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const newErrors: Record<string, string> = {};
@@ -123,12 +123,27 @@ const StoryForm: FC<StoryFormProps> = memo(({ onSubmit, isLoading = false }) => 
       .map(interest => interest.trim())
       .filter(Boolean);
 
-    await onSubmit({
-      childName: characterName.trim(),
-      interests: interestsList,
-      theme: selectedTheme.value as StoryInput['theme'],
-      gender: selectedGender.value as StoryInput['gender']
-    });
+    try {
+      // Set up a timeout of 30 seconds
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Story generation timed out')), 30000);
+      });
+
+      // Race between the story generation and timeout
+      await Promise.race([
+        onSubmit(e, {
+          childName: characterName.trim(),
+          interests: interestsList,
+          theme: selectedTheme.value as StoryInput['theme'],
+          gender: selectedGender.value as StoryInput['gender']
+        }),
+        timeoutPromise
+      ]);
+    } catch (error) {
+      setErrors({
+        submit: error instanceof Error ? error.message : 'Failed to generate story'
+      });
+    }
   };
 
   return (
@@ -235,5 +250,3 @@ const StoryForm: FC<StoryFormProps> = memo(({ onSubmit, isLoading = false }) => 
 StoryForm.displayName = 'StoryForm';
 export { StoryForm };
 export default StoryForm;
-
-

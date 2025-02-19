@@ -36,6 +36,17 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
   const [copySuccess, setCopySuccess] = useState<boolean>(false);
   const [isSharing, setIsSharing] = useState<boolean>(false);
 
+  // Return early if story is undefined
+  if (!story || !story.input) {
+    return (
+      <div className="w-full max-w-3xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl p-8 mt-8">
+          <p className="text-gray-700">Story not available</p>
+        </div>
+      </div>
+    );
+  }
+
   // Helper function to get theme emoji
   const getThemeEmoji = useCallback((theme: string): string => {
     const emojiMap: Record<string, string> = {
@@ -66,16 +77,16 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
   const handleShare = useCallback(async () => {
     setIsSharing(true);
     try {
-      const mailtoLink = `mailto:?subject=A Bedtime Story for ${story.input.childName}&body=${encodeURIComponent(story.content)}`;
-      window.location.href = mailtoLink;
+      const childName = story.input?.childName || 'You';
+      const mailtoLink = `mailto:?subject=A Bedtime Story for ${childName}&body=${encodeURIComponent(story.content || '')}`;      window.location.href = mailtoLink;
     } finally {
       setTimeout(() => setIsSharing(false), 1000);
     }
-  }, [story.input.childName, story.content]);
+  }, [story.input?.childName, story.content]);
 
   return (
     <div className="relative w-full max-w-3xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-      {story && (
+      {story && story.input && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -87,7 +98,7 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6">
             <div>
               <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-pink-600">
-                {story.input.childName}&apos;s Bedtime Story
+                {story.input.childName || 'Your'}&apos;s Bedtime Story
               </h2>
               <div className="flex items-center gap-2 mt-2 text-sm text-gray-500">
                 <span className="text-lg">{getThemeEmoji(story.input.theme)}</span>
@@ -129,7 +140,7 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
               onClick={handleCopy}
               className="flex-1 transition-all duration-200 hover:bg-indigo-50"
             >
-              <AnimatePresence mode="wait">
+              <motion.div>
                 <motion.span
                   key={copySuccess ? 'copied' : 'copy'}
                   initial={{ opacity: 0 }}
@@ -139,7 +150,7 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
                 >
                   {copySuccess ? '✓ Copied!' : 'Copy Story'}
                 </motion.span>
-              </AnimatePresence>
+</motion.div>
             </Button>
             <Button
               variant="outline"
@@ -169,5 +180,3 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
 StoryDisplay.displayName = 'StoryDisplay';
 export { StoryDisplay };
 export default StoryDisplay;
-
-

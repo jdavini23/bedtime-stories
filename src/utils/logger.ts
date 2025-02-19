@@ -72,30 +72,102 @@ class Logger {
     const { level, message, context, timestamp } = entry;
     const formattedTimestamp = new Date(timestamp).toISOString();
 
+    // Advanced context stringification with depth and circular reference handling
+    const stringifyContext = (
+      ctx?: Record<string, any>, 
+      maxDepth: number = 3
+    ): string => {
+      if (!ctx || Object.keys(ctx).length === 0) return '';
+      
+      const seen = new WeakSet();
+      
+      const safeStringify = (value: any, depth: number = 0): any => {
+        // Handle primitive types
+        if (value === null || ['string', 'number', 'boolean'].includes(typeof value)) {
+          return value;
+        }
+
+        // Prevent circular references
+        if (typeof value === 'object' && seen.has(value)) {
+          return '[Circular]';
+        }
+
+        // Add to seen set
+        if (typeof value === 'object') {
+          seen.add(value);
+        }
+
+        // Handle Error objects
+        if (value instanceof Error) {
+          return {
+            name: value.name,
+            message: value.message,
+            stack: value.stack?.split('\n').slice(0, 5).join('\n') // Limit stack trace
+          };
+        }
+
+        // Limit depth
+        if (depth >= maxDepth) {
+          return '[Max Depth Reached]';
+        }
+
+        // Handle arrays
+        if (Array.isArray(value)) {
+          return value.map(item => safeStringify(item, depth + 1));
+        }
+
+        // Handle objects
+        if (typeof value === 'object') {
+          const result: Record<string, any> = {};
+          for (const [key, val] of Object.entries(value)) {
+            result[key] = safeStringify(val, depth + 1);
+          }
+          return result;
+        }
+
+        return value;
+      };
+
+      try {
+        const processedContext = safeStringify(ctx);
+        return JSON.stringify(processedContext, null, 2);
+      } catch (err) {
+        return '[Unable to stringify context]';
+      }
+    };
+
+    const contextString = stringifyContext(context);
+
+    // Colorized log levels with context
+    const logWithContext = (
+      consoleMethod: (...args: any[]) => void, 
+      levelColor: string, 
+      levelName: string
+    ) => {
+      if (contextString) {
+        consoleMethod(
+          `${levelColor}[${levelName}]\x1b[0m ${formattedTimestamp} - ${message}`,
+          contextString
+        );
+      } else {
+        consoleMethod(
+          `${levelColor}[${levelName}]\x1b[0m ${formattedTimestamp} - ${message}`
+        );
+      }
+    };
+
     switch (level) {
       case LogLevel.ERROR:
-        console.error(
-          `\x1b[31m[ERROR]\x1b[0m ${formattedTimestamp} - ${message}`, 
-          context ? context : ''
-        );
+        logWithContext(console.error, '\x1b[31m', 'ERROR');
         break;
       case LogLevel.WARN:
-        console.warn(
-          `\x1b[33m[WARN]\x1b[0m ${formattedTimestamp} - ${message}`, 
-          context ? context : ''
-        );
+        logWithContext(console.warn, '\x1b[33m', 'WARN');
         break;
       case LogLevel.INFO:
-        console.info(
-          `\x1b[36m[INFO]\x1b[0m ${formattedTimestamp} - ${message}`, 
-          context ? context : ''
-        );
+        logWithContext(console.info, '\x1b[36m', 'INFO');
         break;
       case LogLevel.DEBUG:
-        console.debug(
-          `\x1b[90m[DEBUG]\x1b[0m ${formattedTimestamp} - ${message}`, 
-          context ? context : ''
-        );
+        logWithContext(console.debug, '\x1b[90m', 'DEBUG');
         break;
     }
   }
@@ -115,7 +187,12 @@ class Logger {
 
   // Public logging methods
   public error(message: string, context?: Record<string, any>): void {
-    this.log(LogLevel.ERROR, message, context);
+    // Ensure context is not an empty object
+    const validContext = context && Object.keys(context).length > 0 
+      ? context 
+      : undefined;
+    
+    this.log(LogLevel.ERROR, message, validContext);
   }
 
   public warn(message: string, context?: Record<string, any>): void {
@@ -143,5 +220,3 @@ export const logger = Logger.getInstance();
 export function configureLogger(config: LoggerConfig): Logger {
   return Logger.getInstance(config);
 }
-
-

@@ -1,280 +1,192 @@
-import { StoryInput, StoryTheme, Story, StoryInterest } from '@/types/story';
-import { storyApi } from './api';
-import { firestoreService, UserStoryPreference } from './firestoreService';
-import { getCurrentUser } from '@/lib/firebaseAuth';
-import { logger } from '@/utils/logger';  
+import { Story, StoryInput, StoryTheme } from "@/types/story";
+import { logger } from "@/utils/logger";
+import { v4 as uuidv4 } from "uuid";
+import OpenAI from "openai";
 
-// Custom error classes for more specific error handling
-export class PersonalizationError extends Error {
-  constructor(message: string, public code?: string) {
-    super(message);
-    this.name = 'PersonalizationError';
-  }
-}
+// Comprehensive default user preferences
+const DEFAULT_PREFERENCES = {
+  preferredThemes: ["adventure", "friendship", "curiosity", "creativity"],
+  mostLikedCharacterTypes: ["brave", "curious", "kind", "imaginative"],
+  learningInterests: [
+    "nature",
+    "science",
+    "friendship",
+    "imagination",
+    "problem-solving",
+    "empathy",
+  ],
+  ageGroups: ["4-6", "7-9"],
+  educationalGoals: ["emotional intelligence", "creativity", "curiosity"],
+};
 
-export class StoryPersonalizationEngine {
-  // Require user ID for story generation
-  async generatePersonalizedStory(
-    input: StoryInput,
-    userId?: string
-  ): Promise<Story> {
-    try {
-      logger.info('Starting personalized story generation', { input, userId });
+class StoryPersonalizationEngine {
+  private openai: OpenAI | undefined;
 
-      // Validate input parameters
-      if (!input) {
-        throw new PersonalizationError(
-          'Invalid story input: Input cannot be null or undefined', 
-          'INVALID_INPUT'
-        );
-      }
-
-      // Get current user if userId not provided
-      const currentUser = userId ? { uid: userId } : getCurrentUser();
-      
-      if (!currentUser?.uid) {
-        throw new PersonalizationError(
-          'Authentication required for story generation', 
-          'AUTH_REQUIRED'
-        );
-      }
-
-      const resolvedUserId = userId || currentUser.uid;
-
-      // Fetch user preferences from Firestore with error handling
-      const userPreferences = await this.fetchUserPreferences(resolvedUserId);
-
-      // Validate user preferences
-      if (!userPreferences) {
-        throw new PersonalizationError(
-          'Failed to retrieve or create user preferences', 
-          'PREFERENCES_RETRIEVAL_FAILED'
-        );
-      }
-
-      // Theme and interest optimization logic
-      const optimizedTheme = this.selectOptimalTheme(
-        input.theme, 
-        userPreferences
-      );
-
-      const enhancedInterests = this.optimizeInterests(
-        input.interests, 
-        userPreferences
-      );
-
-      const personalizedInput: StoryInput = {
-        ...input,
-        theme: optimizedTheme,
-        interests: enhancedInterests
-      };
-
-      // Generate story with performance tracking
-      const startTime = Date.now();
-      const generatedStory = await storyApi.generateStory(personalizedInput);
-      const generationTime = Date.now() - startTime;
-
-      if (!generatedStory) {
-        throw new PersonalizationError(
-          'Story generation returned null or undefined', 
-          'GENERATION_FAILED'
-        );
-      }
-
-      logger.info('Story generated successfully', { 
-        userId: resolvedUserId, 
-        theme: optimizedTheme, 
-        generationTime 
-      });
-
-      // Update user preferences and record story
-      await this.updateUserPreferences(resolvedUserId, generatedStory);
-
-      return generatedStory;
-    } catch (error) {
-      const errorContext = {
-        userId,
-        input,
-        error: {
-          name: error instanceof Error ? error.name : 'Unknown Error',
-          message: error instanceof Error ? error.message : String(error),
-          stack: error instanceof Error ? error.stack : 'No stack trace'
-        }
-      };
-
-      logger.error('Story personalization failed', errorContext);
-
-      if (error instanceof PersonalizationError) {
-        throw error;
-      }
-
-      throw new PersonalizationError(
-        error instanceof Error ? error.message : 'Failed to generate personalized story', 
-        'GENERATION_FAILED'
-      );
-    }
-  }
-
-  private async fetchUserPreferences(userId: string): Promise<UserStoryPreference> {
-    try {
-      const userPreferences = await firestoreService.getUserPreferences(userId);
-      return userPreferences || await this.createDefaultPreferences(userId);
-    } catch (error) {
-      logger.warn('Failed to fetch user preferences, creating defaults', { 
-        userId, 
-        error 
-      });
-      return this.createDefaultPreferences(userId);
-    }
-  }
-
-  private async createDefaultPreferences(userId: string): Promise<UserStoryPreference> {
-    const defaultPreferences: UserStoryPreference = {
-      userId,
-      preferredThemes: [], 
-      avgStoryRating: 0,
-      mostLikedCharacterTypes: [],
-      learningInterests: [],
-      generatedStoryCount: 0
-    };
-
-    try {
-      await firestoreService.upsertUserPreferences(userId, defaultPreferences);
-      logger.info('Default user preferences created', { userId });
-      return defaultPreferences;
-    } catch (error) {
-      logger.error('Failed to create default preferences', { userId, error });
-      throw new PersonalizationError(
-        'Could not create default user preferences', 
-        'DEFAULT_PREFERENCES_FAILED'
-      );
-    }
-  }
-
-  private async updateUserPreferences(
-    userId: string, 
-    story: Story
-  ): Promise<void> {
-    try {
-      // Fetch current preferences
-      const currentPreferences = await firestoreService.getUserPreferences(userId);
-
-      // Prepare updates with type safety
-      const updates: Partial<UserStoryPreference> = {
-        preferredThemes: Array.from(new Set([
-          ...(currentPreferences?.preferredThemes || []),
-          story.input.theme
-        ])),
-        learningInterests: Array.from(new Set([
-          ...(currentPreferences?.learningInterests || []),
-          ...story.input.interests
-        ])),
-        generatedStoryCount: (currentPreferences?.generatedStoryCount || 0) + 1
-      };
-
-      // Update user preferences
-      await firestoreService.upsertUserPreferences(userId, updates);
-
-      // Record the generated story
-      await firestoreService.recordStory(userId, {
-        content: story.content,
-        theme: story.input.theme,
-        interests: story.input.interests
-      });
-
-      logger.info('User preferences and story updated', { 
-        userId, 
-        storyTheme: story.input.theme 
-      });
-    } catch (error) {
-      logger.error('Failed to update user preferences', { 
-        userId, 
-        error 
-      });
-      throw new PersonalizationError(
-        'Could not update user preferences', 
-        'PREFERENCES_UPDATE_FAILED'
-      );
-    }
-  }
-
-  // Intelligent theme selection with more robust type handling
-  private selectOptimalTheme(
-    currentTheme: StoryTheme, 
-    userPreferences: UserStoryPreference
-  ): StoryTheme {
-    const themeRelevanceScore: Record<StoryTheme, number> = {
-      adventure: userPreferences.preferredThemes.includes('adventure') ? 1.2 : 1.0,
-      fantasy: userPreferences.preferredThemes.includes('fantasy') ? 1.2 : 1.0,
-      educational: userPreferences.learningInterests.length > 0 ? 1.3 : 1.0,
-      friendship: userPreferences.preferredThemes.includes('friendship') ? 1.2 : 1.0,
-      courage: 1.0,
-      kindness: 1.0,
-      curiosity: 1.1,
-      creativity: 1.1,
-      nature: userPreferences.learningInterests.includes('nature') ? 1.3 : 1.0,
-      science: userPreferences.learningInterests.includes('science') ? 1.3 : 1.0
-    };
-
-    const sortedThemes = Object.entries(themeRelevanceScore)
-      .sort((a, b) => b[1] - a[1]);
-
-    return sortedThemes[0][0] as StoryTheme || currentTheme;
-  }
-
-  // Optimize interests with more intelligent selection
-  private optimizeInterests(
-    currentInterests: StoryInterest[], 
-    userPreferences: UserStoryPreference
-  ): StoryInterest[] {
-    const enrichedInterests = new Set<StoryInterest>(currentInterests);
-    
-    // Add learning interests, prioritizing user's past interests
-    userPreferences.learningInterests.forEach(interest => {
-      if (!enrichedInterests.has(interest as StoryInterest)) {
-        enrichedInterests.add(interest as StoryInterest);
-      }
+  constructor() {
+    this.openai = new OpenAI({
+      apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
+      dangerouslyAllowBrowser: true, // Only for client-side usage
     });
 
-    return Array.from(enrichedInterests).slice(0, 3); // Limit to 3 interests
+    if (!process.env.NEXT_PUBLIC_OPENAI_API_KEY) {
+      logger.error(
+        "OpenAI API key is missing. Please set NEXT_PUBLIC_OPENAI_API_KEY in your .env.local file."
+      );
+    } else {
+      logger.info("OpenAI client initialized successfully");
+    }
   }
 
-  // Method to manually update user preferences with validation
-  async updatePreferencesManually(
-    userId: string, 
-    updates: Partial<UserStoryPreference>
-  ): Promise<void> {
-    try {
-      const currentPreferences = await firestoreService.getUserPreferences(userId);
-      
-      // Validate updates to prevent unintended modifications
-      const validatedUpdates: Partial<UserStoryPreference> = {
-        preferredThemes: updates.preferredThemes || currentPreferences?.preferredThemes,
-        learningInterests: updates.learningInterests || currentPreferences?.learningInterests,
-        avgStoryRating: updates.avgStoryRating ?? currentPreferences?.avgStoryRating,
-        generatedStoryCount: updates.generatedStoryCount ?? currentPreferences?.generatedStoryCount
-      };
+  // Generate personalized story using OpenAI
+  async generatePersonalizedStory(
+    input: StoryInput,
+    preferences: typeof DEFAULT_PREFERENCES = DEFAULT_PREFERENCES
+  ): Promise<Story> {
+    const { childName, interests, theme, gender } = input;
 
-      await firestoreService.upsertUserPreferences(userId, validatedUpdates);
-      
-      logger.info('User preferences manually updated', { 
-        userId, 
-        updates: validatedUpdates 
-      });
+    const pronouns =
+      gender === "boy" ? "he" : gender === "girl" ? "she" : "they";
+    const possessivePronouns =
+      gender === "boy" ? "his" : gender === "girl" ? "her" : "their";
+
+    try {
+      let storyContent: string;
+
+      if (!this.openai) {
+        logger.info(
+          "Using fallback story generation due to missing OpenAI API key"
+        );
+
+        // Generate story content using fallback mechanism
+        storyContent = this.generateFallbackStory(
+          input,
+          pronouns,
+          possessivePronouns
+        );
+      } else {
+        // Generate story using OpenAI (existing OpenAI implementation)
+        storyContent = await this.generateOpenAIStory(
+          input,
+          pronouns,
+          possessivePronouns
+        );
+      }
+
+      // Create and return a proper Story object
+      return {
+        id: uuidv4(),
+        content: storyContent,
+        input,
+        createdAt: new Date().toISOString(),
+        // @ts-ignore
+        readingTime: Math.ceil(storyContent.split(" ").length / 200), // Approximate reading time in minutes
+        theme: input.theme,
+        status: "completed",
+      };
     } catch (error) {
-      logger.error('Failed to manually update preferences', { 
-        userId, 
-        error 
-      });
-      throw new PersonalizationError(
-        'Could not manually update user preferences', 
-        'MANUAL_PREFERENCES_UPDATE_FAILED'
-      );
+      logger.error("Story generation failed", { error, input });
+      throw new Error("Failed to generate story. Please try again.");
     }
+  }
+
+  private generateFallbackStory(
+    input: StoryInput,
+    pronouns: string,
+    possessivePronouns: string
+  ): string {
+    const { childName, interests, theme } = input;
+
+    // Enhanced fallback story generation based on theme
+    const themeBasedIntros = {
+      adventure: `In a world full of endless possibilities, ${childName} embarked on an incredible journey.`,
+      fantasy: `In a magical realm where dreams come true, ${childName} discovered something extraordinary.`,
+      science: `Curious about the wonders of science, ${childName} began an amazing experiment.`,
+      nature: `On a beautiful day surrounded by nature, ${childName} made an incredible discovery.`,
+      friendship: `${childName} learned the true meaning of friendship on a special day.`,
+      family: `During a wonderful time with family, ${childName} experienced something magical.`,
+    };
+
+    const intro =
+      themeBasedIntros[theme as keyof typeof themeBasedIntros] ||
+      `Once upon a time, there was a wonderful child named ${childName} who loved ${interests.join(
+        " and "
+      )}.`;
+
+    return `${intro}\n\n${this.generateStoryMiddle(
+      input,
+      pronouns,
+      possessivePronouns
+    )}\n\n${this.generateStoryEnding(input, pronouns)}`;
+  }
+
+  private generateStoryMiddle(
+    input: StoryInput,
+    pronouns: string,
+    possessivePronouns: string
+  ): string {
+    const { childName, interests } = input;
+    return `As ${pronouns} explored with excitement, ${childName} discovered that ${possessivePronouns} love for ${interests.join(
+      " and "
+    )} opened up amazing possibilities. Each step of the journey brought new wonders and learning experiences.`;
+  }
+
+  private generateStoryEnding(input: StoryInput, pronouns: string): string {
+    const { childName } = input;
+    return `At the end of this wonderful adventure, ${childName} realized that the greatest magic of all was believing in ${
+      pronouns === "they"
+        ? "themselves"
+        : pronouns === "he"
+        ? "himself"
+        : "herself"
+    }. The end.`;
+  }
+
+  private async generateOpenAIStory(
+    input: StoryInput,
+    pronouns: string,
+    possessivePronouns: string
+  ): Promise<string> {
+    try {
+      const response = await this.openai?.chat.completions.create({
+        model: "gpt-3.5-turbo",
+        messages: [
+          {
+            role: "system",
+            content: `You are a creative storyteller specializing in personalized children's stories. Create an engaging, age-appropriate story that:
+            1. Features talking animals as main characters alongside ${input.childName}
+            2. Incorporates ${input.childName}'s interests: ${input.interests.join(', ')}
+            3. Is themed around ${input.theme}
+            4. Teaches a valuable life lesson while maintaining a sense of wonder
+            5. Uses ${pronouns} and ${possessivePronouns} pronouns for ${input.childName}
+            6. Includes magical elements and vivid descriptions
+            7. Is structured with a clear beginning, middle, and end
+            8. Is approximately 500-800 words long
+            9. Uses child-friendly language and short paragraphs
+            10. Ends with a positive, uplifting message`
+          },
+          {
+            role: "user",
+            content: `Create a bedtime story for ${input.childName} about a magical adventure with talking animals that teaches a valuable lesson about ${input.theme}.`
+          }
+        ],
+        temperature: 0.8,
+        max_tokens: 1000
+      });
+      return (
+        response?.choices[0]?.message?.content ||
+        this.generateFallbackStory(input, pronouns, possessivePronouns)
+      );
+    } catch (error) {
+      logger.error("OpenAI story generation failed", { error, input });
+      return this.generateFallbackStory(input, pronouns, possessivePronouns);
+    }
+  }
+
+  // Generate a unique story ID
+  private generateUniqueId(): string {
+    return uuidv4();
   }
 }
 
-// Singleton instance for easy import
+// Singleton instance of the personalization engine
 export const storyPersonalizationEngine = new StoryPersonalizationEngine();
-
-

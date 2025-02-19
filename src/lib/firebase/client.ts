@@ -1,14 +1,16 @@
 import { initializeApp, getApp, getApps } from 'firebase/app';
 import {
-  getFirestore,
   initializeFirestore,
   persistentLocalCache,
   persistentMultipleTabManager,
   connectFirestoreEmulator,
-  enableIndexedDbPersistence,
   disableNetwork,
   enableNetwork,
-  type Firestore
+  type Firestore,
+  onSnapshot,
+  doc,
+  getFirestore,
+  type FirestoreError
 } from 'firebase/firestore';
 import { getAuth, connectAuthEmulator } from 'firebase/auth';
 
@@ -25,7 +27,7 @@ const firebaseConfig = {
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
 // Initialize Firestore with advanced persistence settings
-const db = initializeFirestore(app, {
+const db = getApps().length ? getFirestore(app) : initializeFirestore(app, {
   localCache: persistentLocalCache({
     tabManager: persistentMultipleTabManager()
   })
@@ -34,61 +36,88 @@ const db = initializeFirestore(app, {
 // Initialize Auth
 const auth = getAuth(app);
 
-// Enhanced offline persistence setup
-async function setupOfflinePersistence(firestoreInstance: Firestore): Promise<boolean> {
+// Enhanced error logging for Firestore connection attempts
+async function checkNetworkConnection(firestoreInstance: Firestore) {
   try {
-    await enableIndexedDbPersistence(firestoreInstance, { 
-      forceOwnership: false 
+    // Use a dummy document to test connection
+    const dummyDocRef = doc(firestoreInstance, '__connectivity__', 'check');
+    
+    return new Promise((resolve, reject) => {
+      const unsubscribe = onSnapshot(
+        dummyDocRef, 
+        () => {
+          console.log('Firestore connection successful');
+          unsubscribe();
+          resolve(true);
+        },
+        (error) => {
+          console.warn('Firestore connection check failed:', error);
+          unsubscribe();
+          reject(error);
+        }
+      );
     });
-    console.log('Offline persistence enabled successfully');
-    return true;
   } catch (error) {
-    const firestoreError = error as { code?: string };
-    switch (firestoreError.code) {
-      case 'failed-precondition':
-        console.warn('Offline persistence can only be enabled in one tab at a time.');
-        break;
-      case 'unimplemented':
-        console.warn('Browser does not support offline persistence.');
-        break;
-      default:
-        console.error('Error enabling offline persistence:', error);
-    }
+    console.error('Network connectivity check failed:', error);
     return false;
   }
 }
 
-// Network connection management
-async function manageNetworkConnection(firestoreInstance: Firestore) {
-  try {
-    // Check initial network status
-    const isOnline = navigator.onLine;
+async function attemptReconnection(firestoreInstance: Firestore) {
+  let connectionAttempts = 0;
+  const MAX_CONNECTION_ATTEMPTS = 5;
+  const RETRY_DELAY_MS = 2000;
 
-    // Add event listeners for online/offline events
-    window.addEventListener('online', () => {
-      console.log('Network connection restored. Enabling Firestore network.');
-      enableNetwork(firestoreInstance);
-    });
-
-    window.addEventListener('offline', () => {
-      console.log('Network connection lost. Disabling Firestore network.');
-      disableNetwork(firestoreInstance);
-    });
-
-    // Initially disable network if offline
-    if (!isOnline) {
+  const reconnect = async () => {
+    if (connectionAttempts >= MAX_CONNECTION_ATTEMPTS) {
+      console.error('Max connection attempts reached. Switching to offline mode.');
       await disableNetwork(firestoreInstance);
+      return;
     }
-  } catch (error) {
-    console.error('Error managing network connection:', error);
-  }
+
+    connectionAttempts++;
+    console.log(`Connection attempt ${connectionAttempts}`);
+
+    try {
+      await enableNetwork(firestoreInstance);
+      const isConnected = await checkNetworkConnection(firestoreInstance);
+      
+      if (!isConnected) {
+        console.warn('Network connection unstable. Retrying...');
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS * connectionAttempts));
+        await reconnect();
+      } else {
+        connectionAttempts = 0; // Reset attempts on successful connection
+      }
+    } catch (error) {
+      console.warn('Reconnection attempt failed:', error);
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS * connectionAttempts));
+      await reconnect();
+    }
+  };
+
+  // Initial connection check
+  reconnect();
+}
+
+// Monitor network connectivity and handle online/offline events
+function monitorNetworkConnectivity(firestoreInstance: Firestore) {
+  window.addEventListener('online', async () => {
+    console.log('Network connection restored. Attempting to reconnect...');
+    await attemptReconnection(firestoreInstance);
+  });
+
+  window.addEventListener('offline', async () => {
+    console.warn('Network connection lost. Disabling Firestore network.');
+    await disableNetwork(firestoreInstance);
+  });
 }
 
 // Connect to emulators in development
 function connectToEmulators() {
   if (process.env.NODE_ENV === 'development') {
     try {
-      if (window.location.hostname === 'localhost') {
+      if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
         connectFirestoreEmulator(db, 'localhost', 8080);
         connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
         console.log('Connected to Firebase emulators');
@@ -99,17 +128,7 @@ function connectToEmulators() {
   }
 }
 
-// Initialize persistence and network management
-setupOfflinePersistence(db);
-manageNetworkConnection(db);
-connectToEmulators();
-
-/**
- * Safely execute a Firebase operation with comprehensive error handling
- * @param operation The Firebase operation to execute
- * @param fallbackValue Optional fallback value if the operation fails
- * @param retryCount Number of retry attempts
- */
+// Enhanced error logging for Firebase operations
 export async function safeFirebaseOperation<T>(
   operation: () => Promise<T>, 
   fallbackValue?: T,
@@ -117,37 +136,42 @@ export async function safeFirebaseOperation<T>(
 ): Promise<T | undefined> {
   for (let attempt = 1; attempt <= retryCount; attempt++) {
     try {
-      // Check network status before attempting operation
       if (!navigator.onLine) {
         console.warn(`Offline: Skipping Firebase operation (Attempt ${attempt})`);
         return fallbackValue;
       }
 
       return await operation();
-    } catch (error) {
-      const firestoreError = error as { code?: string, message?: string };
+    } catch (error: unknown) {
+      // Ensure error is an instance of Error for proper logging
+      const firestoreError = error instanceof Error ? error : new Error('Unknown error');
       
       console.error(`Firebase operation failed (Attempt ${attempt}):`, {
-        code: firestoreError.code,
-        message: firestoreError.message
+        code: (firestoreError as { code?: string }).code || 'No code',
+        message: firestoreError.message,
+        stack: firestoreError.stack || 'No stack trace available',
+        context: {
+          attempt,
+          operation: operation.toString(),
+        }
       });
 
-      // Handle specific offline/network errors
       if (
-        firestoreError.code === 'unavailable' || 
-        firestoreError.code === 'failed-precondition'
+        typeof (firestoreError as FirestoreError).code === 'string' &&
+        (
+          (firestoreError as any).code === 'unavailable' || 
+          (firestoreError as any).code === 'failed-precondition' ||
+          (firestoreError as any).code === 'deadline-exceeded'
+        )
       ) {
-        console.warn('Operating in offline mode');
+        console.warn('Operating in offline or degraded mode');
         
-        // If it's the last attempt, return fallback
         if (attempt === retryCount) {
           return fallbackValue;
         }
 
-        // Wait before retrying with exponential backoff
         await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
       } else {
-        // For non-network errors, stop retrying
         return fallbackValue;
       }
     }
@@ -155,5 +179,9 @@ export async function safeFirebaseOperation<T>(
 
   return fallbackValue;
 }
+
+// Initialize configuration
+monitorNetworkConnectivity(db);
+connectToEmulators();
 
 export { db, auth };
