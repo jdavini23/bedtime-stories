@@ -1,0 +1,126 @@
+[2025-02-19T22:46:45.648Z] Environment Variables
+{
+  "variableCount": 63,
+  "sampleVariables": {
+    "ALLUSERSPROFILE": "C:\\ProgramData",
+    "AMDRMSDKPATH": "C:\\Program Files\\AMD\\RyzenMasterSDK\\",
+    "APPDATA": "C:\\Users\\joeda\\AppData\\Roaming",
+    "ChocolateyInstall": "C:\\ProgramData\\chocolatey",
+    "ChocolateyLastPathUpdate": "133840261230871555",
+    "CHROME_CRASHPAD_PIPE_NAME": "\\\\.\\pipe\\crashpad_13732_VSHUBWSTYGSWWXUS",
+    "CommonProgramFiles": "C:\\Program Files\\Common Files",
+    "CommonProgramFiles(x86)": "C:\\Program Files (x86)\\Common Files",
+    "CommonProgramW6432": "C:\\Program Files\\Common Files",
+    "COMPUTERNAME": "DESKTOP-1I3OJHQ"
+  }
+}
+
+[2025-02-19T22:46:45.652Z] Starting Story Generation Test
+[2025-02-19T22:46:45.652Z] Target Endpoint
+"http://localhost:3001/api/story/generate"
+
+[2025-02-19T22:46:45.654Z] Diagnostic Headers
+{
+  "Content-Type": "application/json",
+  "x-test-user-id": "test-user-123",
+  "x-clerk-auth-user-id": "test-user-123",
+  "x-dev-auth-override": "true",
+  "x-debug-mode": "true",
+  "x-environment": "development",
+  "x-request-trace-id": "test-1740005205654",
+  "x-client-timestamp": "2025-02-19T22:46:45.654Z",
+  "x-client-version": "1.0.0"
+}
+
+[2025-02-19T22:46:45.655Z] Running Test Case: Standard Story Generation
+[2025-02-19T22:46:45.700Z] Test Case Standard Story Generation - Error Details
+{
+  "errorType": "AxiosError",
+  "errorMessage": "Request failed with status code 500",
+  "responseStatus": 500,
+  "responseHeaders": {
+    "x-middleware-rewrite": "/api/story/generate",
+    "cache-control": "no-store, must-revalidate",
+    "x-powered-by": "Next.js",
+    "etag": "\"c9q7ot2ppw3bc\"",
+    "content-type": "text/html; charset=utf-8",
+    "vary": "Accept-Encoding",
+    "date": "Wed, 19 Feb 2025 22:46:45 GMT",
+    "connection": "keep-alive",
+    "keep-alive": "timeout=5",
+    "transfer-encoding": "chunked"
+  },
+  "responseData": "<!DOCTYPE html><html><head><style data-next-hide-fouc=\"true\">body{display:none}</style><noscript data-next-hide-fouc=\"true\"><style>body{display:block}</style></noscript><meta charSet=\"utf-8\" data-next-head=\"\"/><meta name=\"viewport\" content=\"width=device-width\" data-next-head=\"\"/><noscript data-n-css=\"\"></noscript><script defer=\"\" nomodule=\"\" src=\"/_next/static/chunks/polyfills.js\"></script><script src=\"/_next/static/chunks/fallback/webpack.js\" defer=\"\"></script><script src=\"/_next/static/chunks/fallback/main.js\" defer=\"\"></script><script src=\"/_next/static/chunks/fallback/pages/_app.js\" defer=\"\"></script><script src=\"/_next/static/chunks/fallback/pages/_error.js\" defer=\"\"></script><noscript id=\"__next_css__DO_NOT_USE__\"></noscript></head><body><div id=\"__next\"></div><script src=\"/_next/static/chunks/fallback/react-refresh.js\"></script><script id=\"__NEXT_DATA__\" type=\"application/json\">{\"props\":{\"pageProps\":{\"statusCode\":500}},\"page\":\"/_error\",\"query\":{},\"buildId\":\"development\",\"isFallb... [TRUNCATED]",
+  "requestDetails": {
+    "method": "POST",
+    "path": "/api/story/generate",
+    "host": "localhost"
+  },
+  "requestConfig": {
+    "url": "http://localhost:3001/api/story/generate",
+    "method": "post",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Content-Type": "application/json",
+      "x-test-user-id": "test-user-123",
+      "x-clerk-auth-user-id": "test-user-123",
+      "x-dev-auth-override": "true",
+      "x-debug-mode": "true",
+      "x-environment": "development",
+      "x-request-trace-id": "test-1740005205654",
+      "x-client-timestamp": "2025-02-19T22:46:45.654Z",
+      "x-client-version": "1.0.0",
+      "User-Agent": "axios/1.7.9",
+      "Content-Length": "92",
+      "Accept-Encoding": "gzip, compress, deflate, br"
+    }
+  },
+  "stackTrace": "AxiosError: Request failed with status code 500\n    at settle (C:\\Users\\joeda\\CascadeProjects\\bedtime-stories\\node_modules\\axios\\dist\\node\\axios.cjs:2026:12)\n    at Unzip.handleStreamEnd (C:\\Users\\joeda\\CascadeProjects\\bedtime-stories\\node_modules\\axios\\dist\\node\\axios.cjs:3142:11)\n    at Unzip.emit (node:events:536:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)\n    at Axios.request (C:\\Users\\joeda\\CascadeProjects\\bedtime-stories\\node_modules\\axios\\dist\\node\\axios.cjs:4252:41)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async testStoryGeneration (C:\\Users\\joeda\\CascadeProjects\\bedtime-stories\\test-story-generation.js:171:26)"
+}
+
+[2025-02-19T22:46:45.706Z] Running Test Case: Minimal Input
+[2025-02-19T22:46:45.723Z] Test Case Minimal Input - Error Details
+{
+  "errorType": "AxiosError",
+  "errorMessage": "Request failed with status code 500",
+  "responseStatus": 500,
+  "responseHeaders": {
+    "x-middleware-rewrite": "/api/story/generate",
+    "cache-control": "no-store, must-revalidate",
+    "x-powered-by": "Next.js",
+    "etag": "\"c9q7ot2ppw3bc\"",
+    "content-type": "text/html; charset=utf-8",
+    "vary": "Accept-Encoding",
+    "date": "Wed, 19 Feb 2025 22:46:45 GMT",
+    "connection": "keep-alive",
+    "keep-alive": "timeout=5",
+    "transfer-encoding": "chunked"
+  },
+  "responseData": "<!DOCTYPE html><html><head><style data-next-hide-fouc=\"true\">body{display:none}</style><noscript data-next-hide-fouc=\"true\"><style>body{display:block}</style></noscript><meta charSet=\"utf-8\" data-next-head=\"\"/><meta name=\"viewport\" content=\"width=device-width\" data-next-head=\"\"/><noscript data-n-css=\"\"></noscript><script defer=\"\" nomodule=\"\" src=\"/_next/static/chunks/polyfills.js\"></script><script src=\"/_next/static/chunks/fallback/webpack.js\" defer=\"\"></script><script src=\"/_next/static/chunks/fallback/main.js\" defer=\"\"></script><script src=\"/_next/static/chunks/fallback/pages/_app.js\" defer=\"\"></script><script src=\"/_next/static/chunks/fallback/pages/_error.js\" defer=\"\"></script><noscript id=\"__next_css__DO_NOT_USE__\"></noscript></head><body><div id=\"__next\"></div><script src=\"/_next/static/chunks/fallback/react-refresh.js\"></script><script id=\"__NEXT_DATA__\" type=\"application/json\">{\"props\":{\"pageProps\":{\"statusCode\":500}},\"page\":\"/_error\",\"query\":{},\"buildId\":\"development\",\"isFallb... [TRUNCATED]",
+  "requestDetails": {
+    "method": "POST",
+    "path": "/api/story/generate",
+    "host": "localhost"
+  },
+  "requestConfig": {
+    "url": "http://localhost:3001/api/story/generate",
+    "method": "post",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Content-Type": "application/json",
+      "x-test-user-id": "test-user-123",
+      "x-clerk-auth-user-id": "test-user-123",
+      "x-dev-auth-override": "true",
+      "x-debug-mode": "true",
+      "x-environment": "development",
+      "x-request-trace-id": "test-1740005205654",
+      "x-client-timestamp": "2025-02-19T22:46:45.654Z",
+      "x-client-version": "1.0.0",
+      "User-Agent": "axios/1.7.9",
+      "Content-Length": "79",
+      "Accept-Encoding": "gzip, compress, deflate, br"
+    }
+  },
+  "stackTrace": "AxiosError: Request failed with status code 500\n    at settle (C:\\Users\\joeda\\CascadeProjects\\bedtime-stories\\node_modules\\axios\\dist\\node\\axios.cjs:2026:12)\n    at Unzip.handleStreamEnd (C:\\Users\\joeda\\CascadeProjects\\bedtime-stories\\node_modules\\axios\\dist\\node\\axios.cjs:3142:11)\n    at Unzip.emit (node:events:536:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)\n    at Axios.request (C:\\Users\\joeda\\CascadeProjects\\bedtime-stories\\node_modules\\axios\\dist\\node\\axios.cjs:4252:41)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async testStoryGeneration (C:\\Users\\joeda\\CascadeProjects\\bedtime-stories\\test-story-generation.js:171:26)"
+}
+
