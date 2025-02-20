@@ -4,7 +4,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import * as LucideIcons from 'lucide-react';
 
-import { Button } from '@/components/common/Button';
+import { Button } from '@/components/ui/Button';
 
 // Comprehensive error mapping for different authentication scenarios
 const ERROR_MESSAGES = {
@@ -14,8 +14,8 @@ const ERROR_MESSAGES = {
     icon: LucideIcons.AlertTriangle,
     actions: [
       { label: 'Try Again', variant: 'primary' as const },
-      { label: 'Back to Login', variant: 'secondary' as const }
-    ]
+      { label: 'Back to Login', variant: 'secondary' as const },
+    ],
   },
   OAuthCallback: {
     title: 'Callback Error',
@@ -23,8 +23,8 @@ const ERROR_MESSAGES = {
     icon: LucideIcons.Network,
     actions: [
       { label: 'Retry Login', variant: 'primary' as const },
-      { label: 'Contact Support', variant: 'secondary' as const }
-    ]
+      { label: 'Contact Support', variant: 'secondary' as const },
+    ],
   },
   OAuthCreateAccount: {
     title: 'Account Creation Failed',
@@ -32,8 +32,8 @@ const ERROR_MESSAGES = {
     icon: LucideIcons.ShieldOff,
     actions: [
       { label: 'Try Different Provider', variant: 'primary' as const },
-      { label: 'Back to Login', variant: 'secondary' as const }
-    ]
+      { label: 'Back to Login', variant: 'secondary' as const },
+    ],
   },
   Unauthorized: {
     title: 'Access Denied',
@@ -41,8 +41,8 @@ const ERROR_MESSAGES = {
     icon: LucideIcons.Lock,
     actions: [
       { label: 'Return to Login', variant: 'primary' as const },
-      { label: 'Contact Support', variant: 'secondary' as const }
-    ]
+      { label: 'Contact Support', variant: 'secondary' as const },
+    ],
   },
   Default: {
     title: 'Authentication Error',
@@ -50,9 +50,9 @@ const ERROR_MESSAGES = {
     icon: LucideIcons.AlertTriangle,
     actions: [
       { label: 'Retry', variant: 'primary' as const },
-      { label: 'Back to Home', variant: 'secondary' as const }
-    ]
-  }
+      { label: 'Back to Home', variant: 'secondary' as const },
+    ],
+  },
 };
 
 function isValidVariant(variant: string): variant is 'primary' | 'secondary' {
@@ -88,7 +88,8 @@ export default function AuthErrorPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const errorType = searchParams.get('error') || 'Default';
-  const errorConfig = ERROR_MESSAGES[errorType as keyof typeof ERROR_MESSAGES] || ERROR_MESSAGES.Default;
+  const errorConfig =
+    ERROR_MESSAGES[errorType as keyof typeof ERROR_MESSAGES] || ERROR_MESSAGES.Default;
   const ErrorIcon = errorConfig.icon;
   const errorMessage = getErrorMessage(errorType);
 
@@ -102,17 +103,10 @@ export default function AuthErrorPage() {
       >
         <div className="text-center">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-            <ErrorIcon 
-              className="h-6 w-6 text-red-600" 
-              strokeWidth={1.5} 
-            />
+            <ErrorIcon className="h-6 w-6 text-red-600" strokeWidth={1.5} />
           </div>
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-            {errorConfig.title}
-          </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            {errorMessage}
-          </p>
+          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">{errorConfig.title}</h2>
+          <p className="mt-2 text-sm text-gray-600">{errorMessage}</p>
         </div>
 
         <div className="mt-8 flex justify-center">
@@ -152,5 +146,3 @@ export default function AuthErrorPage() {
     </div>
   );
 }
-
-

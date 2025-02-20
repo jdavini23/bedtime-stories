@@ -5,7 +5,7 @@ export enum LogLevel {
   ERROR = 0,
   WARN = 1,
   INFO = 2,
-  DEBUG = 3
+  DEBUG = 3,
 }
 
 // Interface for log entry
@@ -32,7 +32,7 @@ class Logger {
       level: env.NODE_ENV === 'production' ? LogLevel.WARN : LogLevel.DEBUG,
       enableConsole: true,
       enableRemoteLogging: env.NODE_ENV === 'production',
-      ...config
+      ...config,
     };
   }
 
@@ -49,11 +49,11 @@ class Logger {
     // Only log if the current log level allows
     if (level > this.config.level) return;
 
-    const logEntry: LogEntry = {
+    const logEntry: LogEntry | null = {
       level,
       message,
       context,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
     // Console logging
@@ -70,78 +70,78 @@ class Logger {
   // Console logging with color and formatting
   private consoleLog(entry: LogEntry): void {
     const { level, message, context, timestamp } = entry;
-    const formattedTimestamp = new Date(timestamp).toISOString();
 
-    // Advanced context stringification with depth and circular reference handling
-    const stringifyContext = (
-      ctx?: Record<string, any>, 
-      maxDepth: number = 3
-    ): string => {
-      if (!ctx || Object.keys(ctx).length === 0) return '';
-      
-      const seen = new WeakSet();
-      
-      const safeStringify = (value: any, depth: number = 0): any => {
-        // Handle primitive types
-        if (value === null || ['string', 'number', 'boolean'].includes(typeof value)) {
-          return value;
-        }
-
-        // Prevent circular references
-        if (typeof value === 'object' && seen.has(value)) {
-          return '[Circular]';
-        }
-
-        // Add to seen set
-        if (typeof value === 'object') {
-          seen.add(value);
-        }
-
-        // Handle Error objects
-        if (value instanceof Error) {
-          return {
-            name: value.name,
-            message: value.message,
-            stack: value.stack?.split('\n').slice(0, 5).join('\n') // Limit stack trace
-          };
-        }
-
-        // Limit depth
-        if (depth >= maxDepth) {
-          return '[Max Depth Reached]';
-        }
-
-        // Handle arrays
-        if (Array.isArray(value)) {
-          return value.map(item => safeStringify(item, depth + 1));
-        }
-
-        // Handle objects
-        if (typeof value === 'object') {
-          const result: Record<string, any> = {};
-          for (const [key, val] of Object.entries(value)) {
-            result[key] = safeStringify(val, depth + 1);
-          }
-          return result;
-        }
-
-        return value;
-      };
-
-      try {
-        const processedContext = safeStringify(ctx);
-        return JSON.stringify(processedContext, null, 2);
-      } catch (err) {
-        return '[Unable to stringify context]';
+    // Modify the timestamp handling to ensure a valid timestamp
+    const ensureValidTimestamp = (timestamp?: number | string | Date): string => {
+      if (timestamp  == null) {
+        return new Date().toISOString();
       }
+
+      const date = timestamp instanceof Date 
+        ? timestamp 
+        : new Date(timestamp);
+
+      return date.toISOString();
     };
 
-    const contextString = stringifyContext(context);
+    const formattedTimestamp = ensureValidTimestamp(timestamp);
+
+    // Advanced context stringification with depth and circular reference handling
+    const safeStringify = (value: unknown, depth: number = 0): string => {
+      // Prevent excessive recursion
+      if (depth > 3) return '[Depth Limit Exceeded]';
+
+      // Handle primitive types
+      if (value  == null) return 'null';
+      if (value  == null) return 'undefined';
+
+      // Handle basic types
+      if (['string', 'number', 'boolean'].includes(typeof value)) {
+        return String(value);
+      }
+
+      // Handle Date objects
+      if (value instanceof Date) {
+        return value.toISOString();
+      }
+
+      // Handle arrays
+      if (Array.isArray(value)) {
+        return `[${value.map(item => safeStringify(item, depth + 1)).join(', ')}]`;
+      }
+
+      // Handle objects
+      if (typeof value === 'object') {
+        try {
+          // Prevent circular references
+          const seen = new WeakSet();
+
+          const stringifyObject = (obj: object): string => {
+            if (seen.has(obj)) return '[Circular]';
+            seen.add(obj);
+
+            const entries = Object.entries(obj)
+              .map(([key, val]) => `${key}: ${safeStringify(val, depth + 1)}`);
+
+            return `{ ${entries.join(', ')} }`;
+          };
+
+          return stringifyObject(value as object);
+        } catch {
+          return '[Unable to stringify]';
+        }
+      }
+
+      // Fallback for functions or other unhandled types
+      return String(value);
+    };
+
+    const contextString = context ? safeStringify(context) : '';
 
     // Colorized log levels with context
     const logWithContext = (
-      consoleMethod: (...args: any[]) => void, 
-      levelColor: string, 
+      consoleMethod: (...args: unknown[]) => void,
+      levelColor: string,
       levelName: string
     ) => {
       if (contextString) {
@@ -150,9 +150,7 @@ class Logger {
           contextString
         );
       } else {
-        consoleMethod(
-          `${levelColor}[${levelName}]\x1b[0m ${formattedTimestamp} - ${message}`
-        );
+        consoleMethod(`${levelColor}[${levelName}]\x1b[0m ${formattedTimestamp} - ${message}`);
       }
     };
 
@@ -188,10 +186,8 @@ class Logger {
   // Public logging methods
   public error(message: string, context?: Record<string, any>): void {
     // Ensure context is not an empty object
-    const validContext = context && Object.keys(context).length > 0 
-      ? context 
-      : undefined;
-    
+    const validContext = context && Object.keys(context).length > 0 ? context : undefined;
+
     this.log(LogLevel.ERROR, message, validContext);
   }
 

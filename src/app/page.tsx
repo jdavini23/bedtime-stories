@@ -15,18 +15,18 @@ const floatingAnimation = {
     transition: {
       duration: 6,
       repeat: Infinity,
-      ease: "easeInOut"
-    }
-  }
+      ease: 'easeInOut',
+    },
+  },
 };
 
 // Dynamically import components with improved configuration
-const StoryForm = dynamic(() => import('@/components/story/StoryForm'), { 
+const StoryForm = dynamic(() => import('@/components/story/StoryForm'), {
   loading: () => <Spinner />,
   ssr: false,
 });
 
-const StoryDisplay = dynamic(() => import('@/components/story/StoryDisplay'), { 
+const StoryDisplay = dynamic(() => import('@/components/story/StoryDisplay'), {
   loading: () => <Spinner />,
   ssr: false,
 });
@@ -39,26 +39,29 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const storyApi = useStoryApi();
 
-  const handleGenerateStory = useCallback(async (event: React.FormEvent<HTMLFormElement>, input: StoryInput) => {
-    event.preventDefault();
-    setIsLoading(true);
-    setError(null);
-    try {
-      const newStory = await storyApi.generateStory(input);
-      setStory(newStory);
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to generate story';
-      setError(errorMessage);
-      console.error('Story generation error:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [storyApi]);
+  const handleGenerateStory = useCallback(
+    async (event: React.FormEvent<HTMLFormElement>, input: StoryInput) => {
+      event.preventDefault();
+      setIsLoading(true);
+      setError(null);
+      try {
+        const newStory = await storyApi.generateStory(input);
+        setStory(newStory);
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to generate story';
+        setError(errorMessage);
+        console.error('Story generation error:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [storyApi]
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-indigo-50 via-purple-50 to-pink-50">
       <main className="max-w-4xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
-        <motion.div 
+        <motion.div
           className="text-center mb-12"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -70,7 +73,7 @@ export default function Home() {
                 key={index}
                 className="text-4xl sm:text-5xl"
                 variants={floatingAnimation}
-                initial="initial"
+                initial={{ initial: true }}
                 animate="animate"
                 style={{ animationDelay: `${index * 0.2}s` }}
               >
@@ -79,7 +82,7 @@ export default function Home() {
             ))}
           </div>
 
-          <motion.h1 
+          <motion.h1
             className="text-5xl sm:text-6xl font-bold mb-6"
             initial={{ scale: 0.9 }}
             animate={{ scale: 1 }}
@@ -97,7 +100,7 @@ export default function Home() {
             transition={{ duration: 0.5, delay: 0.6 }}
           >
             <p className="text-xl text-gray-600 leading-relaxed">
-              Where imagination meets AI to create enchanting, personalized stories 
+              Where imagination meets AI to create enchanting, personalized stories
               <br className="hidden sm:block" />
               that make bedtime the most magical part of the day ✨
             </p>
@@ -107,7 +110,7 @@ export default function Home() {
         <StoryForm onSubmit={handleGenerateStory} isLoading={isLoading} />
 
         {error && (
-          <motion.div 
+          <motion.div
             className="bg-red-50 text-red-700 p-4 rounded-lg mb-8"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}

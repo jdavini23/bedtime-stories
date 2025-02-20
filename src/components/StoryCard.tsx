@@ -20,5 +20,3 @@ export const StoryCard: React.FC<StoryCardProps> = ({ story }) => {
     </div>
   );
 };
-
-

@@ -17,7 +17,7 @@ export function useUserStories() {
     const timer = setTimeout(() => {
       setStories([
         { id: '1', title: 'A New Beginning', content: 'Once upon a time, ...' },
-        { id: '2', title: 'The Adventure Continues', content: 'The journey goes on, ...' }
+        { id: '2', title: 'The Adventure Continues', content: 'The journey goes on, ...' },
       ]);
       setIsLoading(false);
     }, 1000);
@@ -27,5 +27,3 @@ export function useUserStories() {
 
   return { stories, isLoading };
 }
-
-

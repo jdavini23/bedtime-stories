@@ -10,13 +10,13 @@ vi.mock('@clerk/nextjs/server', () => ({
           preferences: {
             themes: [],
             interests: [],
-            generatedStories: 0
-          }
-        }
+            generatedStories: 0,
+          },
+        },
       }),
-      updateUser: vi.fn().mockResolvedValue(true)
-    }
-  }
+      updateUser: vi.fn().mockResolvedValue(true),
+    },
+  },
 }));
 
 // Mock OpenAI to prevent actual API calls during testing
@@ -25,20 +25,22 @@ vi.mock('openai', () => ({
     chat: {
       completions: {
         create: vi.fn().mockResolvedValue({
-          choices: [{
-            message: {
-              content: 'Mocked story content'
-            }
-          }]
-        })
-      }
-    }
-  }))
+          choices: [
+            {
+              message: {
+                content: 'Mocked story content',
+              },
+            },
+          ],
+        }),
+      },
+    },
+  })),
 }));
 
 // Global setup for testing
 vi.stubGlobal('console', {
   log: vi.fn(),
   error: vi.fn(),
-  warn: vi.fn()
+  warn: vi.fn(),
 });

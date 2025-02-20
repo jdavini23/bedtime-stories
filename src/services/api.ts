@@ -1,10 +1,10 @@
 'use client';
 
-import axios, { AxiosError, AxiosResponse, AxiosInstance } from "axios";
-import { Story, StoryInput, StoryTheme } from "@/types/story";
-import { logger } from "@/utils/logger";
-import { useClientAuth } from "./clientAuth";
-import { useMemo } from "react";
+import axios, { AxiosError, AxiosResponse, AxiosInstance } from 'axios';
+import { Story, StoryInput, StoryTheme } from '@/types/story';
+import { logger } from '@/utils/logger';
+import { useClientAuth } from './clientAuth';
+import { useMemo } from 'react';
 
 // Simplified error handling
 export class ApiError extends Error {
@@ -14,19 +14,25 @@ export class ApiError extends Error {
     public details?: Record<string, any>
   ) {
     super(message);
-    this.name = "ApiError";
+    this.name = 'ApiError';
   }
 }
 
 const handleApiError = (error: AxiosError): never => {
   if (error.response) {
-    throw new ApiError(
-      error.response.data.message || "An error occurred",
-      error.response.status,
-      error.response.data
-    );
+    // Type assertion to handle potential undefined message property
+    const responseData = error.response.data as { message?: string } | undefined;
+    const errorMessage = responseData?.message || error.response.statusText || 'An error occurred';
+    const errorDetails = error.response.data || {};
+    logger.error('API Error:', {
+      status: error.response.status,
+      message: errorMessage,
+      details: errorDetails,
+    });
+    throw new ApiError(errorMessage, error.response.status, errorDetails);
   }
-  throw new ApiError(error.message || "Network error occurred");
+  logger.error('Network Error:', { message: error.message });
+  throw new ApiError(error.message || 'Network error occurred');
 };
 
 export const useStoryApi = () => {
@@ -34,9 +40,9 @@ export const useStoryApi = () => {
 
   const api = useMemo(() => {
     const instance = axios.create({
-      baseURL: "/api",
+      baseURL: '/api',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       timeout: 30000,
     });
@@ -48,8 +54,8 @@ export const useStoryApi = () => {
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
-      } catch (error) {
-        logger.error("Error getting auth token:", error);
+      } catch (error: unknown) {
+        logger.error('Error getting auth token:', { error: error as Record<string, unknown> });
       }
       return config;
     });
@@ -64,8 +70,10 @@ export const useStoryApi = () => {
         throw new ApiError('Child name is required', 400, { field: 'childName' });
       }
 
-      if (!input.interests || input.interests.length === 0) {
-        throw new ApiError('At least one interest is required', 400, { field: 'interests' });
+      if (!input.mostLikedCharacterTypes || input.mostLikedCharacterTypes.length === 0) {
+        throw new ApiError('At least one character type is required', 400, {
+          field: 'mostLikedCharacterTypes',
+        });
       }
 
       if (!input.theme) {
@@ -77,10 +85,7 @@ export const useStoryApi = () => {
       }
 
       try {
-        const response: AxiosResponse<Story> = await api.post(
-          "/story", 
-          input
-        );
+        const response: AxiosResponse<Story> = await api.post('/generateStory', input);
         return response.data;
       } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
@@ -92,9 +97,7 @@ export const useStoryApi = () => {
 
     async getStoryThemes(): Promise<StoryTheme[]> {
       try {
-        const response: AxiosResponse<StoryTheme[]> = await api.get(
-          "/story/themes"
-        );
+        const response: AxiosResponse<StoryTheme[]> = await api.get('/story/themes');
         return response.data;
       } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
@@ -102,6 +105,6 @@ export const useStoryApi = () => {
         }
         throw new ApiError('Failed to fetch story themes', 500);
       }
-    }
+    },
   };
 };

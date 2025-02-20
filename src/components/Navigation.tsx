@@ -1,5 +1,5 @@
-import { UserButton, SignedIn, SignedOut, useUser } from "@clerk/nextjs";
-import Link from "next/link";
+import { UserButton, SignedIn, SignedOut, useUser } from '@clerk/nextjs';
+import Link from 'next/link';
 
 export default function Navigation() {
   const { user } = useUser();
@@ -9,17 +9,17 @@ export default function Navigation() {
       <Link href="/" className="text-xl font-bold">
         Bedtime Story Magic
       </Link>
-      
+
       <div className="flex items-center gap-4">
         <SignedIn>
           <Link href="/dashboard">Dashboard</Link>
           <Link href="/stories">My Stories</Link>
-          <UserButton 
+          <UserButton
             afterSignOutUrl="/"
             appearance={{
               elements: {
-                avatarBox: "w-10 h-10"
-              }
+                avatarBox: 'w-10 h-10',
+              },
             }}
           />
         </SignedIn>

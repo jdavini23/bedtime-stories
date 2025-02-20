@@ -3,11 +3,35 @@ const nextConfig = {
   reactStrictMode: true,
   experimental: {
     serverActions: {
-      allowedOrigins: ['localhost:3000']
-    }
+      allowedOrigins: ['localhost:3000'],
+    },
   },
-  webpack: (config) => {
-    config.resolve.fallback = { fs: false, net: false, tls: false };
+  webpack: (config, { isServer }) => {
+    // Resolve module not found issues
+    config.resolve.fallback = {
+      fs: false,
+      net: false,
+      tls: false,
+    };
+
+    // Explicitly resolve framer-motion
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'framer-motion': 'framer-motion',
+    };
+
+    // Improve module resolution
+    config.resolve.extensions.push('.ts', '.tsx', '.js', '.jsx');
+
+    // Handle potential ESM module issues
+    config.module.rules.push({
+      test: /\.m?js$/,
+      type: 'javascript/auto',
+      resolve: {
+        fullySpecified: false,
+      },
+    });
+
     return config;
   },
   images: {
@@ -19,8 +43,8 @@ const nextConfig = {
     ],
   },
   typescript: {
-    ignoreBuildErrors: true
-  }
+    ignoreBuildErrors: true,
+  },
 };
 
 module.exports = nextConfig;

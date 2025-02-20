@@ -13,7 +13,7 @@ const inter = Inter({
 
 export const dynamic = 'force-static';
 
-export const metadata: Metadata = {
+export const metadata: Metadata | null = {
   title: 'Bedtime Stories',
   description: 'Personalized bedtime stories for children',
 };

@@ -1,14 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "lib": [
-      "dom", 
-      "dom.iterable", 
-      "esnext",
-      "es2015",
-      "es2016",
-      "es2017"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext", "es2015", "es2016", "es2017"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -28,23 +21,9 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "types": [
-      "node", 
-      "@types/dotenv", 
-      "next", 
-      "next/types/global"
-    ],
-    "typeRoots": [
-      "node_modules/@types",
-      "src/types"
-    ]
+    "types": ["node", "next"],
+    "typeRoots": ["node_modules/@types", "src/types"]
   },
-  "include": [
-    "next-env.d.ts", 
-    "**/*.ts", 
-    "**/*.tsx", 
-    ".next/types/**/*.ts",
-    "src/types/**/*.d.ts"
-  ],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/types/**/*.d.ts"],
   "exclude": ["node_modules"]
 }

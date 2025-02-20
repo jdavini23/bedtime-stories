@@ -2,15 +2,19 @@
 
 ## Overview
 
-Bedtime Story Magic is an AI-powered application that generates personalized, enchanting bedtime stories for children. Using advanced AI technology, it creates unique stories tailored to a child's name, interests, and preferred theme.
+Bedtime Story Magic is an AI-powered application that generates personalized, enchanting bedtime
+stories for children. Using advanced AI technology, it creates unique stories tailored to a child's
+name, interests, and preferred theme.
 
 ## Features
 
-- AI-generated personalized stories
-- Multiple story themes (Adventure, Fantasy, Educational, etc.)
-- Customizable story inputs
-- Engaging and child-friendly design
-- Responsive web application
+- 🤖 AI-generated personalized stories
+- 📚 Multiple story themes (Adventure, Fantasy, Educational, etc.)
+- 🎨 Customizable story inputs
+- 🔐 Secure Clerk authentication
+- 📊 User preferences and story generation tracking
+- 🌈 Engaging and child-friendly design
+- 📱 Responsive web application
 
 ## Technologies
 
@@ -18,13 +22,16 @@ Bedtime Story Magic is an AI-powered application that generates personalized, en
 - TypeScript
 - Tailwind CSS
 - Framer Motion
+- Clerk Authentication
 - OpenAI GPT
 - Vercel KV (Caching)
+- Vercel Analytics & Speed Insights
 
 ## Prerequisites
 
-- Node.js 18+
-- npm or yarn
+- Node.js 20+
+- npm 10+
+- Clerk Account
 - OpenAI API Key (optional)
 
 ## Setup and Installation
@@ -45,57 +52,59 @@ npm install
 3. Set up environment variables
 
 ```bash
-cp .env.example .env.local
-# Add your OpenAI API Key in .env.local
+cp .env.local.example .env.local
 ```
 
-4. Run the development server
+4. Configure Clerk
 
-```bash
-npm run dev
-```
+- Create a Clerk account at [Clerk.com](https://clerk.com)
+- Create a new application
+- Copy your Publishable and Secret keys into `.env.local`
 
-## Deployment on Vercel
+5. (Optional) Configure OpenAI
 
-### Prerequisites
-- Vercel Account
-- Optional: OpenAI API Key
+- Get an OpenAI API key from [OpenAI](https://platform.openai.com/)
+- Add the key to `.env.local`
 
-### Environment Variables
-1. Copy `.env.example` to `.env.local`
-2. Fill in the required environment variables:
-   - `OPENAI_API_KEY`: OpenAI API key (optional)
-   - `KV_REST_API_URL`: Vercel KV Redis URL
-   - `KV_REST_API_TOKEN`: Vercel KV Redis Token
+## Development Scripts
 
-### Deployment Steps
-1. Connect your GitHub repository to Vercel
-2. Set environment variables in Vercel Project Settings
-3. Deploy the project
+- `npm run dev`: Start development server
+- `npm run build`: Build production application
+- `npm run start`: Start production server
+- `npm run test`: Run tests
+- `npm run lint`: Run ESLint
+- `npm run type:check`: Run TypeScript type checking
+- `npm run validate`: Run comprehensive project validation
 
-### Local Development
-```bash
-npm install
-npm run dev
-```
+## Testing
 
-### Fallback Story Generation
-If no OpenAI API key is provided, the app will generate mock stories.
+- Unit tests with Vitest
+- React component testing with Testing Library
+- Run tests with `npm test`
+- View test coverage with `npm run test:coverage`
 
-## Customization
+## Security and Performance
 
-- Modify themes in `src/types/story.ts`
-- Adjust AI prompts in `src/app/api/generateStory/route.ts`
-- Update interests in `src/components/story/StoryForm.tsx`
+- Trufflehog for secrets scanning
+- Clerk for secure authentication
+- Vercel Speed Insights
+- Vercel Analytics
 
 ## Contributing
 
-Contributions are welcome! Please check our [Contributing Guidelines](CONTRIBUTING.md).
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ## License
 
-This project is licensed under the MIT License.
+Distributed under the MIT License. See `LICENSE` for more information.
 
-## Support
+## Contact
 
-Star this repository if you find it helpful! For issues, please open a GitHub issue.
+Your Name - [@your_twitter](https://twitter.com/your_twitter)
+
+Project Link:
+[https://github.com/jdavini23/bedtime-stories](https://github.com/jdavini23/bedtime-stories)

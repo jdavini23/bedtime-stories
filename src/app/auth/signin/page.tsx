@@ -5,42 +5,42 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import * as LucideIcons from 'lucide-react';
 
-import { Button } from '@/components/common/Button';
+import { Button } from '@/components/ui/Button';
 
 export default function SignInPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState({
     google: false,
-    github: false
+    github: false,
   });
 
   const handleGoogleLogin = async () => {
-    setIsLoading(prev => ({ ...prev, google: true }));
+    setIsLoading((prev) => ({ ...prev, google: true }));
     try {
       // TODO: Implement proper Google OAuth login
       // For now, throwing error to indicate missing implementation
-      throw new Error('Google login not implemented');
+      logger.error('Google login not implemented');
       router.push('/dashboard');
     } catch (error) {
-      console.error('Google Login Failed', error);
+      logger.error('Google Login Failed', error);
       router.push('/auth/error?error=OAuthSignin');
     } finally {
-      setIsLoading(prev => ({ ...prev, google: false }));
+      setIsLoading((prev) => ({ ...prev, google: false }));
     }
   };
 
   const handleGithubLogin = async () => {
-    setIsLoading(prev => ({ ...prev, github: true }));
+    setIsLoading((prev) => ({ ...prev, github: true }));
     try {
       // TODO: Implement proper GitHub OAuth login
       // For now, throwing error to indicate missing implementation
-      throw new Error('GitHub login not implemented');
+      logger.error('GitHub login not implemented');
       router.push('/dashboard');
     } catch (error) {
-      console.error('GitHub Login Failed', error);
+      logger.error('GitHub Login Failed', error);
       router.push('/auth/error?error=OAuthSignin');
     } finally {
-      setIsLoading(prev => ({ ...prev, github: false }));
+      setIsLoading((prev) => ({ ...prev, github: false }));
     }
   };
 
@@ -53,16 +53,12 @@ export default function SignInPage() {
         className="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-2xl"
       >
         <div className="text-center">
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-            Welcome to Bedtime Stories
-          </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Sign in to create magical stories
-          </p>
+          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">Welcome to Bedtime Stories</h2>
+          <p className="mt-2 text-sm text-gray-600">Sign in to create magical stories</p>
         </div>
 
         <div className="mt-8 space-y-6">
-          <Button 
+          <Button
             onClick={handleGoogleLogin}
             disabled={isLoading.google}
             className="w-full flex items-center justify-center"
@@ -76,7 +72,7 @@ export default function SignInPage() {
             Continue with Google
           </Button>
 
-          <Button 
+          <Button
             onClick={handleGithubLogin}
             disabled={isLoading.github}
             className="w-full flex items-center justify-center"

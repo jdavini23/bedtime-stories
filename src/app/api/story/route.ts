@@ -1,40 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { serverStoryPersonalizationEngine } from '@/services/serverPersonalizationEngine';
+import { userPersonalizationEngine } from '@/services/personalizationEngine';
 import { StoryInput } from '@/types/story';
-import { auth } from '@clerk/nextjs';
-import { generateStory } from '@/lib/storyGenerator';
+import { logger } from '@/utils/logger';
 
-export async function POST(req: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
-    const { userId } = auth();
-    const input: StoryInput = await req.json();
+    const input: StoryInput = await request.json();
 
-    // Validate input
-    if (!input.childName || !input.interests || !input.theme || !input.gender) {
-      return NextResponse.json(
-        { message: 'Missing required fields' },
-        { status: 400 }
-      );
+    // Validate required fields
+    if (!input.childName || !input.theme) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Initialize engine with user ID
-    serverStoryPersonalizationEngine.setUserId(userId);
+    // Generate story using personalization engine
+    const story = await userPersonalizationEngine.generatePersonalizedStory(input);
 
-    // Generate personalized story
-    const story = await serverStoryPersonalizationEngine.generatePersonalizedStory(input);
-
-    // If personalization fails, fall back to basic story generation
-    if (!story) {
-      const fallbackStory = await generateStory(input, userId);
-      return NextResponse.json(fallbackStory);
-    }
+    // Log successful story generation
+    logger.info('Story generated successfully', {
+      childName: input.childName,
+      theme: input.theme,
+      storyId: story.id,
+    });
 
     return NextResponse.json(story);
   } catch (error) {
-    console.error('Error generating story:', error);
-    return NextResponse.json(
-      { message: error instanceof Error ? error.message : 'Failed to generate story' },
-      { status: 500 }
-    );
+    // Log error details
+    logger.error('Failed to generate story', { error });
+
+    // Return appropriate error response
+    return NextResponse.json({ error: 'Failed to generate story' }, { status: 500 });
   }
 }

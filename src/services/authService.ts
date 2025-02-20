@@ -16,7 +16,10 @@ export class ServerAuthService {
   }
 
   static async getToken(request?: NextRequest) {
-    const auth = request ? getAuth(request) : getAuth();
+    if (!request) {
+      return null;
+    }
+    const auth = getAuth(request);
     return auth.getToken();
   }
 

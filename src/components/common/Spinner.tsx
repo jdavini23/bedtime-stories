@@ -1,24 +1,33 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { cn } from '@/utils/cn';
 
-const Spinner: React.FC = () => {
+interface SpinnerProps {
+  className?: string;
+  size?: 'sm' | 'md' | 'lg';
+  color?: string;
+}
+
+const Spinner: React.FC<SpinnerProps> = ({ 
+  className, 
+  size = 'md', 
+  color = 'text-blue-500' 
+}) => {
+  const sizeClasses = {
+    sm: 'w-4 h-4',
+    md: 'w-8 h-8',
+    lg: 'w-12 h-12'
+  };
+
   return (
-    <div className="flex justify-center items-center py-8">
-      <motion.div
-        className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full"
-        animate={{
-          rotate: 360,
-          transition: {
-            duration: 1,
-            repeat: Infinity,
-            ease: "linear"
-          }
-        }}
-      />
-    </div>
+    <div 
+      className={cn(
+        'animate-spin rounded-full border-4 border-t-transparent',
+        sizeClasses[size],
+        color,
+        className
+      )}
+    />
   );
 };
 
 export default Spinner;
-
-

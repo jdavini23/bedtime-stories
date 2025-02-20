@@ -2,11 +2,11 @@ declare module 'framer-motion' {
   import * as React from 'react';
 
   export interface MotionProps {
-    initial?: any;
-    animate?: any;
-    transition?: any;
-    whileHover?: any;
-    whileTap?: any;
+    initial?: Record<string, unknown>;
+    animate?: Record<string, unknown>;
+    transition?: Record<string, unknown>;
+    whileHover?: Record<string, unknown>;
+    whileTap?: Record<string, unknown>;
   }
 
   type HTMLMotionComponents = {

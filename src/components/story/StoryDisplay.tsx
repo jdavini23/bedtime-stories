@@ -19,9 +19,9 @@ const formatStoryParagraphs = (content: string): React.ReactNode[] => {
         key={index}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ 
+        transition={{
           duration: 0.5,
-          delay: index * 0.2 // Stagger paragraph animations
+          delay: index * 0.2, // Stagger paragraph animations
         }}
         className="mb-6 text-lg leading-relaxed text-gray-700 font-serif"
       >
@@ -59,7 +59,7 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
       curiosity: '🔍',
       creativity: '🎨',
       nature: '🌿',
-      science: '🔬'
+      science: '🔬',
     };
     return emojiMap[theme.toLowerCase()] || '✨';
   }, []);
@@ -70,7 +70,7 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 2000);
     } catch (err) {
-      console.error('Failed to copy text:', err);
+      logger.error('Failed to copy text:', err);
     }
   }, [story.content]);
 
@@ -78,7 +78,8 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
     setIsSharing(true);
     try {
       const childName = story.input?.childName || 'You';
-      const mailtoLink = `mailto:?subject=A Bedtime Story for ${childName}&body=${encodeURIComponent(story.content || '')}`;      window.location.href = mailtoLink;
+      const mailtoLink = `mailto:?subject=A Bedtime Story for ${childName}&body=${encodeURIComponent(story.content || '')}`;
+      window.location.href = mailtoLink;
     } finally {
       setTimeout(() => setIsSharing(false), 1000);
     }
@@ -94,7 +95,7 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
           className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl p-8 mt-8"
         >
           <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
-          
+
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6">
             <div>
               <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-pink-600">
@@ -107,16 +108,16 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
                   {new Date(story.createdAt).toLocaleDateString(undefined, {
                     month: 'short',
                     day: 'numeric',
-                    year: 'numeric'
+                    year: 'numeric',
                   })}
                 </time>
               </div>
             </div>
-            
+
             <div className="flex flex-wrap items-center gap-2 mt-4 sm:mt-0">
               {story.input.interests.map((interest) => (
-                <span 
-                  key={interest} 
+                <span
+                  key={interest}
                   className="px-3 py-1 text-xs font-medium text-indigo-700 bg-indigo-100 rounded-full"
                 >
                   {interest}
@@ -124,12 +125,10 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
               ))}
             </div>
           </div>
-          
-          <div className="prose prose-lg max-w-none">
-            {formatStoryParagraphs(story.content)}
-          </div>
-          
-          <motion.div 
+
+          <div className="prose prose-lg max-w-none">{formatStoryParagraphs(story.content)}</div>
+
+          <motion.div
             className="flex gap-4 mt-8"
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -138,7 +137,7 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
             <Button
               variant="outline"
               onClick={handleCopy}
-              className="flex-1 transition-all duration-200 hover:bg-indigo-50"
+              className="flex-1 transition-all duration-200 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0"
             >
               <motion.div>
                 <motion.span
@@ -150,12 +149,12 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
                 >
                   {copySuccess ? '✓ Copied!' : 'Copy Story'}
                 </motion.span>
-</motion.div>
+              </motion.div>
             </Button>
             <Button
               variant="outline"
               onClick={handleShare}
-              className="flex-1 transition-all duration-200 hover:bg-indigo-50"
+              className="flex-1 transition-all duration-200 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0"
               disabled={isSharing}
             >
               <AnimatePresence mode="wait">

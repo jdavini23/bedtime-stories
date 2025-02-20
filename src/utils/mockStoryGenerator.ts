@@ -23,37 +23,44 @@ const processStoryText = (story: string): string => {
 
 const templates = [
   {
-    beginning: "Once upon a time, there was a child named {name} who loved {interests}.",
-    middle: "One day, while exploring their favorite activities, {name} discovered something amazing.",
-    ending: "Through this adventure, {name} learned that with imagination and determination, anything is possible!"
+    beginning: 'Once upon a time, there was a child named {name} who loved {interests}.',
+    middle:
+      'One day, while exploring their favorite activities, {name} discovered something amazing.',
+    ending:
+      'Through this adventure, {name} learned that with imagination and determination, anything is possible!',
   },
   {
-    beginning: "In a magical world not too far away, {name} was known for their love of {interests}.",
-    middle: "During a wonderful day of fun, something unexpected happened that would change everything.",
-    ending: "And so, {name} discovered that the greatest adventures often start with the things we love most."
+    beginning:
+      'In a magical world not too far away, {name} was known for their love of {interests}.',
+    middle:
+      'During a wonderful day of fun, something unexpected happened that would change everything.',
+    ending:
+      'And so, {name} discovered that the greatest adventures often start with the things we love most.',
   },
   {
-    beginning: "There once was a curious child named {name}, whose favorite things in the world were {interests}.",
-    middle: "Little did they know that these interests would lead to an incredible discovery.",
-    ending: "From that day forward, {name} knew that every day could be filled with wonder and excitement."
-  }
+    beginning:
+      'There once was a curious child named {name}, whose favorite things in the world were {interests}.',
+    middle: 'Little did they know that these interests would lead to an incredible discovery.',
+    ending:
+      'From that day forward, {name} knew that every day could be filled with wonder and excitement.',
+  },
 ];
 
 export function generateMockStory(input: StoryInput): string {
   const template = templates[Math.floor(Math.random() * templates.length)];
   const interests = input.interests.join(' and ');
-  
-  let story = template.beginning.replace(/{name}/g, input.childName).replace(/{interests}/g, interests) + '\n\n';
-  story += template.middle.replace(/{name}/g, input.childName).replace(/{interests}/g, interests) + '\n\n';
-  
+
+  let story =
+    template.beginning.replace(/{name}/g, input.childName).replace(/{interests}/g, interests) +
+    '\n\n';
+  story +=
+    template.middle.replace(/{name}/g, input.childName).replace(/{interests}/g, interests) + '\n\n';
+
   // Add theme-specific content with gender considerations
-  const pronouns = input.gender === 'boy' ? 'he' : 
-                   input.gender === 'girl' ? 'she' : 
-                   'they';
-  const possessivePronouns = input.gender === 'boy' ? 'his' : 
-                              input.gender === 'girl' ? 'her' : 
-                              'their';
-  
+  const pronouns = input.gender === 'boy' ? 'he' : input.gender === 'girl' ? 'she' : 'they';
+  const possessivePronouns =
+    input.gender === 'boy' ? 'his' : input.gender === 'girl' ? 'her' : 'their';
+
   switch (input.theme) {
     case 'adventure':
       story += `${input.childName} embarked on an exciting journey, using ${possessivePronouns} knowledge of ${interests} to overcome challenges.\n\n`;
@@ -86,11 +93,9 @@ export function generateMockStory(input: StoryInput): string {
       story += `${input.childName}'s curiosity about ${interests} led to an exciting scientific adventure. ${pronouns.charAt(0).toUpperCase() + pronouns.slice(1)} learned how science can explain amazing things.\n\n`;
       break;
   }
-  
+
   story += template.ending.replace(/{name}/g, input.childName).replace(/{interests}/g, interests);
-  
+
   // Process the story text to improve readability
   return processStoryText(story);
 }
-
-

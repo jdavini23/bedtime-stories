@@ -11,5 +11,3 @@ const DashboardStatisticsSkeleton: React.FC = () => {
 };
 
 export default DashboardStatisticsSkeleton;
-
-

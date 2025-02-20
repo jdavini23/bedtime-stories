@@ -5,7 +5,7 @@ export const publicConfig = {
   },
   google: {
     clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
-  }
+  },
 } as const;
 
 // Helper function to check if we're on the server
@@ -14,11 +14,11 @@ const isServer = typeof window === 'undefined';
 // Server-side configuration
 export function getServerConfig() {
   if (!isServer) {
-    throw new Error('getServerConfig should only be called on the server side');
+    logger.error('getServerConfig should only be called on the server side');
   }
 
   // Log environment variables for debugging
-  console.log('Server Environment Variables:', {
+  logger.info('Server Environment Variables:', {
     NEXTAUTH_SECRET: !!process.env.NEXTAUTH_SECRET,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
     GOOGLE_CLIENT_ID: !!process.env.GOOGLE_CLIENT_ID,
@@ -34,7 +34,7 @@ export function getServerConfig() {
 
   Object.entries(requiredVars).forEach(([key, value]) => {
     if (!value) {
-      throw new Error(`${key} is not set`);
+      logger.error(`${key} is not set`);
     }
   });
 
@@ -51,14 +51,14 @@ export function getServerConfig() {
       projectId: process.env.FIREBASE_PROJECT_ID,
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
       privateKey: process.env.FIREBASE_PRIVATE_KEY,
-    }
+    },
   };
 }
 
 // Validation function for server-side configuration
 export function validateServerConfig(config: ReturnType<typeof getServerConfig>) {
   if (!isServer) {
-    throw new Error('validateServerConfig should only be called on the server side');
+    logger.error('validateServerConfig should only be called on the server side');
   }
 
   const requiredFields = [
@@ -67,18 +67,16 @@ export function validateServerConfig(config: ReturnType<typeof getServerConfig>)
     { key: 'google.clientSecret', value: config.google.clientSecret },
   ];
 
-  const missingFields = requiredFields
-    .filter(field => !field.value)
-    .map(field => field.key);
+  const missingFields = requiredFields.filter((field) => !field.value).map((field) => field.key);
 
   if (missingFields.length > 0) {
-    console.error('Configuration validation failed:', {
+    logger.error('Configuration validation failed:', {
       secret: !!config.nextauth.secret,
       clientId: !!config.google.clientId,
       clientSecret: !!config.google.clientSecret,
       missingFields,
     });
-    throw new Error(`Missing required environment variables: ${missingFields.join(', ')}`);
+    logger.error(`Missing required environment variables: ${missingFields.join(', ')}`);
   }
 
   return config;

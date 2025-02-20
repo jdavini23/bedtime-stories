@@ -1,18 +1,17 @@
-'use client';
+import { useClerkAuth } from './useClerkAuth';
 
-import { useSession as useNextAuthSession } from 'next-auth/react';
-import { Session } from 'next-auth';
-
-export function useSession() {
-  const { data: session, status, update } = useNextAuthSession();
-
-  const isLoading = status === 'loading';
-  const isAuthenticated = status === 'authenticated';
+export const useSession = () => {
+  const { user, isSignedIn } = useClerkAuth();
 
   return {
-    session,
-    isLoading,
-    isAuthenticated,
-    update,
-  } as const;
-}
+    data: {
+      user: user ? {
+        id: user.id,
+        name: user.fullName,
+        email: user.emailAddresses[0]?.emailAddress
+      } : null,
+      session: isSignedIn
+    },
+    status: isSignedIn ? 'authenticated' : 'unauthenticated'
+  };
+};

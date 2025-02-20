@@ -10,15 +10,15 @@ import {
   getDocs,
   orderBy,
   limit,
-} from "firebase/firestore";
-import { getFirebaseInstance } from "@/lib/firebase/config";
-import { Story, StoryInput, StoryTheme } from "@/types/story";
-import { getCurrentUser } from "@/lib/firebaseAuth";
-import { logger } from "@/utils/logger";
+} from 'firebase/firestore';
+import { getFirebaseInstance } from '@/lib/firebase/config';
+import { Story, StoryInput, StoryTheme } from '@/types/story';
+import { getCurrentUser } from '@/lib/firebaseAuth';
+import { logger } from '@/utils/logger';
 
 // User Preferences Interface with more detailed tracking
 export interface UserStoryPreference {
-  userId: string;
+  userId: string | null | null | null | null | null | null;
   preferredThemes: StoryTheme[];
   avgStoryRating: number;
   mostLikedCharacterTypes: string[];
@@ -30,31 +30,34 @@ export interface UserStoryPreference {
 
 // Custom error for Firestore operations
 export class FirestoreError extends Error {
-  constructor(message: string, public code?: string) {
+  constructor(
+    message: string,
+    public code?: string
+  ) {
     super(message);
-    this.name = "FirestoreError";
+    this.name = 'FirestoreError';
   }
 }
 
 export class FirestoreService {
   // Upsert user preferences with improved error handling
   async upsertUserPreferences(
-    userId: string,
+    userId: string | null | null | null | null | null | null,
     preferences: Partial<UserStoryPreference>
   ): Promise<void> {
     if (!userId) {
-      throw new FirestoreError("User ID is required", "INVALID_USER_ID");
+      throw new FirestoreError('User ID is required', 'INVALID_USER_ID');
     }
 
     // Check network connectivity
     if (!getFirebaseInstance().isOnline()) {
-      logger.warn("Offline mode detected when upserting user preferences", {
+      logger.warn('Offline mode detected when upserting user preferences', {
         userId,
       });
-      throw new FirestoreError("Client is offline", "OFFLINE");
+      throw new FirestoreError('Client is offline', 'OFFLINE');
     }
 
-    const userDocRef = doc(getFirebaseInstance().db, "userPreferences", userId);
+    const userDocRef = doc(getFirebaseInstance().db, 'userPreferences', userId);
 
     try {
       const docSnap = await getDoc(userDocRef);
@@ -65,7 +68,7 @@ export class FirestoreService {
           updatedAt: new Date(),
         });
 
-        logger.info("User preferences updated", {
+        logger.info('User preferences updated', {
           userId,
           updatedFields: Object.keys(preferences),
         });
@@ -77,17 +80,14 @@ export class FirestoreService {
           updatedAt: new Date(),
         });
 
-        logger.info("New user preferences created", { userId });
+        logger.info('New user preferences created', { userId });
       }
     } catch (error) {
-      logger.error("Error upserting user preferences", {
+      logger.error('Error upserting user preferences', {
         userId,
         error: error instanceof Error ? error.message : error,
       });
-      throw new FirestoreError(
-        "Failed to upsert user preferences",
-        "UPSERT_FAILED"
-      );
+      throw new FirestoreError('Failed to upsert user preferences', 'UPSERT_FAILED');
     }
   }
 
@@ -99,16 +99,16 @@ export class FirestoreService {
     retryDelay: number = 1000
   ): Promise<T | undefined> {
     let lastError: Error | undefined;
-    
+
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         const result = await operation();
         return result;
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
-        
+
         // Log retry attempt
-        logger.warn("Firebase operation failed, retrying", {
+        logger.warn('Firebase operation failed, retrying', {
           attempt,
           maxRetries,
           errorMessage: lastError.message,
@@ -117,14 +117,14 @@ export class FirestoreService {
 
         // If this is not the last attempt, wait before retrying
         if (attempt < maxRetries) {
-          await new Promise(resolve => setTimeout(resolve, retryDelay * attempt));
+          await new Promise((resolve) => setTimeout(resolve, retryDelay * attempt));
         }
       }
     }
 
     // If all retries failed, log the final error and return fallback
     if (lastError) {
-      logger.error("Firebase operation failed after all retries", {
+      logger.error('Firebase operation failed after all retries', {
         maxRetries,
         errorMessage: lastError.message,
         errorStack: lastError.stack,
@@ -136,17 +136,17 @@ export class FirestoreService {
   }
 
   // Get user preferences with enhanced error handling and retry logic
-  async getUserPreferences(userId: string): Promise<UserStoryPreference | null> {
+  async getUserPreferences(userId: string | null | null | null | null | null | null): Promise<UserStoryPreference | null> {
     const diagnosticContext = {
       userId,
-      method: "getUserPreferences",
+      method: 'getUserPreferences',
       timestamp: new Date().toISOString(),
-      service: "FirestoreService",
+      service: 'FirestoreService',
     };
 
     try {
       // Get user preferences document reference
-      const userDocRef = doc(getFirebaseInstance().db, "userPreferences", userId);
+      const userDocRef = doc(getFirebaseInstance().db, 'userPreferences', userId);
 
       // Enable network access and get document with retries
       const docSnap = await this.safeFirebaseOperation(
@@ -160,14 +160,14 @@ export class FirestoreService {
 
       // Handle missing document
       if (!docSnap) {
-        logger.warn("Failed to retrieve user preferences after retries", diagnosticContext);
+        logger.warn('Failed to retrieve user preferences after retries', diagnosticContext);
         return this.getDefaultPreferences(userId);
       }
 
       // Return existing preferences if found
       if (docSnap.exists()) {
         const preferences = docSnap.data() as UserStoryPreference;
-        logger.info("User preferences retrieved successfully", {
+        logger.info('User preferences retrieved successfully', {
           ...diagnosticContext,
           preferencesFound: true,
         });
@@ -175,37 +175,36 @@ export class FirestoreService {
       }
 
       // Create default preferences if none exist
-      logger.warn("No preferences found for user, creating defaults", diagnosticContext);
+      logger.warn('No preferences found for user, creating defaults', diagnosticContext);
       return this.getDefaultPreferences(userId);
-
     } catch (error) {
       // Log error with context
       const errorContext = {
         ...diagnosticContext,
-        errorName: error instanceof Error ? error.name : "Unknown Error",
+        errorName: error instanceof Error ? error.name : 'Unknown Error',
         errorMessage: error instanceof Error ? error.message : String(error),
-        errorStack: error instanceof Error ? error.stack : "No stack trace",
+        errorStack: error instanceof Error ? error.stack : 'No stack trace',
       };
 
-      logger.error("Error retrieving user preferences", errorContext);
+      logger.error('Error retrieving user preferences', errorContext);
       return this.getDefaultPreferences(userId);
     }
   }
 
   // Method to provide default preferences with enhanced logging
-  private getDefaultPreferences(userId: string): UserStoryPreference {
-    const defaultPreferences: UserStoryPreference = {
+  private getDefaultPreferences(userId: string | null | null | null | null | null | null): UserStoryPreference {
+    const defaultPreferences: UserStoryPreference | null = {
       userId,
-      preferredThemes: ["adventure", "fantasy"],
+      preferredThemes: ['adventure', 'fantasy'],
       avgStoryRating: 0,
-      mostLikedCharacterTypes: ["brave", "curious"],
-      learningInterests: ["science", "nature", "friendship"],
+      mostLikedCharacterTypes: ['brave', 'curious'],
+      learningInterests: ['science', 'nature', 'friendship'],
       generatedStoryCount: 0,
       lastStoryGeneratedAt: new Date(),
       totalReadingTime: 0,
     };
 
-    logger.warn("Returning default user preferences due to retrieval failure", {
+    logger.warn('Returning default user preferences due to retrieval failure', {
       userId,
       timestamp: new Date().toISOString(),
     });
@@ -225,11 +224,7 @@ export class FirestoreService {
 
       try {
         // Attempt a quick Firestore operation to check connectivity
-        const testDocRef = doc(
-          getFirebaseInstance().db,
-          "connectivity",
-          "test"
-        );
+        const testDocRef = doc(getFirebaseInstance().db, 'connectivity', 'test');
         await getDoc(testDocRef);
         firebaseConnectivity = true;
       } catch {
@@ -242,7 +237,7 @@ export class FirestoreService {
         firebaseConnectivity,
       };
     } catch (error) {
-      logger.error("Error during network connectivity check", {
+      logger.error('Error during network connectivity check', {
         error: error instanceof Error ? error.message : String(error),
       });
 
@@ -256,30 +251,27 @@ export class FirestoreService {
 
   // Record a generated story with enhanced metadata
   async recordStory(
-    userId: string,
+    userId: string | null | null | null | null | null | null,
     storyData: {
       content: string;
       theme: StoryTheme;
-      interests: string[];
+      mostLikedCharacterTypes: string[];
       rating?: number;
       readingTime?: number; // Optional reading time in seconds
     }
   ): Promise<string> {
     if (!userId) {
-      throw new FirestoreError("User ID is required", "INVALID_USER_ID");
+      throw new FirestoreError('User ID is required', 'INVALID_USER_ID');
     }
 
     // Check network connectivity
     if (!getFirebaseInstance().isOnline()) {
-      logger.warn("Offline mode detected when recording story", { userId });
-      throw new FirestoreError("Client is offline", "OFFLINE");
+      logger.warn('Offline mode detected when recording story', { userId });
+      throw new FirestoreError('Client is offline', 'OFFLINE');
     }
 
     try {
-      const storiesCollectionRef = collection(
-        getFirebaseInstance().db,
-        "stories"
-      );
+      const storiesCollectionRef = collection(getFirebaseInstance().db, 'stories');
 
       const storyDoc = await addDoc(storiesCollectionRef, {
         userId,
@@ -291,7 +283,7 @@ export class FirestoreService {
         },
       });
 
-      logger.info("Story recorded", {
+      logger.info('Story recorded', {
         userId,
         storyId: storyDoc.id,
         theme: storyData.theme,
@@ -299,44 +291,41 @@ export class FirestoreService {
 
       return storyDoc.id;
     } catch (error) {
-      logger.error("Error recording story", {
+      logger.error('Error recording story', {
         userId,
         error: error instanceof Error ? error.message : error,
       });
-      throw new FirestoreError("Failed to record story", "RECORD_STORY_FAILED");
+      throw new FirestoreError('Failed to record story', 'RECORD_STORY_FAILED');
     }
   }
 
   // Get user's stories with pagination and sorting
   async getUserStories(
-    userId: string,
+    userId: string | null | null | null | null | null | null,
     options: {
       limit?: number;
-      sortBy?: "createdAt" | "rating";
+      sortBy?: 'createdAt' | 'rating';
     } = {}
   ): Promise<Story[]> {
     if (!userId) {
-      throw new FirestoreError("User ID is required", "INVALID_USER_ID");
+      throw new FirestoreError('User ID is required', 'INVALID_USER_ID');
     }
 
     // Check network connectivity
     if (!getFirebaseInstance().isOnline()) {
-      logger.warn("Offline mode detected when fetching user stories", {
+      logger.warn('Offline mode detected when fetching user stories', {
         userId,
       });
-      throw new FirestoreError("Client is offline", "OFFLINE");
+      throw new FirestoreError('Client is offline', 'OFFLINE');
     }
 
     try {
-      const storiesCollectionRef = collection(
-        getFirebaseInstance().db,
-        "stories"
-      );
+      const storiesCollectionRef = collection(getFirebaseInstance().db, 'stories');
 
       const q = query(
         storiesCollectionRef,
-        where("userId", "==", userId),
-        orderBy(options.sortBy || "createdAt", "desc"),
+        where('userId', '==', userId),
+        orderBy(options.sortBy || 'createdAt', 'desc'),
         limit(options.limit || 10)
       );
 
@@ -347,82 +336,68 @@ export class FirestoreService {
           ({
             id: doc.id,
             ...doc.data(),
-          } as Story)
+          }) as Story
       );
 
-      logger.debug("User stories retrieved", {
+      logger.debug('User stories retrieved', {
         userId,
         storiesCount: stories.length,
       });
 
       return stories;
     } catch (error) {
-      logger.error("Error getting user stories", {
+      logger.error('Error getting user stories', {
         userId,
         error: error instanceof Error ? error.message : error,
       });
-      throw new FirestoreError(
-        "Failed to retrieve user stories",
-        "RETRIEVE_STORIES_FAILED"
-      );
+      throw new FirestoreError('Failed to retrieve user stories', 'RETRIEVE_STORIES_FAILED');
     }
   }
 
   // Advanced method to update user reading statistics
   async updateUserReadingStats(
-    userId: string,
+    userId: string | null | null | null | null | null | null,
     storyId: string,
     readingTime: number
   ): Promise<void> {
     if (!userId || !storyId) {
-      throw new FirestoreError(
-        "User ID and Story ID are required",
-        "INVALID_INPUT"
-      );
+      throw new FirestoreError('User ID and Story ID are required', 'INVALID_INPUT');
     }
 
     // Check network connectivity
     if (!getFirebaseInstance().isOnline()) {
-      logger.warn("Offline mode detected when updating reading stats", {
+      logger.warn('Offline mode detected when updating reading stats', {
         userId,
       });
-      throw new FirestoreError("Client is offline", "OFFLINE");
+      throw new FirestoreError('Client is offline', 'OFFLINE');
     }
 
     try {
       // Update story reading time
-      const storyRef = doc(getFirebaseInstance().db, "stories", storyId);
+      const storyRef = doc(getFirebaseInstance().db, 'stories', storyId);
       await updateDoc(storyRef, {
-        "metadata.readingTime": readingTime,
+        'metadata.readingTime': readingTime,
       });
 
       // Update user preferences with cumulative reading time
-      const userPreferencesRef = doc(
-        getFirebaseInstance().db,
-        "userPreferences",
-        userId
-      );
+      const userPreferencesRef = doc(getFirebaseInstance().db, 'userPreferences', userId);
       await updateDoc(userPreferencesRef, {
         totalReadingTime:
-          (await this.getUserPreferences(userId))?.totalReadingTime ||
-          0 + readingTime,
+          (await this.getUserPreferences(userId))?.totalReadingTime || 0 + readingTime,
       });
 
-      logger.info("Reading stats updated", {
+      logger.info('Reading stats updated', {
         userId,
         storyId,
         readingTime,
       });
     } catch (error) {
-      logger.error("Error updating reading stats", {
+      logger.error('Error updating reading stats', {
         userId,
         storyId,
         error: error instanceof Error ? error.message : error,
       });
-      throw new FirestoreError(
-        "Failed to update reading stats",
-        "UPDATE_READING_STATS_FAILED"
-      );
+      throw new FirestoreError('Failed to update reading stats', 'UPDATE_READING_STATS_FAILED');
     }
   }
 }

@@ -1,5 +1,7 @@
 import { useUser, useAuth as useClerkAuth } from '@clerk/nextjs';
 
+export { useClerkAuth };
+
 export function useAuth() {
   const { user } = useUser();
   const { isSignedIn, sessionId, userId } = useClerkAuth();
