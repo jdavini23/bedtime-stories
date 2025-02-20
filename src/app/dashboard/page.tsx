@@ -21,11 +21,7 @@ export default function DashboardPage() {
 }
 
 // Client-side rendering of dashboard
-function DashboardClientContent({
-  userId,
-}: {
-  userId: string | null;
-}) {
+function DashboardClientContent({ userId }: { userId: string | null }) {
   const dashboardCards = [
     {
       title: 'Create Story',

@@ -42,8 +42,8 @@ const createSignInUrl = (request: NextRequest): URL => {
 };
 
 export default authMiddleware({
-  publicRoutes: publicRoutes.map(route => route.path),
-  ignoredRoutes: ignoredRoutes.map(route => route.path),
+  publicRoutes: publicRoutes.map((route) => route.path),
+  ignoredRoutes: ignoredRoutes.map((route) => route.path),
   debug: env.NODE_ENV === 'development',
   beforeAuth: (request) => {
     if (env.NODE_ENV === 'development') {
@@ -76,7 +76,7 @@ export default authMiddleware({
     }
 
     return NextResponse.next();
-  }
+  },
 });
 
 // See: https://clerk.com/docs/references/nextjs/auth-middleware

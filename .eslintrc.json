@@ -1,20 +1,10 @@
 {
-  "extends": ["next/core-web-vitals", "plugin:@typescript-eslint/recommended", "prettier"],
-  "plugins": ["@typescript-eslint", "prettier"],
+  "extends": ["next/core-web-vitals"],
+  "root": true,
   "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
   "rules": {
-    "prettier/prettier": "error",
     "@typescript-eslint/no-unused-vars": "warn",
-    "@typescript-eslint/explicit-function-return-type": "off",
-    "@typescript-eslint/no-explicit-any": "warn",
-    "react/prop-types": "off",
-    "react/react-in-jsx-scope": "off",
-    "no-console": ["warn", { "allow": ["warn", "error"] }],
-    "max-len": ["warn", { "code": 100, "ignoreUrls": true }]
-  },
-  "settings": {
-    "react": {
-      "version": "detect"
-    }
+    "no-console": "warn"
   }
 }

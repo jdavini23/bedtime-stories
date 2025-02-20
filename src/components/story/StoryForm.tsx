@@ -285,7 +285,7 @@ function StoryForm({ onSubmit, isLoading = false }: StoryFormProps) {
               options={THEME_OPTIONS}
               value={selectedTheme.value}
               onChange={(e) => {
-                const selected = THEME_OPTIONS.find(opt => opt.value === e.target.value);
+                const selected = THEME_OPTIONS.find((opt) => opt.value === e.target.value);
                 setSelectedTheme(selected || THEME_OPTIONS[0]);
               }}
               className="w-full"
@@ -298,7 +298,7 @@ function StoryForm({ onSubmit, isLoading = false }: StoryFormProps) {
               options={GENDER_OPTIONS}
               value={selectedGender.value}
               onChange={(e) => {
-                const selected = GENDER_OPTIONS.find(opt => opt.value === e.target.value);
+                const selected = GENDER_OPTIONS.find((opt) => opt.value === e.target.value);
                 setSelectedGender(selected || GENDER_OPTIONS[0]);
               }}
               className="w-full"
@@ -311,7 +311,7 @@ function StoryForm({ onSubmit, isLoading = false }: StoryFormProps) {
               options={MOOD_OPTIONS}
               value={selectedMood.value}
               onChange={(e) => {
-                const selected = MOOD_OPTIONS.find(opt => opt.value === e.target.value);
+                const selected = MOOD_OPTIONS.find((opt) => opt.value === e.target.value);
                 setSelectedMood(selected || MOOD_OPTIONS[0]);
               }}
               className="w-full"

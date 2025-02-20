@@ -44,7 +44,9 @@ const isQuotaError = (error: unknown): error is ApiError => {
 
 const generateCacheKey = (input: StoryInput): string => {
   // Create a deterministic cache key from the input
-  const sortedInterests = input.mostLikedCharacterTypes ? [...input.mostLikedCharacterTypes].sort().join(',') : '';
+  const sortedInterests = input.mostLikedCharacterTypes
+    ? [...input.mostLikedCharacterTypes].sort().join(',')
+    : '';
   return `story:${input.childName}:${sortedInterests}:${input.theme}:${input.gender}`;
 };
 

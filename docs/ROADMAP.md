@@ -1,6 +1,7 @@
 # Project Roadmap
 
 ## Phase 1: Foundation (Week 1-2)
+
 - [x] Set up project infrastructure
   - [x] Next.js 14 setup with TypeScript
   - [x] Tailwind CSS configuration
@@ -21,6 +22,7 @@
   - [x] User profile setup
 
 ## Phase 2: Core Features (Week 3-4)
+
 - [x] Story Generation
   - [x] OpenAI integration
   - [x] Story template system
@@ -31,6 +33,7 @@
   - [x] User preferences
 
 ## Phase 3: Enhanced Features (Week 5-6)
+
 - [x] Advanced Story Customization
   - [x] Multiple themes
   - [x] Character customization
@@ -47,6 +50,7 @@
   - [ ] Progressive Web App (PWA) setup
 
 ## Phase 4: Polish & Launch (Week 7-8)
+
 - [ ] UI/UX Refinements
 - [ ] Testing & Bug Fixes
   - [ ] End-to-end testing
@@ -68,6 +72,7 @@
   - [ ] Content moderation system
 
 ## Phase 5: Post-Launch (Week 9+)
+
 - [ ] User Feedback Collection
 - [ ] Performance Monitoring
 - [ ] A/B Testing Framework
