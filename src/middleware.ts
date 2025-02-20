@@ -1,4 +1,4 @@
-import { withClerkMiddleware, getAuth } from '@clerk/nextjs/server';
+import { authMiddleware } from '@clerk/nextjs';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { env } from '@/lib/env';
@@ -41,38 +41,42 @@ const createSignInUrl = (request: NextRequest): URL => {
   return signInUrl;
 };
 
-export default withClerkMiddleware((request: NextRequest) => {
-  // Development authentication override
-  if (env.NODE_ENV === 'development') {
-    const testUserId = request.headers.get('x-test-user-id') || 'dev-default-user';
+export default authMiddleware({
+  publicRoutes: publicRoutes.map(route => route.path),
+  ignoredRoutes: ignoredRoutes.map(route => route.path),
+  debug: env.NODE_ENV === 'development',
+  beforeAuth: (request) => {
+    if (env.NODE_ENV === 'development') {
+      const testUserId = request.headers.get('x-test-user-id') || 'dev-default-user';
+      request.headers.set('x-clerk-auth-user-id', testUserId);
+      request.headers.set('x-clerk-auth-session-id', `dev-session-${testUserId}`);
+    }
+    return NextResponse.next();
+  },
+  afterAuth: (auth, request) => {
+    const { userId } = auth;
+    const path = request.nextUrl.pathname;
 
-    // Simulate Clerk authentication for development
-    request.headers.set('x-clerk-auth-user-id', testUserId);
-    request.headers.set('x-clerk-auth-session-id', `dev-session-${testUserId}`);
-  }
+    // Always allow API routes during development
+    if (isDevelopmentApiRoute(path)) {
+      return NextResponse.next();
+    }
 
-  const { userId } = getAuth(request);
-  const path = request.nextUrl.pathname;
+    // Check if the route is public or ignored
+    if (
+      publicRoutes.some((route) => isRouteMatch(route, path)) ||
+      ignoredRoutes.some((route) => isRouteMatch(route, path))
+    ) {
+      return NextResponse.next();
+    }
 
-  // Always allow API routes during development
-  if (isDevelopmentApiRoute(path)) {
+    // If the user is not signed in and the route is protected, redirect to sign-in
+    if (!userId) {
+      return NextResponse.redirect(createSignInUrl(request));
+    }
+
     return NextResponse.next();
   }
-
-  // Check if the route is public or ignored
-  if (
-    publicRoutes.some((route) => isRouteMatch(route, path)) ||
-    ignoredRoutes.some((route) => isRouteMatch(route, path))
-  ) {
-    return NextResponse.next();
-  }
-
-  // If the user is not signed in and the route is protected, redirect to sign-in
-  if (!userId) {
-    return NextResponse.redirect(createSignInUrl(request));
-  }
-
-  return NextResponse.next();
 });
 
 // See: https://clerk.com/docs/references/nextjs/auth-middleware

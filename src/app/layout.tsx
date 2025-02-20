@@ -31,6 +31,10 @@ export default function RootLayout({ children }: RootLayoutProps): React.JSX.Ele
         <ClerkProvider
           appearance={{
             baseTheme: undefined,
+            elements: {
+              formButtonPrimary: 'bg-primary hover:bg-primary/90',
+              footerActionLink: 'text-primary hover:text-primary/90',
+            },
           }}
         >
           <Providers>
