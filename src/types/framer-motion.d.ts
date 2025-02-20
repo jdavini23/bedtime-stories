@@ -10,8 +10,8 @@ declare module 'framer-motion' {
   }
 
   type HTMLMotionComponents = {
-    [K in keyof JSX.IntrinsicElements]: React.ForwardRefExoticComponent<
-      MotionProps & JSX.IntrinsicElements[K]
+    [K in keyof React.JSX.IntrinsicElements]: React.ForwardRefExoticComponent<
+      MotionProps & React.JSX.IntrinsicElements[K]
     >;
   };
 

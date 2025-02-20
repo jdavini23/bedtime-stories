@@ -1,5 +1,5 @@
 import { clerkClient } from '@clerk/nextjs';
-import { logger as log, logger } from '@/utils/logger';
+// PreferencesError is now defined locally in this file, so we don't need to import it
 
 export type AgeGroup = '3-5' | '6-8' | '9-12';
 export type Theme = 'light' | 'dark';
@@ -34,17 +34,21 @@ export interface UserPreferences {
   updatedAt?: Date;
 }
 
-export class PreferencesError extends Error {
-  constructor(
-    message: string,
-    public code: string,
-    public userId?: string,
-    public context?: Record<string, unknown>
-  ) {
+class PreferencesError extends Error {
+  public code: string;
+  public userId?: string;
+  public context?: Record<string, unknown>;
+
+  constructor(message: string, code: string, userId?: string, context?: Record<string, unknown>) {
     super(message);
     this.name = 'PreferencesError';
+    this.code = code;
+    this.userId = userId;
+    this.context = context;
   }
 }
+
+export { PreferencesError };
 
 class UserPreferencesService {
   private static instance: UserPreferencesService;
@@ -76,7 +80,7 @@ class UserPreferencesService {
     }
   }
 
-  getDefaultPreferences(userId: string | null | null | null | null | null | null): UserPreferences {
+  getDefaultPreferences(userId: string): UserPreferences {
     return {
       userId,
       theme: 'light',
@@ -103,21 +107,22 @@ class UserPreferencesService {
 
   private validatePreferences(preferences: Partial<UserPreferences>): void {
     if (preferences.ageGroup && !['3-5', '6-8', '9-12'].includes(preferences.ageGroup)) {
-      throw new PreferencesError('Invalid age group', 'INVALID_AGE_GROUP', preferences.userId, {
-        value: preferences.ageGroup,
-      });
+      throw new PreferencesError(
+        'Invalid age group',
+        'INVALID_AGE_GROUP',
+        preferences.userId ?? undefined
+      );
     }
 
     if (preferences.theme && !['light', 'dark'].includes(preferences.theme)) {
-      throw new PreferencesError('Invalid theme', 'INVALID_THEME', preferences.userId, {
-        value: preferences.theme,
-      });
+      throw new PreferencesError('Invalid theme', 'INVALID_THEME', preferences.userId ?? undefined);
     }
   }
 
-  async getUserPreferences(userId: string | null | null | null | null | null | null): Promise<UserPreferences | null> {
+  async getUserPreferences(userId: string): Promise<UserPreferences | null> {
     try {
-      // Check cache first
+      if (!userId) return null;
+
       const cached = this.cache.get(userId);
       if (cached) {
         return cached;
@@ -130,22 +135,17 @@ class UserPreferencesService {
         return null;
       }
 
-      // Update cache with timeout
       this.cache.set(userId, preferences);
       setTimeout(() => this.cache.delete(userId), this.cacheTimeout);
 
       return preferences;
     } catch (error) {
-      log.error('Error fetching user preferences:', {
-        userId,
-        error: error instanceof Error ? error.message : String(error),
-      });
       throw new PreferencesError('Failed to fetch user preferences', 'FETCH_ERROR', userId);
     }
   }
 
   async updateUserPreferences(
-    userId: string | null | null | null | null | null | null,
+    userId: string,
     updates: Partial<UserPreferences>
   ): Promise<UserPreferences> {
     try {
@@ -155,7 +155,7 @@ class UserPreferencesService {
       const currentPreferences =
         (user.publicMetadata.preferences as UserPreferences) || this.getDefaultPreferences(userId);
 
-      const updatedPreferences: UserPreferences | null = {
+      const updatedPreferences: UserPreferences = {
         ...currentPreferences,
         ...updates,
         userId,
@@ -171,7 +171,6 @@ class UserPreferencesService {
         })
       );
 
-      // Update cache with timeout
       this.cache.set(userId, updatedPreferences);
       setTimeout(() => this.cache.delete(userId), this.cacheTimeout);
 
@@ -180,16 +179,11 @@ class UserPreferencesService {
       if (error instanceof PreferencesError) {
         throw error;
       }
-      log.error('Error updating user preferences:', {
-        userId,
-        updates,
-        error: error instanceof Error ? error.message : String(error),
-      });
       throw new PreferencesError('Failed to update user preferences', 'UPDATE_ERROR', userId);
     }
   }
 
-  async incrementStoryCount(userId: string | null | null | null | null | null | null): Promise<void> {
+  async incrementStoryCount(userId: string): Promise<void> {
     try {
       const preferences = await this.getUserPreferences(userId);
       if (!preferences) {
@@ -204,15 +198,11 @@ class UserPreferencesService {
       if (error instanceof PreferencesError) {
         throw error;
       }
-      log.error('Error incrementing story count:', {
-        userId,
-        error: error instanceof Error ? error.message : String(error),
-      });
       throw new PreferencesError('Failed to increment story count', 'INCREMENT_ERROR', userId);
     }
   }
 
-  async deleteUserPreferences(userId: string | null | null | null | null | null | null): Promise<void> {
+  async deleteUserPreferences(userId: string): Promise<void> {
     try {
       const user = await this.retry(() => clerkClient.users.getUser(userId));
       await this.retry(() =>
@@ -225,10 +215,6 @@ class UserPreferencesService {
       );
       this.cache.delete(userId);
     } catch (error) {
-      log.error('Error deleting user preferences:', {
-        userId,
-        error: error instanceof Error ? error.message : String(error),
-      });
       throw new PreferencesError('Failed to delete user preferences', 'DELETE_ERROR', userId);
     }
   }

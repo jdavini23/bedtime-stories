@@ -1,18 +1,17 @@
 'use client';
 
 import React, { Suspense } from 'react';
-import { auth } from '@clerk/nextjs';
+import { useAuth } from '@clerk/nextjs';
 import { redirect } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Book, Star, Wand, Settings, WifiOff as WifiOffIcon } from 'lucide-react';
+import { Book, Wand, Settings } from 'lucide-react';
 
 import DashboardStatisticsSkeleton from '@/components/dashboard/DashboardStatisticsSkeleton';
 import DashboardStatistics from '@/components/dashboard/DashboardStatistics';
-import { UserPreferences } from '@/types/user';
 
-// Server-side authentication check
-export default async function DashboardPage() {
-  const { userId } = auth();
+// Client-side authentication check
+export default function DashboardPage() {
+  const { userId } = useAuth();
 
   if (!userId) {
     redirect('/sign-in');
@@ -22,7 +21,11 @@ export default async function DashboardPage() {
 }
 
 // Client-side rendering of dashboard
-function DashboardClientContent({ userId }: { userId: string | null | null | null | null | null | null }) {
+function DashboardClientContent({
+  userId,
+}: {
+  userId: string | null;
+}) {
   const dashboardCards = [
     {
       title: 'Create Story',

@@ -1,6 +1,6 @@
 'use client';
 
-import axios, { AxiosError, AxiosResponse, AxiosInstance } from 'axios';
+import axios, { AxiosError, AxiosResponse } from 'axios';
 import { Story, StoryInput, StoryTheme } from '@/types/story';
 import { logger } from '@/utils/logger';
 import { useClientAuth } from './clientAuth';

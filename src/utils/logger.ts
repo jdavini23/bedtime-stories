@@ -45,19 +45,22 @@ class Logger {
   }
 
   // Core logging method
-  private log(level: LogLevel, message: string, context?: Record<string, any>): void {
+  private log(level: LogLevel, message: string, context?: unknown): void {
     // Only log if the current log level allows
-    if (level > this.config.level) return;
+    if (!this.config || !this.config.level || level > this.config.level) return;
+
+    // Convert unknown context to Record<string, any> or undefined
+    const safeContext = context ? this.convertToRecord(context) : undefined;
 
     const logEntry: LogEntry | null = {
       level,
       message,
-      context,
+      context: safeContext,
       timestamp: Date.now(),
     };
 
     // Console logging
-    if (this.config.enableConsole) {
+    if (this.config.enableConsole && logEntry) {
       this.consoleLog(logEntry);
     }
 
@@ -68,18 +71,29 @@ class Logger {
   }
 
   // Console logging with color and formatting
+  private convertToRecord(value: unknown): Record<string, any> {
+    if (typeof value === 'object' && value !== null) {
+      return Object.entries(value).reduce(
+        (acc, [key, val]) => {
+          acc[key] = val;
+          return acc;
+        },
+        {} as Record<string, any>
+      );
+    }
+    return { value };
+  }
+
   private consoleLog(entry: LogEntry): void {
     const { level, message, context, timestamp } = entry;
 
     // Modify the timestamp handling to ensure a valid timestamp
     const ensureValidTimestamp = (timestamp?: number | string | Date): string => {
-      if (timestamp  == null) {
+      if (timestamp == null) {
         return new Date().toISOString();
       }
 
-      const date = timestamp instanceof Date 
-        ? timestamp 
-        : new Date(timestamp);
+      const date = timestamp instanceof Date ? timestamp : new Date(timestamp);
 
       return date.toISOString();
     };
@@ -92,8 +106,8 @@ class Logger {
       if (depth > 3) return '[Depth Limit Exceeded]';
 
       // Handle primitive types
-      if (value  == null) return 'null';
-      if (value  == null) return 'undefined';
+      if (value == null) return 'null';
+      if (value == null) return 'undefined';
 
       // Handle basic types
       if (['string', 'number', 'boolean'].includes(typeof value)) {
@@ -107,7 +121,7 @@ class Logger {
 
       // Handle arrays
       if (Array.isArray(value)) {
-        return `[${value.map(item => safeStringify(item, depth + 1)).join(', ')}]`;
+        return `[${value.map((item) => safeStringify(item, depth + 1)).join(', ')}]`;
       }
 
       // Handle objects
@@ -120,8 +134,9 @@ class Logger {
             if (seen.has(obj)) return '[Circular]';
             seen.add(obj);
 
-            const entries = Object.entries(obj)
-              .map(([key, val]) => `${key}: ${safeStringify(val, depth + 1)}`);
+            const entries = Object.entries(obj).map(
+              ([key, val]) => `${key}: ${safeStringify(val, depth + 1)}`
+            );
 
             return `{ ${entries.join(', ')} }`;
           };
@@ -172,14 +187,33 @@ class Logger {
 
   // Placeholder for remote logging (e.g., to Sentry, LogRocket, etc.)
   private remoteLog(entry: LogEntry): void {
-    // Future implementation for production logging services
-    // Could integrate with services like Sentry, LogRocket, etc.
     if (env.SENTRY_DSN) {
-      // Example pseudo-code
-      // Sentry.captureMessage(entry.message, {
-      //   level: this.convertLogLevel(entry.level),
-      //   extra: entry.context
-      // });
+      try {
+        // Basic implementation of Sentry logging
+        const level = entry.level;
+        const { message, context, timestamp } = entry;
+
+        // Log to console in development for debugging
+        if (env.NODE_ENV === 'development') {
+          console.debug('[Sentry Mock]', {
+            level,
+            message,
+            context,
+            timestamp,
+          });
+        }
+
+        // TODO: Implement actual Sentry integration
+        // Sentry.captureMessage(message, {
+        //   level: this.convertLogLevel(level),
+        //   extra: { context, timestamp }
+        // });
+      } catch (error) {
+        // Fail silently in production, log in development
+        if (env.NODE_ENV === 'development') {
+          console.error('[Remote Logging Error]', error);
+        }
+      }
     }
   }
 
@@ -211,6 +245,7 @@ class Logger {
 
 // Export singleton instance
 export const logger = Logger.getInstance();
+export { Logger };
 
 // Optional: Export a function to configure logger if needed
 export function configureLogger(config: LoggerConfig): Logger {

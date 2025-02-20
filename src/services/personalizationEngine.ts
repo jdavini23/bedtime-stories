@@ -5,36 +5,58 @@ import { v4 as uuidv4 } from 'uuid';
 
 // Define interface for user preferences
 export interface UserPreferences {
+  id?: string;
+  userId: string | null;
   preferredThemes: string[];
-  mostLikedCharacterTypes: string[];
+  generatedStoryCount: number;
+  lastStoryGeneratedAt?: Date;
   learningInterests: string[];
-  ageGroups: string[];
-  educationalGoals: string[];
-  generatedStories?: number;
+  ageGroup: '3-5' | '6-8' | '9-12';
+  theme: 'light' | 'dark';
+  language: string;
+  notifications: {
+    email: boolean;
+    push: boolean;
+    frequency: 'daily' | 'weekly' | 'monthly';
+  };
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
-// Comprehensive default user preferences
-export const DEFAULT_PREFERENCES: UserPreferences | null = {
-  preferredThemes: ['adventure', 'friendship', 'curiosity', 'creativity'],
-  mostLikedCharacterTypes: ['brave', 'curious', 'kind', 'imaginative'],
-  learningInterests: [
-    'nature',
-    'science',
-    'friendship',
-    'imagination',
-    'problem-solving',
-    'empathy',
-  ],
-  ageGroups: ['4-6', '7-9'],
-  educationalGoals: ['emotional intelligence', 'creativity', 'curiosity'],
-  generatedStories: 0,
+const DEFAULT_PREFERENCES: UserPreferences = {
+  userId: null,
+  preferredThemes: ['adventure', 'educational'],
+  generatedStoryCount: 0,
+  learningInterests: [],
+  ageGroup: '6-8',
+  theme: 'light',
+  language: 'en',
+  notifications: {
+    email: true,
+    push: false,
+    frequency: 'weekly',
+  },
+  createdAt: new Date(),
+  updatedAt: new Date(),
 };
 
 export class UserPersonalizationEngine {
   private openai: OpenAI | undefined;
-  protected userId: string | null | null | null | null | null | null = null;
+  protected userId: string | undefined = undefined;
 
-  constructor(userId: string | null | null | null | null | null | null) {
+  private isValidPreferences(preferences: unknown): preferences is UserPreferences {
+    if (!preferences || typeof preferences !== 'object') return false;
+    const p = preferences as UserPreferences;
+    return (
+      Array.isArray(p.preferredThemes) &&
+      typeof p.generatedStoryCount === 'number' &&
+      Array.isArray(p.learningInterests) &&
+      typeof p.theme === 'string' &&
+      typeof p.language === 'string'
+    );
+  }
+
+  constructor(userId: string | undefined) {
     this.userId = userId;
 
     const apiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
@@ -69,11 +91,11 @@ export class UserPersonalizationEngine {
     }
   }
 
-  protected setUserId(userId: string | null | null | null | null | null | null) {
+  protected setUserId(userId: string | undefined) {
     this.userId = userId;
   }
 
-  protected getUserId(): string | null {
+  protected getUserId(): string | undefined {
     return this.userId;
   }
 
@@ -81,52 +103,23 @@ export class UserPersonalizationEngine {
     if (!this.userId) return DEFAULT_PREFERENCES;
 
     try {
-      // Get preferences from localStorage, fall back to default if not found
       const storedPreferences = localStorage.getItem('preferences');
       if (!storedPreferences) {
         return DEFAULT_PREFERENCES;
       }
 
-      // Parse and validate preferences
       const parsed = JSON.parse(storedPreferences);
-
-      // Type guard to validate preferences object
-      const isValidPreferences = (obj: unknown): obj is Partial<UserPreferences> => {
-        if (typeof obj !== 'object' || obj  == null) return false;
-
-        const pref = obj as Record<string, unknown>;
-
-        // Check if properties are arrays of strings when present
-        const isStringArray = (arr: unknown): arr is string[] =>
-          Array.isArray(arr) && arr.every((item) => typeof item === 'string');
-
-        return (
-          (!pref.preferredThemes || isStringArray(pref.preferredThemes)) &&
-          (!pref.mostLikedCharacterTypes || isStringArray(pref.mostLikedCharacterTypes)) &&
-          (!pref.learningInterests || isStringArray(pref.learningInterests)) &&
-          (!pref.ageGroups || isStringArray(pref.ageGroups)) &&
-          (!pref.educationalGoals || isStringArray(pref.educationalGoals)) &&
-          (!pref.generatedStories || typeof pref.generatedStories === 'number')
-        );
-      };
-
-      if (!isValidPreferences(parsed)) {
+      if (!this.isValidPreferences(parsed)) {
         logger.error('Invalid preferences format in localStorage');
         return DEFAULT_PREFERENCES;
       }
 
-      // Now TypeScript knows parsed is a valid Partial<UserPreferences>
       return {
-        preferredThemes: parsed.preferredThemes || DEFAULT_PREFERENCES.preferredThemes,
-        mostLikedCharacterTypes:
-          parsed.mostLikedCharacterTypes || DEFAULT_PREFERENCES.mostLikedCharacterTypes,
-        learningInterests: parsed.learningInterests || DEFAULT_PREFERENCES.learningInterests,
-        ageGroups: parsed.ageGroups || DEFAULT_PREFERENCES.ageGroups,
-        educationalGoals: parsed.educationalGoals || DEFAULT_PREFERENCES.educationalGoals,
-        generatedStories: parsed.generatedStories || 0,
+        ...DEFAULT_PREFERENCES,
+        ...parsed,
       };
     } catch (error) {
-      logger.error('Error fetching user preferences:', error);
+      logger.error('Error fetching user preferences:', { error });
       return DEFAULT_PREFERENCES;
     }
   }
@@ -144,7 +137,7 @@ export class UserPersonalizationEngine {
       localStorage.setItem('preferences', JSON.stringify(updatedPreferences));
       return true;
     } catch (error) {
-      logger.error('Error updating user preferences:', error);
+      logger.error('Error updating user preferences:', { error });
       return false;
     }
   }
@@ -154,37 +147,27 @@ export class UserPersonalizationEngine {
     if (currentPreferences) {
       const updatedPreferences = {
         ...currentPreferences,
-        generatedStories: (currentPreferences.generatedStories || 0) + 1,
+        generatedStoryCount: currentPreferences.generatedStoryCount + 1,
       };
       await this.updateUserPreferences(updatedPreferences);
     }
   }
 
   // Generate personalized story using OpenAI
-  async generatePersonalizedStory(
-    input: StoryInput,
-    preferences?: UserPreferences
-  ): Promise<Story> {
-    // Enhanced logging for debugging
+  async generatePersonalizedStory(input: StoryInput, userPrefs?: UserPreferences): Promise<Story> {
     logger.info('Starting personalized story generation', {
       input,
-      hasPreferences: !!preferences,
+      hasPreferences: !!userPrefs,
       hasOpenAIKey: !!process.env.NEXT_PUBLIC_OPENAI_API_KEY,
     });
 
-    // If preferences not provided, fetch them
-    const userPreferences: UserPreferences | null = preferences || (await this.getUserPreferences());
-
-    // Determine pronouns based on gender
-    const pronouns: string | null =
-      input.gender === 'boy' ? 'he' : input.gender === 'girl' ? 'she' : 'they';
-    const possessivePronouns: string | null =
+    const pronouns = input.gender === 'boy' ? 'he' : input.gender === 'girl' ? 'she' : 'they';
+    const possessivePronouns =
       input.gender === 'boy' ? 'his' : input.gender === 'girl' ? 'her' : 'their';
 
     try {
-      let storyContent: string;
+      let storyContent = '';
 
-      // Always attempt to use OpenAI, fallback if it fails
       try {
         if (this.openai) {
           storyContent = await this.generateOpenAIStory(input, pronouns, possessivePronouns);
@@ -193,6 +176,7 @@ export class UserPersonalizationEngine {
           });
         } else {
           logger.error('OpenAI client not initialized');
+          storyContent = this.generateFallbackStory(input, pronouns, possessivePronouns);
         }
       } catch (openaiError) {
         logger.warn('OpenAI story generation failed, using fallback', {
@@ -202,8 +186,7 @@ export class UserPersonalizationEngine {
         storyContent = this.generateFallbackStory(input, pronouns, possessivePronouns);
       }
 
-      // Create story object
-      const story: Story | null = {
+      const story: Story = {
         id: this.generateUniqueId(),
         title: `A Special Story for ${input.childName}`,
         content: storyContent,
@@ -215,13 +198,12 @@ export class UserPersonalizationEngine {
           possessivePronouns,
           generatedAt: new Date().toISOString(),
         },
-        userId: this.userId || undefined,
+        userId: this.userId,
         pronouns,
         possessivePronouns,
         generatedAt: new Date().toISOString(),
       };
 
-      // Increment generated stories count
       await this.incrementGeneratedStories();
 
       logger.info('Personalized story generation successful', {
@@ -231,18 +213,13 @@ export class UserPersonalizationEngine {
 
       return story;
     } catch (error) {
-      logger.error('Comprehensive error in story generation', {
-        error,
-        input,
-        userId: this.userId,
-        apiKeyPresent: !!process.env.NEXT_PUBLIC_OPENAI_API_KEY,
-      });
+      logger.error('Comprehensive error in story generation', { error });
+      const fallbackStory = this.generateFallbackStory(input, pronouns, possessivePronouns);
 
-      // Final fallback story generation
-      const fallbackStory: Story | null = {
+      return {
         id: this.generateUniqueId(),
         title: `A Story for ${input.childName}`,
-        content: this.generateFallbackStory(input, pronouns, possessivePronouns),
+        content: fallbackStory,
         theme: input.theme,
         createdAt: new Date().toISOString(),
         input,
@@ -251,13 +228,11 @@ export class UserPersonalizationEngine {
           possessivePronouns,
           generatedAt: new Date().toISOString(),
         },
-        userId: this.userId || undefined,
+        userId: this.userId,
         pronouns,
         possessivePronouns,
         generatedAt: new Date().toISOString(),
       };
-
-      return fallbackStory;
     }
   }
 
@@ -348,7 +323,7 @@ export class UserPersonalizationEngine {
         this.generateFallbackStory(input, pronouns, possessivePronouns)
       );
     } catch (error) {
-      logger.error('OpenAI story generation failed', { error, input });
+      logger.error('OpenAI story generation failed', { error });
       return this.generateFallbackStory(input, pronouns, possessivePronouns);
     }
   }
@@ -361,3 +336,4 @@ export class UserPersonalizationEngine {
 
 // Singleton instance of the personalization engine
 export const userPersonalizationEngine = new UserPersonalizationEngine('default-user');
+export { DEFAULT_PREFERENCES };

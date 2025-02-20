@@ -10,7 +10,7 @@ import { devAuthMiddleware } from '@/middleware/devAuth';
 async function POST(req: NextRequest) {
   logger.info('Story Generation Route: Received Request');
   logger.info('Request Headers:', Object.fromEntries(req.headers));
-  logger.info('Environment:', env.NODE_ENV);
+  logger.info('Environment:', { environment: env.NODE_ENV });
 
   try {
     // Comprehensive authentication logging
@@ -19,7 +19,8 @@ async function POST(req: NextRequest) {
     // Development authentication fallback
     let authContext;
     try {
-      authContext = env.NODE_ENV === 'development' ? devAuthMiddleware(req) || auth() : auth();
+      const devAuth = env.NODE_ENV === 'development' ? devAuthMiddleware(req) : undefined;
+      authContext = devAuth || auth();
     } catch (authError) {
       logger.error('Authentication Error:', authError);
       return NextResponse.json(
@@ -38,7 +39,7 @@ async function POST(req: NextRequest) {
 
     const { userId } = authContext;
 
-    logger.info('Authenticated User ID:', userId);
+    logger.info('Authenticated User ID:', { userId });
 
     // If no user ID is available, return an unauthorized error
     if (!userId) {
@@ -58,7 +59,9 @@ async function POST(req: NextRequest) {
 
     let input: StoryInput;
     try {
-      input = await req.json();
+      const jsonData = await req.json();
+      // Type assertion to ensure input matches StoryInput type
+      input = jsonData as StoryInput;
     } catch (jsonError) {
       logger.error('JSON Parsing Error:', jsonError);
       return NextResponse.json(
@@ -109,16 +112,16 @@ async function POST(req: NextRequest) {
     }
 
     // Initialize engine with user ID
-    serverUserPersonalizationEngine.setUserId(userId);
+    await serverUserPersonalizationEngine.init(userId);
 
     // Attempt personalized story generation with comprehensive error handling
     let story;
     try {
       logger.info('Attempting personalized story generation...');
       story = await serverUserPersonalizationEngine.generatePersonalizedStory(input);
-      logger.info('Personalized Story Generated:', !!story);
+      logger.info('Personalized Story Generated:', { success: !!story });
     } catch (personalizationError) {
-      logger.error('Personalization Error:', personalizationError);
+      logger.error('Personalization Error:', { error: personalizationError });
       logger.error('Personalized story generation failed', {
         error:
           personalizationError instanceof Error ? personalizationError.message : 'Unknown error',
@@ -136,9 +139,9 @@ async function POST(req: NextRequest) {
       logger.warn('Falling back to basic story generation', { input });
       try {
         story = await generateStory(input, userId);
-        logger.info('Fallback Story Generated:', !!story);
+        logger.info('Fallback Story Generated:', { success: !!story });
       } catch (fallbackError) {
-        logger.error('Fallback Generation Error:', fallbackError);
+        logger.error('Fallback Generation Error:', { error: fallbackError });
         logger.error('Fallback story generation failed', {
           error: fallbackError instanceof Error ? fallbackError.message : 'Unknown error',
           stack: fallbackError instanceof Error ? fallbackError.stack : 'No stack trace',

@@ -1,9 +1,7 @@
-import { UserButton, SignedIn, SignedOut, useUser } from '@clerk/nextjs';
+import { UserButton, SignedIn, SignedOut } from '@clerk/nextjs';
 import Link from 'next/link';
 
 export default function Navigation() {
-  const { user } = useUser();
-
   return (
     <nav className="flex items-center justify-between p-4 bg-white shadow-sm">
       <Link href="/" className="text-xl font-bold">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { motion } from 'framer-motion';
 import { Story, StoryInput } from '@/types/story';
@@ -39,6 +39,16 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const storyApi = useStoryApi();
 
+  // Handle initial client-side errors
+  React.useEffect(() => {
+    window.onerror = (message) => {
+      setError(message as string);
+    };
+    return () => {
+      window.onerror = null;
+    };
+  }, []);
+
   const handleGenerateStory = useCallback(
     async (event: React.FormEvent<HTMLFormElement>, input: StoryInput) => {
       event.preventDefault();
@@ -74,7 +84,7 @@ export default function Home() {
                 className="text-4xl sm:text-5xl"
                 variants={floatingAnimation}
                 initial={{ initial: true }}
-                animate="animate"
+                animate={floatingAnimation.animate}
                 style={{ animationDelay: `${index * 0.2}s` }}
               >
                 {emoji}

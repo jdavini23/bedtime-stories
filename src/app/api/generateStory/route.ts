@@ -44,7 +44,7 @@ const isQuotaError = (error: unknown): error is ApiError => {
 
 const generateCacheKey = (input: StoryInput): string => {
   // Create a deterministic cache key from the input
-  const sortedInterests = [...input.mostLikedCharacterTypes].sort().join(',');
+  const sortedInterests = input.mostLikedCharacterTypes ? [...input.mostLikedCharacterTypes].sort().join(',') : '';
   return `story:${input.childName}:${sortedInterests}:${input.theme}:${input.gender}`;
 };
 
@@ -119,11 +119,11 @@ export async function POST(request: Request): Promise<NextResponse> {
       try {
         const cachedStory = await kv.get<Record<string, any>>(cacheKey);
         if (cachedStory && typeof cachedStory === 'object') {
-          logger.info('Cache hit for:', cacheKey);
+          logger.info('Cache hit for:', { cacheKey });
           return NextResponse.json(cachedStory);
         }
       } catch (error) {
-        logger.warn('Cache read error:', error);
+        logger.warn('Cache read error:', { error });
         // Continue without cache
       }
     }
@@ -194,7 +194,7 @@ export async function POST(request: Request): Promise<NextResponse> {
             },
             {
               role: 'user',
-              content: `Create a ${input?.theme} bedtime story for ${input?.childName} who is a ${input?.gender} and loves ${input?.mostLikedCharacterTypes.join(', ')}.`,
+              content: `Create a ${input?.theme} bedtime story for ${input?.childName} who is a ${input?.gender} and loves ${input.mostLikedCharacterTypes ? input.mostLikedCharacterTypes.join(', ') : 'various things'}.`,
             },
           ],
           temperature: 0.8,
@@ -227,14 +227,14 @@ export async function POST(request: Request): Promise<NextResponse> {
         try {
           await kv.set(generateCacheKey(input), response, { ex: CACHE_TTL });
         } catch (error) {
-          logger.warn('Cache write error:', error);
+          logger.warn('Cache write error:', { error });
           // Continue without cache
         }
       }
 
       return NextResponse.json(response);
     } catch (error: unknown) {
-      logger.error('OpenAI API error:', error);
+      logger.error('OpenAI API error:', { error });
 
       if (error instanceof Error && error.name === 'AbortError') {
         return NextResponse.json(
@@ -271,7 +271,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       });
     }
   } catch (error: unknown) {
-    logger.error('Unexpected error in story generation:', error);
+    logger.error('Unexpected error in story generation:', { error });
 
     // Comprehensive error response
     const errorResponse = {

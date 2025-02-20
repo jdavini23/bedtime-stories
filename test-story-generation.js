@@ -22,7 +22,7 @@ function logDiagnostics(message, data = null) {
     let logEntry = `[${timestamp}] ${message}\n`;
 
     // Safely stringify data with controlled depth and length
-    const safeStringify = (obj, maxDepth = 3, maxLength = 1000) => {
+    const safeStringify = (obj, maxLength = 1000) => {
       const seen = new WeakSet();
 
       const replacer = (key, value) => {

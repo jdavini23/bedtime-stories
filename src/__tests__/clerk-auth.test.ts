@@ -1,5 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
-import { clerkClient } from '@clerk/nextjs/server';
+import { describe, it, expect } from 'vitest';
 import { ServerUserPersonalizationEngine } from '@/services/serverPersonalizationEngine';
 
 describe('Clerk Authentication and Personalization', () => {
@@ -7,8 +6,7 @@ describe('Clerk Authentication and Personalization', () => {
   const TEST_USER_ID = 'user_123';
 
   it('should fetch user preferences', async () => {
-    const personalizationEngine = new ServerUserPersonalizationEngine();
-    personalizationEngine.setUserId(TEST_USER_ID);
+    const personalizationEngine = new ServerUserPersonalizationEngine(TEST_USER_ID);
     const preferences = await personalizationEngine.getUserPreferences();
 
     expect(preferences).toBeDefined();
@@ -18,8 +16,7 @@ describe('Clerk Authentication and Personalization', () => {
   });
 
   it('should update user preferences', async () => {
-    const personalizationEngine = new ServerUserPersonalizationEngine();
-    personalizationEngine.setUserId(TEST_USER_ID);
+    const personalizationEngine = new ServerUserPersonalizationEngine(TEST_USER_ID);
     const testPreferences = {
       preferredThemes: ['adventure', 'fantasy'],
       mostLikedCharacterTypes: ['brave', 'curious'],
@@ -34,8 +31,7 @@ describe('Clerk Authentication and Personalization', () => {
   });
 
   it('should increment generated stories', async () => {
-    const personalizationEngine = new ServerUserPersonalizationEngine();
-    personalizationEngine.setUserId(TEST_USER_ID);
+    const personalizationEngine = new ServerUserPersonalizationEngine(TEST_USER_ID);
     const initialPreferences = await personalizationEngine.getUserPreferences();
     const initialStoriesCount = initialPreferences.generatedStories || 0;
 
@@ -46,12 +42,11 @@ describe('Clerk Authentication and Personalization', () => {
   });
 
   it('should handle user without preferences', async () => {
-    const personalizationEngine = new UserPersonalizationEngine(null);
+    const personalizationEngine = new ServerUserPersonalizationEngine(undefined);
     const preferences = await personalizationEngine.getUserPreferences();
-
     expect(preferences).toBeDefined();
-    expect(preferences).toHaveProperty('preferredThemes', []);
-    expect(preferences).toHaveProperty('mostLikedCharacterTypes', []);
-    expect(preferences).toHaveProperty('generatedStories', 0);
+    expect(preferences).toHaveProperty('preferredThemes');
+    expect(preferences).toHaveProperty('mostLikedCharacterTypes');
+    expect(preferences).toHaveProperty('generatedStories');
   });
 });

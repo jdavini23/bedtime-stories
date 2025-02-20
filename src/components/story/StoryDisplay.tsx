@@ -3,7 +3,8 @@
 import React, { FC, useState, useCallback, memo } from 'react';
 import { Story } from '@/types/story';
 import { Button } from '../common/Button';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
+import { logger } from '@/utils/loggerInstance';
 
 interface StoryDisplayProps {
   story: Story;
@@ -36,6 +37,38 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
   const [copySuccess, setCopySuccess] = useState<boolean>(false);
   const [isSharing, setIsSharing] = useState<boolean>(false);
 
+  const getThemeEmoji = useCallback((theme: string): string => {
+    const emojiMap: Record<string, string> = {
+      adventure: '🌟',
+      fantasy: '🦄',
+      educational: '📚',
+      friendship: '🤝',
+      courage: '🦁',
+    };
+    return emojiMap[theme?.toLowerCase()] || '✨';
+  }, []);
+
+  const handleCopy = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(story?.content || '');
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (err) {
+      logger.error('Failed to copy text:', err);
+    }
+  }, [story?.content]);
+
+  const handleShare = useCallback(async () => {
+    setIsSharing(true);
+    try {
+      const childName = story?.input?.childName || 'You';
+      const mailtoLink = `mailto:?subject=A Bedtime Story for ${childName}&body=${encodeURIComponent(story?.content || '')}`;
+      window.location.href = mailtoLink;
+    } finally {
+      setTimeout(() => setIsSharing(false), 1000);
+    }
+  }, [story?.input?.childName, story?.content]);
+
   // Return early if story is undefined
   if (!story || !story.input) {
     return (
@@ -46,44 +79,6 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
       </div>
     );
   }
-
-  // Helper function to get theme emoji
-  const getThemeEmoji = useCallback((theme: string): string => {
-    const emojiMap: Record<string, string> = {
-      adventure: '🌟',
-      fantasy: '🦄',
-      educational: '📚',
-      friendship: '🤝',
-      courage: '🦁',
-      kindness: '💝',
-      curiosity: '🔍',
-      creativity: '🎨',
-      nature: '🌿',
-      science: '🔬',
-    };
-    return emojiMap[theme.toLowerCase()] || '✨';
-  }, []);
-
-  const handleCopy = useCallback(async () => {
-    try {
-      await navigator.clipboard.writeText(story.content);
-      setCopySuccess(true);
-      setTimeout(() => setCopySuccess(false), 2000);
-    } catch (err) {
-      logger.error('Failed to copy text:', err);
-    }
-  }, [story.content]);
-
-  const handleShare = useCallback(async () => {
-    setIsSharing(true);
-    try {
-      const childName = story.input?.childName || 'You';
-      const mailtoLink = `mailto:?subject=A Bedtime Story for ${childName}&body=${encodeURIComponent(story.content || '')}`;
-      window.location.href = mailtoLink;
-    } finally {
-      setTimeout(() => setIsSharing(false), 1000);
-    }
-  }, [story.input?.childName, story.content]);
 
   return (
     <div className="relative w-full max-w-3xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
@@ -144,7 +139,6 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
                   key={copySuccess ? 'copied' : 'copy'}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
                   transition={{ duration: 0.2 }}
                 >
                   {copySuccess ? '✓ Copied!' : 'Copy Story'}
@@ -157,17 +151,14 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
               className="flex-1 transition-all duration-200 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0"
               disabled={isSharing}
             >
-              <AnimatePresence mode="wait">
-                <motion.span
-                  key={isSharing ? 'sharing' : 'share'}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  {isSharing ? 'Opening Email...' : 'Share via Email'}
-                </motion.span>
-              </AnimatePresence>
+              <motion.span
+                key={isSharing ? 'sharing' : 'share'}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.2 }}
+              >
+                {isSharing ? 'Opening Email...' : 'Share via Email'}
+              </motion.span>
             </Button>
           </motion.div>
         </motion.div>

@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import * as LucideIcons from 'lucide-react';
+import { Chrome, Github, Loader2 as Loader } from 'lucide-react';
+import { logger } from '@/utils/loggerInstance';
 
 import { Button } from '@/components/ui/Button';
 
@@ -22,7 +23,7 @@ export default function SignInPage() {
       logger.error('Google login not implemented');
       router.push('/dashboard');
     } catch (error) {
-      logger.error('Google Login Failed', error);
+      logger.error('Google Login Failed', { error });
       router.push('/auth/error?error=OAuthSignin');
     } finally {
       setIsLoading((prev) => ({ ...prev, google: false }));
@@ -37,7 +38,7 @@ export default function SignInPage() {
       logger.error('GitHub login not implemented');
       router.push('/dashboard');
     } catch (error) {
-      logger.error('GitHub Login Failed', error);
+      logger.error('GitHub Login Failed', { error });
       router.push('/auth/error?error=OAuthSignin');
     } finally {
       setIsLoading((prev) => ({ ...prev, github: false }));
@@ -65,9 +66,9 @@ export default function SignInPage() {
             variant="outline"
           >
             {isLoading.google ? (
-              <LucideIcons.Loader className="mr-2 h-4 w-4 animate-spin" />
+              <Loader className="mr-2 h-4 w-4 animate-spin" />
             ) : (
-              <LucideIcons.Chrome className="mr-2 h-5 w-5" />
+              <Chrome className="mr-2 h-5 w-5" />
             )}
             Continue with Google
           </Button>
@@ -79,9 +80,9 @@ export default function SignInPage() {
             variant="outline"
           >
             {isLoading.github ? (
-              <LucideIcons.Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader className="mr-2 h-4 w-4 animate-spin" />
             ) : (
-              <LucideIcons.Github className="mr-2 h-5 w-5" />
+              <Github className="mr-2 h-5 w-5" />
             )}
             Continue with GitHub
           </Button>

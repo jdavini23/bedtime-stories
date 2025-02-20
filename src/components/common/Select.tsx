@@ -8,20 +8,11 @@ interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   className?: string;
 }
 
-const Select: React.FC<SelectProps> = ({ 
-  label, 
-  options, 
-  error, 
-  className, 
-  ...props 
-}) => {
+const Select: React.FC<SelectProps> = ({ label, options, error, className, ...props }) => {
   return (
     <div className="flex flex-col space-y-2">
       {label && (
-        <label 
-          htmlFor={props.id} 
-          className="text-sm font-medium text-gray-700"
-        >
+        <label htmlFor={props.id} className="text-sm font-medium text-gray-700">
           {label}
         </label>
       )}
@@ -41,9 +32,7 @@ const Select: React.FC<SelectProps> = ({
           </option>
         ))}
       </select>
-      {error && (
-        <p className="text-xs text-red-500 mt-1">{error}</p>
-      )}
+      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
     </div>
   );
 };

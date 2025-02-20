@@ -44,21 +44,27 @@ module.exports = [
       ...js.configs.recommended.rules,
       ...typescriptEslint.configs.recommended.rules,
       ...reactHooks.configs.recommended.rules,
-      
+
       // Specific customizations
       'react/prop-types': 'off',
       'react/react-in-jsx-scope': 'off',
-      '@typescript-eslint/no-unused-vars': ['warn', { 
-        argsIgnorePattern: '^_',
-        varsIgnorePattern: '^_'
-      }],
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+        },
+      ],
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
-      'no-console': ['warn', { 
-        allow: ['warn', 'error', 'info', 'debug', 'log'] 
-      }],
+      'no-console': [
+        'warn',
+        {
+          allow: ['warn', 'error', 'info', 'debug', 'log'],
+        },
+      ],
       'max-len': ['warn', { code: 100, ignoreUrls: true }],
-      
+
       // Allow require in specific cases
       '@typescript-eslint/no-var-requires': 'off',
     },

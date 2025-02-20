@@ -1,17 +1,20 @@
 import { clerkClient } from '@clerk/nextjs/server';
-import { UserPersonalizationEngine as BaseUserPersonalizationEngine, DEFAULT_PREFERENCES } from './personalizationEngine';
-import { Story, StoryInput } from '@/types/story';
+import {
+  UserPersonalizationEngine as BaseUserPersonalizationEngine,
+  DEFAULT_PREFERENCES,
+} from './personalizationEngine';
+import { Story, StoryInput, UserPreferences } from '@/types/story';
 import { generateStory } from '@/lib/storyGenerator';
 import { logger } from '@/utils/logger';
 
 export class ServerUserPersonalizationEngine extends BaseUserPersonalizationEngine {
   // Method to set user ID
-  protected setUserId(userId: string | null | null | null | null | null) {
+  protected setUserId(userId: string | undefined) {
     super.setUserId(userId);
   }
 
   // Server-side method to get user preferences
-  async getUserPreferences() {
+  async getUserPreferences(): Promise<UserPreferences> {
     const userId = this.getUserId();
     if (!userId) {
       return DEFAULT_PREFERENCES;
@@ -19,23 +22,21 @@ export class ServerUserPersonalizationEngine extends BaseUserPersonalizationEngi
 
     try {
       const user = await clerkClient.users.getUser(userId);
-
-      // Extract preferences from Clerk's publicMetadata
-      const preferences = user.publicMetadata?.preferences || DEFAULT_PREFERENCES;
+      const preferences = (user.publicMetadata?.preferences || {}) as Partial<UserPreferences>;
 
       return {
+        ...DEFAULT_PREFERENCES,
+        ...preferences,
         preferredThemes: preferences.preferredThemes || DEFAULT_PREFERENCES.preferredThemes,
-        mostLikedCharacterTypes: preferences.mostLikedCharacterTypes || [],
-        generatedStories: preferences.generatedStories || 0,
+        generatedStoryCount: preferences.generatedStoryCount || 0,
       };
     } catch (error) {
-      logger.error('Failed to fetch user preferences:', error);
+      logger.error('Failed to fetch user preferences:', { error });
       return DEFAULT_PREFERENCES;
     }
   }
 
-  // Server-side method to update user preferences
-  async updateUserPreferences(newPreferences: Record<string, unknown>) {
+  async updateUserPreferences(newPreferences: Partial<UserPreferences>): Promise<boolean> {
     const userId = this.getUserId();
     if (!userId) {
       return false;
@@ -46,13 +47,13 @@ export class ServerUserPersonalizationEngine extends BaseUserPersonalizationEngi
         publicMetadata: {
           preferences: {
             ...newPreferences,
-            generatedStories: newPreferences.generatedStories || 0,
+            generatedStoryCount: newPreferences.generatedStoryCount || 0,
           },
         },
       });
       return true;
     } catch (error) {
-      logger.error('Failed to update user preferences:', error);
+      logger.error('Failed to update user preferences:', { error });
       return false;
     }
   }
@@ -67,59 +68,30 @@ export class ServerUserPersonalizationEngine extends BaseUserPersonalizationEngi
       const currentPreferences = await this.getUserPreferences();
       const updatedPreferences = {
         ...currentPreferences,
-        generatedStories: (currentPreferences.generatedStories || 0) + 1,
+        generatedStoryCount: (currentPreferences.generatedStoryCount || 0) + 1,
       };
 
       await this.updateUserPreferences(updatedPreferences);
     } catch (error) {
-      logger.error('Failed to increment generated stories:', error);
+      logger.error('Failed to increment generated stories:', { error });
     }
   }
 
   // Server-side method to generate a personalized story
-  async generatePersonalizedStory(input: StoryInput): Promise<Story | null> {
+  async generatePersonalizedStory(input: StoryInput): Promise<Story> {
     try {
-      const preferences = await this.getUserPreferences();
+      const userId = this.getUserId();
+      const story = await generateStory(input, userId || undefined);
+      if (!story) throw new Error('Failed to generate story');
 
-      // Combine user preferences with input to enhance story
-      const enhancedInput = {
-        ...input,
-        interests: [...input.interests, ...preferences.mostLikedCharacterTypes],
-        themes: [...(input.themes || []), ...preferences.preferredThemes],
-      };
-
-      // For now, use the basic story generator as a fallback
-      const story = await generateStory(enhancedInput, this.getUserId() || undefined);
-
-      // Update story generation count in user metadata
-      if (this.getUserId()) {
-        await this.updateGenerationCount();
-      }
-
+      await this.incrementGeneratedStories();
       return story;
     } catch (error) {
-      logger.error('Failed to generate personalized story:', error);
-      return null;
-    }
-  }
-
-  // Helper method to update story generation count
-  private async updateGenerationCount() {
-    try {
-      const user = await clerkClient.users.getUser(this.getUserId()!);
-      const currentCount = (user.publicMetadata?.generatedStories as number) || 0;
-
-      await clerkClient.users.updateUser(this.getUserId()!, {
-        publicMetadata: {
-          ...user.publicMetadata,
-          generatedStories: currentCount + 1,
-        },
-      });
-    } catch (error) {
-      logger.error('Failed to update story generation count:', error);
+      logger.error('Failed to generate personalized story:', { error });
+      throw error;
     }
   }
 }
 
 // Singleton instance of the server-side personalization engine
-export const serverUserPersonalizationEngine = new ServerUserPersonalizationEngine(null);
+export const serverUserPersonalizationEngine = new ServerUserPersonalizationEngine(undefined);

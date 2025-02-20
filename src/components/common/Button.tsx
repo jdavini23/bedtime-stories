@@ -2,20 +2,16 @@ import React from 'react';
 import { cn } from '@/utils/cn';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'danger';
+  variant?: 'primary' | 'secondary' | 'danger' | 'outline';
   className?: string;
 }
 
-const Button: React.FC<ButtonProps> = ({ 
-  variant = 'primary', 
-  className, 
-  children,
-  ...props 
-}) => {
+const Button: React.FC<ButtonProps> = ({ variant = 'primary', className, children, ...props }) => {
   const variantClasses = {
     primary: 'bg-blue-500 text-white hover:bg-blue-600',
     secondary: 'bg-gray-200 text-gray-800 hover:bg-gray-300',
-    danger: 'bg-red-500 text-white hover:bg-red-600'
+    danger: 'bg-red-500 text-white hover:bg-red-600',
+    outline: 'border-2 border-gray-300 text-gray-700 hover:bg-gray-100',
   };
 
   return (

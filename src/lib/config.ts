@@ -1,3 +1,5 @@
+import { logger } from '@/utils/loggerInstance';
+
 // Client-side public configuration
 export const publicConfig = {
   nextauth: {
@@ -47,6 +49,7 @@ export function getServerConfig() {
       clientId: process.env.GOOGLE_CLIENT_ID || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     },
+    // Remove Firebase config since we're using Clerk now
     firebase: {
       projectId: process.env.FIREBASE_PROJECT_ID,
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,

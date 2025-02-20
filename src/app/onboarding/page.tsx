@@ -7,9 +7,19 @@ import { redirect } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { logger } from '@/utils/loggerInstance';
 
 export default function OnboardingPage() {
   const { isAuthenticated, session } = useSession();
+  const userName =
+    (session &&
+      typeof session === 'object' &&
+      'user' in session &&
+      session.user &&
+      typeof session.user === 'object' &&
+      'name' in session.user &&
+      session.user.name) ||
+    'User';
   const [childName, setChildName] = useState('');
   const [childAge, setChildAge] = useState('');
   const [interests, setInterests] = useState<string[]>([]);
@@ -56,7 +66,7 @@ export default function OnboardingPage() {
       >
         <div className="text-center">
           <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 mb-4">
-            Welcome, {session?.user?.name?.split(' ')[0]}!
+            Welcome, {userName.split(' ')[0]}!
           </h2>
           <p className="text-gray-600 mb-6">Let's personalize your Bedtime Stories experience</p>
         </div>

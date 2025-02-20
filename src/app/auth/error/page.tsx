@@ -2,7 +2,7 @@
 
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import * as LucideIcons from 'lucide-react';
+import { AlertTriangle, Lock, Network, ShieldOff } from 'lucide-react';
 
 import { Button } from '@/components/ui/Button';
 
@@ -11,7 +11,7 @@ const ERROR_MESSAGES = {
   OAuthSignin: {
     title: 'Authentication Failed',
     description: 'There was an issue signing in with the selected provider.',
-    icon: LucideIcons.AlertTriangle,
+    icon: AlertTriangle,
     actions: [
       { label: 'Try Again', variant: 'primary' as const },
       { label: 'Back to Login', variant: 'secondary' as const },
@@ -20,7 +20,7 @@ const ERROR_MESSAGES = {
   OAuthCallback: {
     title: 'Callback Error',
     description: 'The authentication callback encountered an unexpected issue.',
-    icon: LucideIcons.Network,
+    icon: Network,
     actions: [
       { label: 'Retry Login', variant: 'primary' as const },
       { label: 'Contact Support', variant: 'secondary' as const },
@@ -29,7 +29,7 @@ const ERROR_MESSAGES = {
   OAuthCreateAccount: {
     title: 'Account Creation Failed',
     description: 'Unable to create an account with the selected provider.',
-    icon: LucideIcons.ShieldOff,
+    icon: ShieldOff,
     actions: [
       { label: 'Try Different Provider', variant: 'primary' as const },
       { label: 'Back to Login', variant: 'secondary' as const },
@@ -38,7 +38,7 @@ const ERROR_MESSAGES = {
   Unauthorized: {
     title: 'Access Denied',
     description: 'You are not authorized to access this resource.',
-    icon: LucideIcons.Lock,
+    icon: Lock,
     actions: [
       { label: 'Return to Login', variant: 'primary' as const },
       { label: 'Contact Support', variant: 'secondary' as const },
@@ -47,7 +47,7 @@ const ERROR_MESSAGES = {
   Default: {
     title: 'Authentication Error',
     description: 'An unexpected error occurred during authentication.',
-    icon: LucideIcons.AlertTriangle,
+    icon: AlertTriangle,
     actions: [
       { label: 'Retry', variant: 'primary' as const },
       { label: 'Back to Home', variant: 'secondary' as const },
@@ -110,7 +110,7 @@ export default function AuthErrorPage() {
         </div>
 
         <div className="mt-8 flex justify-center">
-          {errorConfig.actions.map((action, index) => (
+          {errorConfig.actions.map((action, _index) => (
             <Button
               key={action.label}
               onClick={() => {

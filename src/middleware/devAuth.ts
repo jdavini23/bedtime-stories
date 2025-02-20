@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { env } from '@/lib/env';
+import { logger } from '@/utils/loggerInstance';
 
 // Centralized development authentication logging
 export function devLog(message: string, context?: Record<string, any>) {
@@ -119,6 +120,10 @@ export function patchClerkAuth() {
 
 // Optional middleware for additional development authentication injection
 export function devAuthInjectionMiddleware(req: NextRequest) {
-  devLog('Development Authentication Injection Middleware');
-  return null;
+  devLog('Development Authentication Injection Middleware', {
+    method: req.method,
+    url: req.url,
+    headers: Object.fromEntries(req.headers),
+  });
+  return new NextResponse(null, { status: 200 });
 }

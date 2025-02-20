@@ -35,10 +35,11 @@ export type StoryMetadata = {
 
 export interface StoryInput {
   childName: string;
-  mostLikedCharacterTypes: string[];
-  theme: StoryTheme;
   gender: StoryGender;
+  theme: StoryTheme;
+  interests: string[];
   favoriteCharacters?: string[];
+  mostLikedCharacterTypes?: string[];
   mood?: StoryMood;
   language?: string;
   readingLevel?: StoryMetadata['readingLevel'];
@@ -49,11 +50,45 @@ export interface Story {
   id: string;
   title: string;
   content: string;
-  theme: StoryTheme;
+  theme: string;
   createdAt: string;
   input: StoryInput;
-  userId: string | null | null | null | null | null | null;
-  metadata: StoryMetadata;
+  metadata: {
+    pronouns: string;
+    possessivePronouns: string;
+    generatedAt: string;
+  };
+  userId?: string;
+  pronouns: string;
+  possessivePronouns: string;
+  generatedAt: string;
+}
+
+export interface UserPreferences {
+  id?: string;
+  userId: string | null;
+  preferredThemes: string[];
+  generatedStoryCount: number;
+  generatedStories?: number;
+  lastStoryGeneratedAt?: Date;
+  learningInterests: string[];
+  ageGroup: '3-5' | '6-8' | '9-12';
+  theme: 'light' | 'dark';
+  language: string;
+  notifications: {
+    email: boolean;
+    push: boolean;
+    frequency: 'daily' | 'weekly' | 'monthly';
+  };
+  storyPreferences?: {
+    maxLength: number;
+    educationalFocus: boolean;
+    moralEmphasis: boolean;
+    readingLevel: string;
+  };
+  mostLikedCharacterTypes?: string[];
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface StoryError {

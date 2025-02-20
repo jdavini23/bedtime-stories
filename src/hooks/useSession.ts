@@ -1,17 +1,21 @@
-import { useClerkAuth } from './useClerkAuth';
+import { useAuth } from './useClerkAuth';
 
 export const useSession = () => {
-  const { user, isSignedIn } = useClerkAuth();
+  const { user, isAuthenticated: isSignedIn } = useAuth();
 
   return {
     data: {
-      user: user ? {
-        id: user.id,
-        name: user.fullName,
-        email: user.emailAddresses[0]?.emailAddress
-      } : null,
-      session: isSignedIn
+      user: user
+        ? {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+          }
+        : null,
+      session: isSignedIn,
     },
-    status: isSignedIn ? 'authenticated' : 'unauthenticated'
+    isAuthenticated: isSignedIn,
+    session: isSignedIn,
+    status: isSignedIn ? 'authenticated' : 'unauthenticated',
   };
 };

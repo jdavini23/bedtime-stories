@@ -4,7 +4,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { StoryInput } from '@/types/story';
 import { Select } from '@/components/common/Select';
-import type { SelectOption } from '@/components/common/Select';
+interface SelectOption {
+  value: string;
+  label: string;
+}
 import { Input } from '@/components/common/Input';
 import { logger } from '@/utils/logger';
 
@@ -157,6 +160,14 @@ function StoryForm({ onSubmit, isLoading = false }: StoryFormProps) {
       newErrors.interests = 'Interests are required';
     }
 
+    if (!selectedTheme?.value) {
+      newErrors.theme = 'Story theme is required';
+    }
+
+    if (!selectedGender?.value) {
+      newErrors.gender = 'Character gender is required';
+    }
+
     if (!favoriteCharacters.trim()) {
       newErrors.favoriteCharacters = 'At least one favorite character is recommended';
     }
@@ -227,9 +238,9 @@ function StoryForm({ onSubmit, isLoading = false }: StoryFormProps) {
 
           <div className="relative">
             <Input
-              ref={inputRef}
               label="Interests"
               id="interests"
+              ref={inputRef}
               value={interests}
               onChange={(e) => setInterests(e.target.value)}
               onFocus={() => {
@@ -272,8 +283,11 @@ function StoryForm({ onSubmit, isLoading = false }: StoryFormProps) {
             <label className="block text-sm font-medium text-gray-700">Story Theme</label>
             <Select
               options={THEME_OPTIONS}
-              value={selectedTheme}
-              onChange={setSelectedTheme}
+              value={selectedTheme.value}
+              onChange={(e) => {
+                const selected = THEME_OPTIONS.find(opt => opt.value === e.target.value);
+                setSelectedTheme(selected || THEME_OPTIONS[0]);
+              }}
               className="w-full"
             />
           </div>
@@ -282,8 +296,11 @@ function StoryForm({ onSubmit, isLoading = false }: StoryFormProps) {
             <label className="block text-sm font-medium text-gray-700">Character Gender</label>
             <Select
               options={GENDER_OPTIONS}
-              value={selectedGender}
-              onChange={setSelectedGender}
+              value={selectedGender.value}
+              onChange={(e) => {
+                const selected = GENDER_OPTIONS.find(opt => opt.value === e.target.value);
+                setSelectedGender(selected || GENDER_OPTIONS[0]);
+              }}
               className="w-full"
             />
           </div>
@@ -292,8 +309,11 @@ function StoryForm({ onSubmit, isLoading = false }: StoryFormProps) {
             <label className="block text-sm font-medium text-gray-700">Story Mood</label>
             <Select
               options={MOOD_OPTIONS}
-              value={selectedMood}
-              onChange={setSelectedMood}
+              value={selectedMood.value}
+              onChange={(e) => {
+                const selected = MOOD_OPTIONS.find(opt => opt.value === e.target.value);
+                setSelectedMood(selected || MOOD_OPTIONS[0]);
+              }}
               className="w-full"
             />
           </div>
