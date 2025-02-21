@@ -225,7 +225,7 @@ function StoryForm({ onSubmit, isLoading = false }: StoryFormProps) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.8 }}
       >
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6" role="form" aria-label="Story Generation Form">
           <Input
             label="Character Name"
             id="characterName"
@@ -262,6 +262,8 @@ function StoryForm({ onSubmit, isLoading = false }: StoryFormProps) {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.2 }}
                   className="absolute z-50 left-0 right-0 mt-1 bg-white rounded-md shadow-lg border border-gray-200"
+                  role="listbox"
+                  aria-label="Interest Suggestions"
                 >
                   {suggestions.map((suggestion) => (
                     <motion.button
@@ -270,6 +272,8 @@ function StoryForm({ onSubmit, isLoading = false }: StoryFormProps) {
                       whileHover={{ backgroundColor: '#EEF2FF' }}
                       onClick={() => addSuggestion(suggestion)}
                       className="w-full px-4 py-2 text-left text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 first:rounded-t-md last:rounded-b-md transition-colors duration-150"
+                      role="option"
+                      aria-selected={false}
                     >
                       {suggestion}
                     </motion.button>
@@ -338,6 +342,8 @@ function StoryForm({ onSubmit, isLoading = false }: StoryFormProps) {
                   ? 'bg-gradient-to-r from-purple-300 to-pink-300 cursor-not-allowed'
                   : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500'
               }`}
+            aria-busy={isLoading}
+            aria-live="polite"
           >
             {isLoading ? 'Generating Story...' : 'Generate Story'}
           </button>

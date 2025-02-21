@@ -48,8 +48,14 @@ export default authMiddleware({
   beforeAuth: (request) => {
     if (env.NODE_ENV === 'development') {
       const testUserId = request.headers.get('x-test-user-id') || 'dev-default-user';
-      request.headers.set('x-clerk-auth-user-id', testUserId);
-      request.headers.set('x-clerk-auth-session-id', `dev-session-${testUserId}`);
+      const headers = new Headers(request.headers);
+      headers.set('x-clerk-auth-user-id', testUserId);
+      headers.set('x-clerk-auth-session-id', `dev-session-${testUserId}`);
+      return NextResponse.next({
+        request: {
+          headers
+        }
+      });
     }
     return NextResponse.next();
   },
