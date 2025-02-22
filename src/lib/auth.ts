@@ -4,8 +4,8 @@ import { logger } from '@/utils/loggerInstance';
 // See https://clerk.com/docs/nextjs/middleware for more information about configuring your middleware
 export const publicRoutes = [
   '/',
-  '/auth/signin',
-  '/auth/signup',
+  '/sign-in',
+  '/sign-up',
   '/api/story',
   '/api/webhook/clerk',
 ];
@@ -17,15 +17,55 @@ export const config = {
 };
 
 // Helper functions for Clerk authentication
+interface UserMetadata {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  preferences?: {
+    theme?: string;
+    notifications?: boolean;
+  };
+}
+
+export interface AuthError extends Error {
+  code?: string;
+  statusCode?: number;
+}
+
 export const getUser = async (userId: string | null) => {
   try {
-    if (!userId) return null;
+    if (!userId) {
+      logger.warn('No user ID provided');
+      return null;
+    }
+    
     const user = await clerkClient.users.getUser(userId);
+    if (!user) {
+      logger.warn('User not found:', { userId });
+      return null;
+    }
+
     return user;
   } catch (error) {
-    logger.error('Error fetching user:', { error });
-    return null;
+    const authError = error as AuthError;
+    logger.error('Error fetching user:', { 
+      error: authError,
+      userId,
+      code: authError.code,
+      statusCode: authError.statusCode 
+    });
+    throw new Error('Failed to fetch user data');
   }
+};
+
+export const handleAuthError = (error: unknown): AuthError => {
+  const authError = error as AuthError;
+  logger.error('Authentication error:', {
+    message: authError.message,
+    code: authError.code,
+    statusCode: authError.statusCode
+  });
+  return authError;
 };
 
 export const getUserList = async () => {

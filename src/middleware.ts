@@ -11,9 +11,10 @@ type Route = {
 // Public routes that don't require authentication
 const publicRoutes: Route[] = [
   { path: '/', exact: true },
-  { path: '/auth/signin', exact: true },
-  { path: '/auth/signup', exact: true },
+  { path: '/sign-in', exact: true },
+  { path: '/sign-up', exact: true },
   { path: '/api/webhook/clerk', exact: true },
+  { path: '/story', exact: true },
 ];
 
 // Routes that can be accessed while signed in or not
@@ -36,7 +37,7 @@ const isDevelopmentApiRoute = (path: string): boolean => {
 };
 
 const createSignInUrl = (request: NextRequest): URL => {
-  const signInUrl = new URL('/auth/signin', request.url);
+  const signInUrl = new URL('/sign-in', request.url);
   signInUrl.searchParams.set('redirect_url', request.url);
   return signInUrl;
 };

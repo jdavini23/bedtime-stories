@@ -2,7 +2,7 @@ User-agent: *
 Allow: /
 
 # Sitemap location
-Sitemap: https://bedtime-stories.vercel.app/sitemap.xml
+Sitemap: https://step-into-story-time.vercel.app/sitemap.xml
 
 # Crawl-delay for all bots
 Crawl-delay: 10
