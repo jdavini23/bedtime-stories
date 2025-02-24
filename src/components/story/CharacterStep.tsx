@@ -1,9 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Input } from '@/components/common/Input';
-import { Select } from '@/components/common/Select';
+import { Input } from '@/components/ui/input';
+import { StoryGender } from '@/types/story';
 
 interface CharacterStepProps {
   onComplete: (data: { childName: string; gender: string; interests: string }) => void;
@@ -73,35 +72,52 @@ export function CharacterStep({ onComplete, initialValues }: CharacterStepProps)
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="space-y-6"
-    >
+    <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-900">Create Your Character</h2>
-        <p className="mt-2 text-sm text-gray-600">Tell us about who the story is for</p>
+        <h2 className="text-2xl font-bold text-midnight dark:text-text-primary">Create Your Character</h2>
+        <p className="mt-2 text-sm text-text-secondary dark:text-text-primary/80">Tell us about who the story is for</p>
       </div>
 
       <div className="space-y-4">
-        <Input
-          label="Character Name"
-          value={characterData.childName}
-          onChange={(e) => setCharacterData((prev) => ({ ...prev, childName: e.target.value }))}
-          placeholder="Enter name"
-          required
-        />
-
-        <Select
-          label="Character Gender"
-          options={GENDER_OPTIONS}
-          value={selectedGender}
-          onChange={(option) => setSelectedGender(option)}
-        />
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-text-secondary dark:text-text-primary/80">
+            Character Name
+          </label>
+          <Input
+            type="text"
+            placeholder="Enter name"
+            value={characterData.childName}
+            onChange={(e) => setCharacterData((prev) => ({ ...prev, childName: e.target.value }))}
+            className="w-full"
+          />
+        </div>
 
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-sm font-medium text-text-secondary dark:text-text-primary/80">
+            Character Gender
+          </label>
+          <div className="grid grid-cols-3 gap-3">
+            {GENDER_OPTIONS.map((option) => (
+              <div
+                key={option.value}
+                className={`p-3 border rounded-lg text-center cursor-pointer transition-colors ${
+                  selectedGender.value === option.value
+                    ? 'border-primary bg-primary/5 dark:bg-primary/10'
+                    : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-midnight/30'
+                }`}
+                onClick={() => {
+                  setSelectedGender(option);
+                  setCharacterData((prev) => ({ ...prev, gender: option.value }));
+                }}
+              >
+                <span className="block text-lg">{option.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-text-secondary dark:text-text-primary/80">
             Interests (Select multiple)
           </label>
           <div className="flex flex-wrap gap-2">
@@ -111,8 +127,8 @@ export function CharacterStep({ onComplete, initialValues }: CharacterStepProps)
                 onClick={() => handleInterestClick(interest)}
                 className={`px-3 py-1 text-sm rounded-full transition-colors ${
                   characterData.interests.includes(interest)
-                    ? 'bg-blue-100 text-blue-800 hover:bg-blue-200'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    ? 'bg-primary/20 text-primary dark:bg-primary/30 dark:text-text-primary hover:bg-primary/30 dark:hover:bg-primary/40'
+                    : 'bg-gray-100 dark:bg-gray-800 text-text-secondary dark:text-text-primary/80 hover:bg-gray-200 dark:hover:bg-gray-700'
                 }`}
               >
                 {interest}
@@ -121,14 +137,16 @@ export function CharacterStep({ onComplete, initialValues }: CharacterStepProps)
           </div>
         </div>
 
-        <button
-          onClick={handleSubmit}
-          disabled={!characterData.childName.trim()}
-          className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
-        >
-          Continue
-        </button>
+        <div className="pt-4">
+          <button
+            onClick={handleSubmit}
+            disabled={!characterData.childName.trim()}
+            className="w-full px-4 py-2 text-sm font-medium text-text-primary bg-primary rounded-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            Continue
+          </button>
+        </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { StoryTheme } from '@/types/story';
 
 interface ThemeStepProps {
   onComplete: (theme: string) => void;
@@ -29,18 +31,14 @@ export function ThemeStep({ onComplete, initialValue = '' }: ThemeStepProps) {
   const handleRandomTheme = () => {
     const randomTheme = THEME_OPTIONS[Math.floor(Math.random() * THEME_OPTIONS.length)];
     setSelectedTheme(randomTheme);
+    onComplete(randomTheme.value);
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="space-y-6"
-    >
+    <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-900">Choose a Theme</h2>
-        <p className="mt-2 text-sm text-gray-600">
+        <h2 className="text-2xl font-bold text-midnight dark:text-text-primary">Choose a Theme</h2>
+        <p className="mt-2 text-sm text-text-secondary dark:text-text-primary/80">
           Select a theme for your story's adventure
         </p>
       </div>
@@ -50,15 +48,24 @@ export function ThemeStep({ onComplete, initialValue = '' }: ThemeStepProps) {
           {THEME_OPTIONS.map((theme, index) => (
             <div
               key={theme.value}
-              className={`p-4 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer relative group ${selectedTheme.value === theme.value ? 'bg-gray-100' : ''}`}
-              onClick={() => setSelectedTheme(theme)}
+              className={`p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-midnight/30 transition-colors cursor-pointer relative group ${
+                selectedTheme.value === theme.value 
+                  ? 'border-primary bg-primary/5 dark:bg-primary/10' 
+                  : 'border-gray-200 dark:border-gray-700'
+              }`}
+              onClick={() => {
+                setSelectedTheme(theme);
+                onComplete(theme.value);
+              }}
               onTouchStart={() => setSelectedTheme(theme)}
             >
               <div className="flex items-center space-x-2">
-                <span className="text-xl font-medium text-gray-900">{theme.label}</span>
+                <span className="text-xl font-medium text-midnight dark:text-text-primary">{theme.label}</span>
               </div>
               <div 
-                className={`absolute z-10 transform ${index % 2 === 0 ? 'right-full translate-x-0' : 'left-full -translate-x-0'} top-1/2 -translate-y-1/2 ml-2 mr-2 px-3 py-2 bg-white border rounded-lg shadow-md text-sm font-medium text-gray-800 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity whitespace-nowrap`}
+                className={`absolute z-10 transform ${
+                  index % 2 === 0 ? 'right-full translate-x-0' : 'left-full -translate-x-0'
+                } top-1/2 -translate-y-1/2 ml-2 mr-2 px-3 py-2 bg-white dark:bg-midnight border rounded-lg shadow-md text-sm font-medium text-gray-800 dark:text-text-primary opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity whitespace-nowrap`}
               >
                 {theme.description}
               </div>
@@ -67,20 +74,15 @@ export function ThemeStep({ onComplete, initialValue = '' }: ThemeStepProps) {
         </div>
 
         <div className="flex space-x-4">
-          <button
+          <Button
+            variant="outline"
             onClick={handleRandomTheme}
-            className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="flex-1"
           >
-            🎲 Random Theme
-          </button>
-          <button
-            onClick={() => onComplete(selectedTheme.value)}
-            className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            Continue
-          </button>
+            <span className="inline-block animate-spin-slow mr-2">🎲</span> Random Theme
+          </Button>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

@@ -1,24 +1,29 @@
-import { useUser as useClerkUser } from '@clerk/nextjs';
-import type { User as ClerkUser } from '@clerk/nextjs/server';
-import { isAdmin } from '../utils/auth';
+// Temporarily mocking the useUser hook for development
+// import { useUser as useClerkUser } from '@clerk/nextjs';
+// import type { User as ClerkUser } from '@clerk/nextjs/server';
+// import { isAdmin } from '../utils/auth';
 
-interface User extends ClerkUser {
+interface User {
+  id: string;
+  firstName?: string;
+  lastName?: string;
+  imageUrl?: string;
   isAdmin?: boolean;
 }
 
 export const useUser = () => {
-  const { isLoaded, isSignedIn, user } = useClerkUser();
-
-  const extendedUser: User | null = user
-    ? {
-        ...user,
-        isAdmin: isAdmin(user),
-      }
-    : null;
+  // Mock user data for development
+  const mockUser: User = {
+    id: 'mock-user-id',
+    firstName: 'Test',
+    lastName: 'User',
+    imageUrl: 'https://via.placeholder.com/150',
+    isAdmin: false,
+  };
 
   return {
-    isLoaded,
-    isSignedIn,
-    user: extendedUser,
+    isLoaded: true,
+    isSignedIn: true,
+    user: mockUser,
   };
 };

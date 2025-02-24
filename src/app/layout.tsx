@@ -15,9 +15,9 @@ const inter = Inter({
 
 export const dynamic = 'force-static';
 
-export const metadata: Metadata | null = {
-  title: 'Step Into Story Time',
-  description: 'Personalized interactive stories for children',
+export const metadata: Metadata = {
+  title: 'Bedtime Story Magic',
+  description: 'Create enchanting, personalized bedtime stories for your children',
 };
 
 interface RootLayoutProps {
@@ -28,15 +28,7 @@ export default function RootLayout({ children }: RootLayoutProps): React.JSX.Ele
   return (
     <html lang="en">
       <body className={inter.className}>
-        <ClerkProvider
-          appearance={{
-            baseTheme: undefined,
-            elements: {
-              formButtonPrimary: 'bg-primary hover:bg-primary/90',
-              footerActionLink: 'text-primary hover:text-primary/90',
-            },
-          }}
-        >
+        <ClerkProvider>
           <Providers>
             <ErrorBoundary
               fallback={
