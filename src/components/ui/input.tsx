@@ -1,54 +1,26 @@
+'use client';
+
 import React from 'react';
-import { cva, type VariantProps } from 'class-variance-authority';
-import { cn } from '@/utils/cn';
+import { cn } from '@/lib/utils';
 
-const inputVariants = cva(
-  // Base styles
-  'w-full rounded-xl px-4 py-3 transition-all duration-300 font-medium placeholder:text-text-muted focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed',
-  {
-    variants: {
-      variant: {
-        default: 'bg-cloud-light border border-lavender focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-midnight-light dark:border-primary-light dark:text-text-primary',
-        filled: 'bg-cloud border-2 border-transparent focus:bg-cloud-light focus:border-primary',
-        outline: 'bg-transparent border-2 border-lavender focus:border-primary',
-      },
-      size: {
-        sm: 'h-9 text-sm',
-        md: 'h-11 text-base',
-        lg: 'h-14 text-lg px-6',
-      },
-      error: {
-        true: 'border-dreamy focus:ring-dreamy/50',
-      },
-    },
-    defaultVariants: {
-      variant: 'default',
-      size: 'md',
-    },
-  }
-);
-
-export interface InputProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'>,
-    VariantProps<typeof inputVariants> {
-  error?: boolean;
-  icon?: React.ReactNode;
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label?: string;
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, variant, size, error, icon, type = 'text', ...props }, ref) => {
+  ({ className, label, type, ...props }, ref) => {
     return (
-      <div className="relative">
-        {icon && (
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted">
-            {icon}
-          </div>
+      <div className="space-y-2">
+        {label && (
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            {label}
+          </label>
         )}
         <input
-          type={type}
+          type={type || 'text'}
           className={cn(
-            inputVariants({ variant, size, error, className }),
-            icon ? 'pl-12' : ''
+            "block w-full rounded-xl border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-700 dark:bg-midnight dark:text-white",
+            className
           )}
           ref={ref}
           {...props}
@@ -60,4 +32,4 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
 Input.displayName = 'Input';
 
-export { Input, inputVariants }; 
+export { Input }; 
