@@ -121,10 +121,11 @@ body {
 /* Typing animation for story generation */
 .typing-animation {
   overflow: hidden;
-  white-space: nowrap;
-  margin-bottom: 0.5rem;
+  white-space: normal;
+  margin-bottom: 1rem;
   animation: typing 3s steps(40, end) forwards;
   opacity: 0;
+  display: block;
 }
 
 .typing-animation.delay-2 {
