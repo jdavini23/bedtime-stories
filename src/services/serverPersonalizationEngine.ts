@@ -8,9 +8,9 @@ import { generateStory } from '@/lib/storyGenerator';
 import { logger } from '@/utils/logger';
 
 export class ServerUserPersonalizationEngine extends BaseUserPersonalizationEngine {
-  // Method to set user ID
-  protected setUserId(userId: string | undefined) {
-    super.setUserId(userId);
+  // Public method to initialize user ID
+  public init(userId: string | undefined) {
+    this.setUserId(userId);
   }
 
   // Server-side method to get user preferences
