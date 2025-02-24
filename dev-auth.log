@@ -1,0 +1,53 @@
+[2025-02-24T18:19:10.040Z] [DevAuth] Development Authentication Request
+{
+  "method": "POST",
+  "url": "http://localhost:3001/api/story/generate",
+  "headers": {
+    "accept": "application/json, text/plain, */*",
+    "accept-encoding": "gzip, deflate, br, zstd",
+    "accept-language": "en-US,en;q=0.9",
+    "cache-control": "no-cache",
+    "connection": "keep-alive",
+    "content-length": "164",
+    "content-type": "application/json",
+    "cookie": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..6Tgnogh_WyxQ8H1v.7FrHGmfTBsbIeD4WimE2tdBwsELZ9uVXFVfM7TdtiBO3vn6XTGjFncLV68vLEbHJecs2hDo-3QFOrKKejcMIzXfjK6R421e7F6ywWwu0el64wKV6TNshWWAtGTvltPCFRjjgbY4ajV91JMhBuU--_dvGUl3EBf0HSwoMr9hRsbD8-ZuncxrRd5udxNSrrSK4dzcvDmdESTyAHPcZ2Qr46H0E3lCxr01WWlU9sIm7qUNvEgdF9ti1ChrmuJl3fZHlUz1u1IFSiRowIomdSXbsXitSZSM9L7NowVzg6mj6aHwdk_tI1AGF3b88-1lUXBBefi_CiePY0SnrDvBjchupfuXtfcjGRXz8YA36lwWLvLUyVz9r1sgM9jMaCOPpv2_mQfDVxz3iLDK4fYEGquS1X9iAik9hlB-8FcW9FIoHC0xMSLqxkIr0Qe3BjHtUuoi55hDETv4jvbhFzmeT7lAG1YWGyaa_lnT8C2fU_1EJdjRPXkLfDel4VHZQrDcP79SrLiZgKq24CKEYwiHrnz0VEmOYomRzhY33HfBkDX7xgbeJCAMiOH_DKg_Ej8GlH8GwSQPr7aR68DnI1nbO48Sq9sq_Ar-2Bktvjg5mPu3uipo3v-4TlcdHz58oaulSplu2h8I_Gm0cH5dRh5h6KAnC5zgKRpGb4QFn66ZrCZ-FsHQWadZD3QpslpcmYUG1uc7F1r_-Zen0fqNunJSc3uia89qJHA.QXm5im34MY2CSB6X4hO92w; __clerk_db_jwt_2P6n4I7_=dvb_2tH1Pxe7aYwKV3rJGEg03sDFXeL; __client_uat_2P6n4I7_=0; __client_uat=0; __clerk_db_jwt=dvb_2tHK24HmV4hIJ0oRWse5G5ZfaYe; __session=eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18ydEgwcWtNQ2twUkFoRXZpb3E2cXlnMWtzbFYiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDA0MjExNzYsImZ2YSI6WzM5NjAsLTFdLCJpYXQiOjE3NDA0MjExMTYsImlzcyI6Imh0dHBzOi8vcmljaC1tYXN0aWZmLTIwLmNsZXJrLmFjY291bnRzLmRldiIsIm5iZiI6MTc0MDQyMTEwNiwic2lkIjoic2Vzc18ydE5EOWJTVXdNZ2pEV2xBaXEyZFk5cFBMWTkiLCJzdWIiOiJ1c2VyXzJ0TjZ6STBKa0ZEUGpOb2VZaGxocFBFZDUzNSJ9.tJVTg-qWrgFwKldJ5qpA4m87_RHlzBBgVPOb7-kZa6ZTXkxgaBGCLN2mwrszBV1MSCnmjJ6TSD9wLMWUaXf_BQjrHWbQ2plGeaevum5zUjz620s8c85OX8tT4P_9Zk_XO4piznu0NHFDjBX0l_DFcTV_x_GGsZu05oP_nrKT4YKGv1WaTaolfMyFXOVjJzNJiiRn-u2IgRq6FdaJMn-hlwXUcQ2nS_RpM0gYKuE-_RrTe6BDC1MBws4R6kgFoRmuGqcsODmN8V0UzD-3YWF-WBibo80FdJlXPyvDd6G-bwZIHHFhlctxMubAYqsXcG62vBDrvUrAS0hY8ptHaU-iOg",
+    "dnt": "1",
+    "host": "localhost:3001",
+    "origin": "http://localhost:3001",
+    "pragma": "no-cache",
+    "referer": "http://localhost:3001/",
+    "sec-ch-ua": "\"Not(A:Brand\";v=\"99\", \"Google Chrome\";v=\"133\", \"Chromium\";v=\"133\"",
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "sec-fetch-dest": "empty",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-site": "same-origin",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
+    "x-clerk-auth-message": "",
+    "x-clerk-auth-reason": "standard-signed-out",
+    "x-clerk-auth-session-id": "dev-session-dev-default-user",
+    "x-clerk-auth-status": "signed-out",
+    "x-clerk-auth-token": "",
+    "x-clerk-auth-user-id": "dev-default-user",
+    "x-forwarded-for": "::1",
+    "x-forwarded-host": "localhost:3001",
+    "x-forwarded-port": "3001",
+    "x-forwarded-proto": "http"
+  }
+}
+
+[2025-02-24T18:19:10.045Z] [DevAuth] User ID Source Identified
+{
+  "userId": "dev-default-user",
+  "source": ""
+}
+
+[2025-02-24T18:19:10.046Z] [DevAuth] Development Authentication Context Created
+{
+  "userId": "dev-default-user",
+  "sessionId": "dev-session-dev-default-user",
+  "claims": {
+    "source": "development-auth"
+  }
+}
+

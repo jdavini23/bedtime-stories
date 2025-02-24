@@ -85,7 +85,7 @@ export const useStoryApi = () => {
       }
 
       try {
-        const response: AxiosResponse<Story> = await api.post('/generateStory', input);
+        const response: AxiosResponse<Story> = await api.post('/story/generate', input);
         return response.data;
       } catch (error: unknown) {
         if (axios.isAxiosError(error)) {

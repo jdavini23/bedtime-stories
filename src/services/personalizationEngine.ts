@@ -59,11 +59,11 @@ export class UserPersonalizationEngine {
   constructor(userId: string | undefined) {
     this.userId = userId;
 
-    const apiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
+    const apiKey = process.env.OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY;
 
     if (!apiKey) {
       logger.error(
-        'CRITICAL: OpenAI API key is missing. Set NEXT_PUBLIC_OPENAI_API_KEY in .env.local',
+        'CRITICAL: OpenAI API key is missing. Set OPENAI_API_KEY in .env.local',
         { userId }
       );
       // Ensure openai is set to prevent null checks from failing
@@ -74,7 +74,7 @@ export class UserPersonalizationEngine {
     try {
       this.openai = new OpenAI({
         apiKey: apiKey,
-        dangerouslyAllowBrowser: true, // Only for client-side usage
+        dangerouslyAllowBrowser: false, // Disable client-side usage for security
       });
 
       logger.info('OpenAI client initialized successfully', {

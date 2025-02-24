@@ -7,7 +7,7 @@ import { logger } from '@/utils/logger';
 import { env } from '@/lib/env';
 import { devAuthMiddleware } from '@/middleware/devAuth';
 
-async function POST(req: NextRequest) {
+export async function POST(req: NextRequest) {
   logger.info('Story Generation Route: Received Request');
   logger.info('Request Headers:', Object.fromEntries(req.headers));
   logger.info('Environment:', { environment: env.NODE_ENV });
@@ -22,7 +22,7 @@ async function POST(req: NextRequest) {
       const devAuth = env.NODE_ENV === 'development' ? devAuthMiddleware(req) : undefined;
       authContext = devAuth || auth();
     } catch (authError) {
-      logger.error('Authentication Error:', authError);
+      logger.error('Authentication Error:', { error: authError });
       return NextResponse.json(
         {
           message: 'Authentication failed',
@@ -30,7 +30,7 @@ async function POST(req: NextRequest) {
           ...(env.NODE_ENV === 'development' && {
             fullError: authError instanceof Error ? authError.stack : 'No stack trace',
           }),
-        },
+        } as { message: string; error: string; fullError?: string },
         { status: 401 }
       );
     }
@@ -52,7 +52,7 @@ async function POST(req: NextRequest) {
           ...(env.NODE_ENV === 'development' && {
             authContext: JSON.stringify(authContext),
           }),
-        },
+        } as { message: string; details: string; authContext?: string },
         { status: 401 }
       );
     }
@@ -60,10 +60,9 @@ async function POST(req: NextRequest) {
     let input: StoryInput;
     try {
       const jsonData = await req.json();
-      // Type assertion to ensure input matches StoryInput type
       input = jsonData as StoryInput;
     } catch (jsonError) {
-      logger.error('JSON Parsing Error:', jsonError);
+      logger.error('JSON Parsing Error:', { error: jsonError });
       return NextResponse.json(
         {
           message: 'Invalid input',
@@ -71,50 +70,15 @@ async function POST(req: NextRequest) {
           ...(env.NODE_ENV === 'development' && {
             fullError: jsonError instanceof Error ? jsonError.stack : 'No stack trace',
           }),
-        },
-        { status: 400 }
-      );
-    }
-
-    logger.info('Story Input:', input);
-
-    // Validate input with more detailed checks
-    const validationErrors: string[] = [];
-    if (!input.childName || input.childName.trim() === '') {
-      validationErrors.push('Child name is required');
-    }
-    if (!input.interests || input.interests.length === 0) {
-      validationErrors.push('At least one interest is required');
-    }
-    if (!input.theme) {
-      validationErrors.push('Story theme is required');
-    }
-    if (!input.gender) {
-      validationErrors.push('Child gender is required');
-    }
-
-    if (validationErrors.length > 0) {
-      logger.error('Input Validation Failed:', validationErrors);
-      logger.warn('Story generation input validation failed', {
-        errors: validationErrors,
-        input,
-      });
-      return NextResponse.json(
-        {
-          message: 'Invalid input',
-          errors: validationErrors,
-          ...(env.NODE_ENV === 'development' && {
-            fullInput: JSON.stringify(input),
-          }),
-        },
+        } as { message: string; error: string; fullError?: string },
         { status: 400 }
       );
     }
 
     // Initialize engine with user ID
-    await serverUserPersonalizationEngine.init(userId);
+    serverUserPersonalizationEngine.init(userId);
 
-    // Attempt personalized story generation with comprehensive error handling
+    // Attempt personalized story generation
     let story;
     try {
       logger.info('Attempting personalized story generation...');
@@ -122,32 +86,17 @@ async function POST(req: NextRequest) {
       logger.info('Personalized Story Generated:', { success: !!story });
     } catch (personalizationError) {
       logger.error('Personalization Error:', { error: personalizationError });
-      logger.error('Personalized story generation failed', {
-        error:
-          personalizationError instanceof Error ? personalizationError.message : 'Unknown error',
-        stack:
-          personalizationError instanceof Error ? personalizationError.stack : 'No stack trace',
-        input,
-        userId,
-      });
       story = null;
     }
 
-    // If personalization fails, explicitly use fallback generation
+    // If personalization fails, use fallback generation
     if (!story) {
       logger.info('Falling back to basic story generation...');
-      logger.warn('Falling back to basic story generation', { input });
       try {
         story = await generateStory(input, userId);
         logger.info('Fallback Story Generated:', { success: !!story });
       } catch (fallbackError) {
         logger.error('Fallback Generation Error:', { error: fallbackError });
-        logger.error('Fallback story generation failed', {
-          error: fallbackError instanceof Error ? fallbackError.message : 'Unknown error',
-          stack: fallbackError instanceof Error ? fallbackError.stack : 'No stack trace',
-          input,
-          userId,
-        });
         return NextResponse.json(
           {
             message: 'Failed to generate story after multiple attempts',
@@ -157,7 +106,7 @@ async function POST(req: NextRequest) {
               input: JSON.stringify(input),
               userId,
             }),
-          },
+          } as { message: string; error: string; fullError?: string; input?: string; userId?: string },
           { status: 500 }
         );
       }
@@ -173,38 +122,23 @@ async function POST(req: NextRequest) {
             input: JSON.stringify(input),
             userId,
           }),
-        },
+        } as { message: string; input?: string; userId?: string },
         { status: 500 }
       );
     }
 
-    // Log successful story generation
-    logger.info('Story Generated Successfully');
-    logger.info('Story generated successfully', {
-      storyId: story.id,
-      childName: input.childName,
-    });
-
     return NextResponse.json(story);
   } catch (error) {
-    logger.error('Unexpected Error:', error);
-    logger.error('Unexpected error in story generation route', {
-      error: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : 'No stack trace',
-      input: await req.json().catch(() => 'Unable to parse input'),
-    });
+    logger.error('Unexpected Error:', { error });
     return NextResponse.json(
       {
         message: error instanceof Error ? error.message : 'Unexpected error generating story',
         error: error instanceof Error ? error.toString() : 'Unknown error',
         ...(env.NODE_ENV === 'development' && {
           fullError: error instanceof Error ? error.stack : 'No stack trace',
-          input: await req.json().catch(() => 'Unable to parse input'),
         }),
-      },
+      } as { message: string; error: string; fullError?: string },
       { status: 500 }
     );
   }
 }
-
-export default POST;
