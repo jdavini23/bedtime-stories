@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
+import { StoryFeatureGrid } from '@/components/StoryFeatureCard';
 
 export default function Home() {
   const [activeStoryIndex, setActiveStoryIndex] = useState(0);
@@ -101,59 +102,96 @@ export default function Home() {
       </section>
 
       {/* How It Works */}
-      <section id="how-it-works" className="py-16 px-8 bg-white dark:bg-midnight-dark">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-primary text-center mb-12">How It Works</h2>
-          
-          <div className="grid md:grid-cols-3 gap-8">
-            {/* Step 1 */}
-            <Card hover className="space-y-4 text-center p-6 bg-sky-50 dark:bg-midnight">
-              <div className="w-16 h-16 bg-lavender rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">1</span>
-              </div>
-              <h3 className="text-primary">Choose a Theme</h3>
-              <p className="text-text-secondary dark:text-text-primary/80">
-                Pirates? Space? Talking animals? Pick a world of adventure!
-              </p>
-              <div className="flex gap-2 flex-wrap mt-4 justify-center">
-                <Button variant="outline" size="sm">🚀 Space</Button>
-                <Button variant="outline" size="sm">🧚‍♀️ Fantasy</Button>
-                <Button variant="outline" size="sm">🏴‍☠️ Pirates</Button>
-              </div>
-            </Card>
-
-            {/* Step 2 */}
-            <Card hover className="space-y-4 text-center p-6 bg-sky-50 dark:bg-midnight">
-              <div className="w-16 h-16 bg-dreamy rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">2</span>
-              </div>
-              <h3 className="text-primary">Customize the Hero</h3>
-              <p className="text-text-secondary dark:text-text-primary/80">
-                Give your child the starring role! Add their name, traits, and interests.
-              </p>
-              <Input 
-                placeholder="Child's name"
-                className="mt-4"
-              />
-            </Card>
-
-            {/* Step 3 */}
-            <Card hover className="space-y-4 text-center p-6 bg-sky-50 dark:bg-midnight">
-              <div className="w-16 h-16 bg-golden rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">3</span>
-              </div>
-              <h3 className="text-primary">Generate & Read</h3>
-              <p className="text-text-secondary dark:text-text-primary/80">
-                Watch the magic unfold! Your personalized bedtime story is ready to read or share.
-              </p>
-              <span className="twinkling-star text-3xl block mt-4">✨📖✨</span>
-            </Card>
+      <section id="how-it-works" className="py-20 px-8 bg-white dark:bg-midnight-dark relative overflow-hidden">
+        {/* Background decorative elements */}
+        <div className="absolute inset-0 z-0 opacity-5">
+          <div className="absolute top-20 left-10 w-40 h-40 rounded-full bg-primary"></div>
+          <div className="absolute bottom-10 right-10 w-60 h-60 rounded-full bg-golden"></div>
+        </div>
+        
+        <div className="max-w-5xl mx-auto relative z-10">
+          <div className="text-center mb-16">
+            <h2 className="text-primary text-center mb-4">The Magic Behind Your Stories</h2>
+            <p className="text-lg text-text-secondary dark:text-text-primary/80 max-w-2xl mx-auto">
+              Creating personalized stories for your child is simple and magical. 
+              Just follow these three easy steps to bring imagination to life.
+            </p>
           </div>
           
-          <div className="text-center mt-12">
+          <div className="relative">
+            {/* Connection line between steps */}
+            <div className="hidden md:block absolute top-1/2 left-0 right-0 h-1 bg-gradient-to-r from-lavender via-primary to-golden transform -translate-y-1/2 z-0"></div>
+            
+            <div className="grid md:grid-cols-3 gap-12 relative z-10">
+              {/* Step 1 */}
+              <div className="flex flex-col items-center">
+                <div className="w-20 h-20 bg-gradient-to-br from-lavender to-primary rounded-full flex items-center justify-center mb-6 shadow-dreamy">
+                  <span className="text-2xl text-white font-bold">1</span>
+                </div>
+                <Card hover className="w-full space-y-4 text-center p-6 bg-sky-50 dark:bg-midnight border-t-4 border-lavender">
+                  <h3 className="text-primary">Choose Your Adventure</h3>
+                  <p className="text-text-secondary dark:text-text-primary/80">
+                    Select from magical worlds like enchanted forests, space odysseys, or underwater kingdoms.
+                  </p>
+                  <div className="flex gap-2 flex-wrap mt-4 justify-center">
+                    <Button variant="outline" size="sm">🚀 Space</Button>
+                    <Button variant="outline" size="sm">🧚‍♀️ Fantasy</Button>
+                    <Button variant="outline" size="sm">🏴‍☠️ Pirates</Button>
+                  </div>
+                </Card>
+              </div>
+
+              {/* Step 2 */}
+              <div className="flex flex-col items-center md:mt-12">
+                <div className="w-20 h-20 bg-gradient-to-br from-primary to-dreamy rounded-full flex items-center justify-center mb-6 shadow-dreamy">
+                  <span className="text-2xl text-white font-bold">2</span>
+                </div>
+                <Card hover className="w-full space-y-4 text-center p-6 bg-sky-50 dark:bg-midnight border-t-4 border-dreamy">
+                  <h3 className="text-primary">Create Your Hero</h3>
+                  <p className="text-text-secondary dark:text-text-primary/80">
+                    Personalize with your child's name, age, and favorite things to make them the star.
+                  </p>
+                  <div className="flex flex-col gap-2 mt-4">
+                    <Input placeholder="Child's name" className="text-center" />
+                    <div className="flex gap-2 justify-center mt-2">
+                      <Button variant="outline" size="sm">🦸‍♀️ Brave</Button>
+                      <Button variant="outline" size="sm">🧠 Clever</Button>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+
+              {/* Step 3 */}
+              <div className="flex flex-col items-center">
+                <div className="w-20 h-20 bg-gradient-to-br from-dreamy to-golden rounded-full flex items-center justify-center mb-6 shadow-dreamy">
+                  <span className="text-2xl text-white font-bold">3</span>
+                </div>
+                <Card hover className="w-full space-y-4 text-center p-6 bg-sky-50 dark:bg-midnight border-t-4 border-golden">
+                  <h3 className="text-primary">Enjoy Your Story</h3>
+                  <p className="text-text-secondary dark:text-text-primary/80">
+                    Watch as AI crafts a unique tale. Read it together, save it, or print it for bedtime.
+                  </p>
+                  <div className="relative h-16 mt-4 overflow-hidden rounded-lg bg-white/50 dark:bg-midnight-light/50">
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="flex items-center gap-2">
+                        <span className="twinkling-star text-2xl">✨</span>
+                        <span className="animate-pulse">Generating magic...</span>
+                        <span className="twinkling-star text-2xl">✨</span>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+            </div>
+          </div>
+          
+          <div className="text-center mt-16">
+            <p className="text-text-secondary dark:text-text-primary/80 mb-6 italic">
+              "From theme selection to story creation in less than a minute!"
+            </p>
             <Link href="/story">
-              <Button size="lg">
-                Try It Now
+              <Button size="lg" className="px-8">
+                Create Your First Story
               </Button>
             </Link>
           </div>
@@ -165,55 +203,7 @@ export default function Home() {
         <div className="max-w-5xl mx-auto">
           <h2 className="text-primary text-center mb-12">Why Parents Love It</h2>
           
-          <div className="grid md:grid-cols-2 gap-8">
-            <Card className="p-6 space-y-4 bg-white dark:bg-midnight">
-              <div className="flex items-start gap-4">
-                <span className="text-2xl text-green-500">✅</span>
-                <div>
-                  <h3 className="text-primary text-xl">Personalized for Your Child</h3>
-                  <p className="text-text-secondary dark:text-text-primary/80">
-                    Makes bedtime extra special with stories featuring your child's name, interests, and adventures.
-                  </p>
-                </div>
-              </div>
-            </Card>
-            
-            <Card className="p-6 space-y-4 bg-white dark:bg-midnight">
-              <div className="flex items-start gap-4">
-                <span className="text-2xl text-green-500">✅</span>
-                <div>
-                  <h3 className="text-primary text-xl">Instant & Effortless</h3>
-                  <p className="text-text-secondary dark:text-text-primary/80">
-                    AI crafts beautiful stories in seconds, saving you time while delighting your child.
-                  </p>
-                </div>
-              </div>
-            </Card>
-            
-            <Card className="p-6 space-y-4 bg-white dark:bg-midnight">
-              <div className="flex items-start gap-4">
-                <span className="text-2xl text-green-500">✅</span>
-                <div>
-                  <h3 className="text-primary text-xl">Encourages Reading & Creativity</h3>
-                  <p className="text-text-secondary dark:text-text-primary/80">
-                    A fun way to spark imagination and develop a love for reading from an early age.
-                  </p>
-                </div>
-              </div>
-            </Card>
-            
-            <Card className="p-6 space-y-4 bg-white dark:bg-midnight">
-              <div className="flex items-start gap-4">
-                <span className="text-2xl text-green-500">✅</span>
-                <div>
-                  <h3 className="text-primary text-xl">Safe & Family-Friendly</h3>
-                  <p className="text-text-secondary dark:text-text-primary/80">
-                    Thoughtfully designed for young readers with age-appropriate content and themes.
-                  </p>
-                </div>
-              </div>
-            </Card>
-          </div>
+          <StoryFeatureGrid />
           
           {/* Testimonial */}
           <Card variant="magical" className="mt-12 p-8 text-center bg-white/80 dark:bg-midnight/80 backdrop-blur-sm">
