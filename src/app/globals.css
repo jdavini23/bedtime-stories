@@ -117,3 +117,31 @@ body {
 .story-text {
   @apply text-story leading-relaxed;
 }
+
+/* Typing animation for story generation */
+.typing-animation {
+  overflow: hidden;
+  white-space: nowrap;
+  margin-bottom: 0.5rem;
+  animation: typing 3s steps(40, end) forwards;
+  opacity: 0;
+}
+
+.typing-animation.delay-2 {
+  animation-delay: 2s;
+}
+
+.typing-animation.delay-4 {
+  animation-delay: 4s;
+}
+
+@keyframes typing {
+  from {
+    width: 0;
+    opacity: 1;
+  }
+  to {
+    width: 100%;
+    opacity: 1;
+  }
+}
