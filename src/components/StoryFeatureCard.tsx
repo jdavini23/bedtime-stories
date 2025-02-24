@@ -21,7 +21,7 @@ const StoryCard = React.forwardRef<HTMLDivElement, StoryCardProps>(
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.3 }}
         className={cn(
-          "p-6 rounded-2xl bg-white dark:bg-slate-800 shadow-lg hover:shadow-xl transition-shadow",
+          "p-6 rounded-2xl bg-midnight dark:bg-midnight-dark shadow-dreamy hover:shadow-glow transition-all duration-300",
           "border-2 border-opacity-30",
           className
         )}
@@ -32,13 +32,13 @@ const StoryCard = React.forwardRef<HTMLDivElement, StoryCardProps>(
         </div>
         
         {title && (
-          <h3 className="text-xl font-bold text-center mb-2 text-gray-800 dark:text-white">
+          <h3 className="text-xl font-bold text-center mb-2 text-white">
             {title}
           </h3>
         )}
         
         {description && (
-          <p className="text-sm text-center text-gray-600 dark:text-gray-300">
+          <p className="text-sm text-center text-text-primary/80">
             {description}
           </p>
         )}
@@ -70,31 +70,31 @@ const AnimatedIcon = ({ children }: { children: React.ReactNode }) => {
 
 export function StoryFeatureGrid() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
       <StoryCard
         title="Interactive Stories"
         description="Engage with magical tales that come to life"
-        color="#FFB6C1"
+        color="#FF85A1"
         icon={
-          <BookIcon className="w-12 h-12 text-pink-500" />
+          <BookIcon className="w-12 h-12 text-dreamy" />
         }
       />
       
       <StoryCard
         title="Fun Characters"
         description="Meet delightful friends along the journey"
-        color="#98FB98"
+        color="#7B3F92"
         icon={
-          <StarIcon className="w-12 h-12 text-green-500" />
+          <StarIcon className="w-12 h-12 text-primary" />
         }
       />
       
       <StoryCard
         title="Learning Adventures"
         description="Discover new worlds while learning"
-        color="#87CEEB"
+        color="#00A6FB"
         icon={
-          <RocketIcon className="w-12 h-12 text-blue-500" />
+          <RocketIcon className="w-12 h-12 text-sky" />
         }
       />
     </div>
