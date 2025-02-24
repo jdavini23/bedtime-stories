@@ -16,8 +16,8 @@ const inter = Inter({
 export const dynamic = 'force-static';
 
 export const metadata: Metadata = {
-  title: 'Bedtime Story Magic',
-  description: 'Create enchanting, personalized bedtime stories for your children',
+  title: 'Step Into Story Time',
+  description: 'Create enchanting, personalized bedtime stories for your children in seconds',
 };
 
 interface RootLayoutProps {
