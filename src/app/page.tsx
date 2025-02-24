@@ -179,7 +179,7 @@ export default function Home() {
                         <span className="text-xs animate-pulse">AI generating...</span>
                       </div>
                     </div>
-                    <div className="mt-12 text-left text-sm story-text overflow-y-auto h-44 px-4">
+                    <div className="mt-12 text-left text-sm story-text overflow-y-auto h-44 px-4 py-2 bg-white/70 dark:bg-midnight/70 rounded-b-lg">
                       <p className="typing-animation">
                         Once upon a time, there was a brave girl named Emma who dreamed of exploring the stars...
                       </p>
