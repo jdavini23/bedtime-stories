@@ -172,14 +172,14 @@ export default function Home() {
                     Watch as AI crafts a unique tale. Read it together, save it, or print it for bedtime.
                   </p>
                   <div className="relative h-64 mt-4 overflow-hidden rounded-lg bg-white/50 dark:bg-midnight-light/50">
-                    <div className="absolute top-0 left-0 right-0 py-2 px-4 bg-gradient-to-r from-primary/20 to-golden/20 flex items-center justify-between">
+                    <div className="absolute top-0 left-0 right-0 py-2 px-4 bg-gradient-to-r from-primary/30 to-golden/30 flex items-center justify-between shadow-sm z-10 border-b border-primary/10">
                       <span className="text-sm font-medium">Emma's Space Adventure</span>
                       <div className="flex items-center gap-1">
                         <span className="twinkling-star text-sm">✨</span>
                         <span className="text-xs animate-pulse">AI generating...</span>
                       </div>
                     </div>
-                    <div className="mt-10 text-left text-sm story-text overflow-y-auto h-48 px-4">
+                    <div className="mt-12 text-left text-sm story-text overflow-y-auto h-44 px-4">
                       <p className="typing-animation">
                         Once upon a time, there was a brave girl named Emma who dreamed of exploring the stars...
                       </p>
