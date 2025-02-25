@@ -45,12 +45,19 @@ const handleApiError = (error: AxiosError): never => {
         status: error.response.status,
         message: errorMessage,
       });
-      // Redirect to sign-in page if not authenticated
+
+      // DISABLED: Don't redirect to sign-in page for now
+      // We're allowing unauthenticated story generation
+      /*
       if (typeof window !== 'undefined') {
         window.location.href = `/auth/signin?redirect_url=${encodeURIComponent(window.location.href)}`;
         // Never reached, but TypeScript needs this
         throw new ApiError('Authentication required', 401);
       }
+      */
+
+      // Just throw the error without redirecting
+      throw new ApiError(errorMessage || 'Authentication required', 401, errorDetails);
     }
 
     logger.error('API Error:', {
@@ -114,7 +121,14 @@ export const useStoryApi = () => {
       }
 
       try {
-        const response: AxiosResponse<Story> = await api.post('/story/generate', input);
+        // Use a separate axios instance without auth interceptors for story generation
+        // This allows unauthenticated users to generate stories
+        const response: AxiosResponse<Story> = await axios.post('/api/story/generate', input, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          timeout: 30000,
+        });
         return response.data;
       } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
