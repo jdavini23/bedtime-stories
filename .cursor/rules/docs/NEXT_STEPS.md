@@ -1,6 +1,7 @@
 # Next Steps Priority Breakdown
 
 ## Priority 1: Story Generation MVP (In Progress)
+
 - [x] Project setup and configuration
   - Next.js setup with TypeScript
   - ESLint and Prettier configuration
@@ -23,6 +24,7 @@
   - [ ] Implement save draft functionality
 
 ## Priority 2: Authentication & User Management (1 week)
+
 - [ ] Implement user authentication
   - Set up auth providers
   - Create protected routes
@@ -33,6 +35,7 @@
   - Create auth middleware
 
 ## Priority 3: Database Integration (1 week)
+
 - [ ] Set up PostgreSQL with Prisma
   - Create initial schema migrations
   - Define story and user preference models
@@ -43,6 +46,7 @@
   - Add caching layer with Vercel KV
 
 ## Priority 4: User Dashboard Enhancement (1 week)
+
 - [ ] Improve story management
   - Add story categorization
   - Implement favorites system
@@ -53,6 +57,7 @@
   - Add reading level tracking
 
 ## Priority 5: Testing & Performance (1 week)
+
 - [ ] Implement comprehensive testing
   - Add unit tests for core components
   - Create integration tests for story generation
@@ -63,6 +68,7 @@
   - Optimize API response times
 
 ## Priority 6: Polish & Launch Prep (1 week)
+
 - [ ] UI/UX refinements
   - Add loading states and animations
   - Improve error messaging
@@ -73,6 +79,7 @@
   - Add performance metrics
 
 ## Future Considerations
+
 - Text-to-speech integration
 - AI image generation for story illustrations
 - Multiple language support
@@ -80,6 +87,7 @@
 - Progressive Web App implementation
 
 ## Notes
+
 - Authentication and user management added as Priority 2 to ensure proper user data handling
 - Basic project infrastructure is now in place
 - Story generation MVP is in progress with core components being developed

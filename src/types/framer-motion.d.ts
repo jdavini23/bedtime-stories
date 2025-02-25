@@ -17,15 +17,15 @@ declare module 'framer-motion' {
   };
 
   export const motion: HTMLMotionComponents;
-  
+
   export interface AnimatePresenceProps {
     children?: React.ReactNode;
     custom?: any;
     initial?: boolean;
-    mode?: "sync" | "wait" | "popLayout";
+    mode?: 'sync' | 'wait' | 'popLayout';
     onExitComplete?: () => void;
     exitBeforeEnter?: boolean;
   }
-  
+
   export const AnimatePresence: React.FC<AnimatePresenceProps>;
 }

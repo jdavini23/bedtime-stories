@@ -14,15 +14,20 @@ const READING_LEVEL_OPTIONS = [
   { value: 'advanced', label: '🎓 Advanced (Ages 9-12)' },
 ];
 
-export function ReadingLevelStep({ onComplete, initialValue = 'intermediate' }: ReadingLevelStepProps) {
+export function ReadingLevelStep({
+  onComplete,
+  initialValue = 'intermediate',
+}: ReadingLevelStepProps) {
   const [selectedLevel, setSelectedLevel] = useState(
-    READING_LEVEL_OPTIONS.find(level => level.value === initialValue) || READING_LEVEL_OPTIONS[1]
+    READING_LEVEL_OPTIONS.find((level) => level.value === initialValue) || READING_LEVEL_OPTIONS[1]
   );
 
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-midnight dark:text-text-primary">Select Reading Level</h2>
+        <h2 className="text-2xl font-bold text-midnight dark:text-text-primary">
+          Select Reading Level
+        </h2>
         <p className="mt-2 text-sm text-text-secondary dark:text-text-primary/80">
           Choose the appropriate reading level for your story
         </p>
@@ -45,18 +50,25 @@ export function ReadingLevelStep({ onComplete, initialValue = 'intermediate' }: 
             >
               <div className="flex items-center">
                 <div className="flex-1">
-                  <h3 className="text-lg font-medium text-midnight dark:text-text-primary">{level.label}</h3>
+                  <h3 className="text-lg font-medium text-midnight dark:text-text-primary">
+                    {level.label}
+                  </h3>
                   <p className="text-sm text-text-secondary dark:text-text-primary/80">
-                    {level.value === 'beginner' && 'Simple words, short sentences, lots of repetition'}
-                    {level.value === 'intermediate' && 'Varied vocabulary, longer sentences, basic plot'}
-                    {level.value === 'advanced' && 'Rich vocabulary, complex sentences, detailed storylines'}
+                    {level.value === 'beginner' &&
+                      'Simple words, short sentences, lots of repetition'}
+                    {level.value === 'intermediate' &&
+                      'Varied vocabulary, longer sentences, basic plot'}
+                    {level.value === 'advanced' &&
+                      'Rich vocabulary, complex sentences, detailed storylines'}
                   </p>
                 </div>
-                <div className={`w-5 h-5 rounded-full border-2 ${
-                  selectedLevel.value === level.value 
-                    ? 'border-primary bg-primary' 
-                    : 'border-gray-300 dark:border-gray-600'
-                }`}>
+                <div
+                  className={`w-5 h-5 rounded-full border-2 ${
+                    selectedLevel.value === level.value
+                      ? 'border-primary bg-primary'
+                      : 'border-gray-300 dark:border-gray-600'
+                  }`}
+                >
                   {selectedLevel.value === level.value && (
                     <div className="w-full h-full flex items-center justify-center">
                       <div className="w-2 h-2 bg-white dark:bg-text-primary rounded-full"></div>

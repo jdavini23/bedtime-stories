@@ -1,9 +1,23 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Add assetPrefix to ensure static assets are loaded from the correct port
+  assetPrefix: process.env.NODE_ENV === 'development' ? undefined : undefined,
   experimental: {
     serverActions: {
-      allowedOrigins: ['localhost:3000'],
+      allowedOrigins: [
+        'localhost:3000',
+        'localhost:3001',
+        'localhost:3002',
+        'localhost:3003',
+        'localhost:3004',
+        'localhost:3005',
+        'localhost:3006',
+        'localhost:3007',
+        'localhost:3008',
+        'localhost:3009',
+        'localhost:3010',
+      ],
     },
   },
   webpack: (config, { isServer }) => {
@@ -32,6 +46,12 @@ const nextConfig = {
       },
     });
 
+    // Add rule for SVG files
+    config.module.rules.push({
+      test: /\.svg$/,
+      use: ['@svgr/webpack', 'url-loader'],
+    });
+
     return config;
   },
   images: {
@@ -41,6 +61,9 @@ const nextConfig = {
         hostname: '**',
       },
     ],
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   typescript: {
     ignoreBuildErrors: true,

@@ -1,8 +1,11 @@
 # Contributing to Bedtime Story Magic
 
-Thank you for your interest in contributing to Bedtime Story Magic! This document outlines the rules, guidelines, and processes we follow to maintain a high-quality codebase and a productive development environment.
+Thank you for your interest in contributing to Bedtime Story Magic! This document outlines the
+rules, guidelines, and processes we follow to maintain a high-quality codebase and a productive
+development environment.
 
 ## Table of Contents
+
 - [Code of Conduct](#code-of-npx @agentdeskai/browser-tools-mcp@1.0.11conduct)
 - [Development Workflow](#development-workflow)
 - [Coding Standards](#coding-standards)
@@ -22,6 +25,7 @@ Thank you for your interest in contributing to Bedtime Story Magic! This documen
 ## Development Workflow
 
 ### Branch Strategy
+
 - `main` - Production-ready code
 - `develop` - Integration branch for features
 - `feature/[feature-name]` - For new features
@@ -29,6 +33,7 @@ Thank you for your interest in contributing to Bedtime Story Magic! This documen
 - `hotfix/[hotfix-description]` - For urgent production fixes
 
 ### Environment Setup
+
 1. Ensure you have Node.js 20+ and npm 10+ installed
 2. Fork and clone the repository
 3. Run `npm install` to install dependencies
@@ -36,6 +41,7 @@ Thank you for your interest in contributing to Bedtime Story Magic! This documen
 5. Run `npm run dev` to start the development server
 
 ### Commit Guidelines
+
 - Use conventional commits format: `type(scope): message`
   - Types: feat, fix, docs, style, refactor, test, chore
   - Example: `feat(story-generator): add new fantasy theme option`
@@ -45,18 +51,21 @@ Thank you for your interest in contributing to Bedtime Story Magic! This documen
 ## Coding Standards
 
 ### General Rules
+
 - Follow the DRY (Don't Repeat Yourself) principle
 - Write self-documenting code with clear variable and function names
 - Keep functions small and focused on a single responsibility
 - Avoid deep nesting of conditionals and loops
 
 ### TypeScript
+
 - Use TypeScript for all new code
 - Define explicit types for function parameters and return values
 - Avoid using `any` type unless absolutely necessary
 - Use interfaces for object shapes and types for unions/primitives
 
 ### React
+
 - Use functional components with hooks
 - Keep components small and focused
 - Use proper React key props in lists
@@ -64,6 +73,7 @@ Thank you for your interest in contributing to Bedtime Story Magic! This documen
 - Follow the React hooks rules
 
 ### CSS/Styling
+
 - Use Tailwind CSS for styling
 - Follow mobile-first responsive design principles
 - Ensure all UI elements are accessible
@@ -81,6 +91,7 @@ Thank you for your interest in contributing to Bedtime Story Magic! This documen
 8. PRs require approval from at least one maintainer to be merged
 
 ### PR Requirements Checklist
+
 - [ ] Code follows project style guidelines
 - [ ] Tests added/updated for new functionality
 - [ ] Documentation updated
@@ -126,4 +137,5 @@ Thank you for your interest in contributing to Bedtime Story Magic! This documen
 
 ---
 
-By contributing to this project, you agree to abide by these guidelines. Thank you for helping make Bedtime Story Magic better for everyone! 
+By contributing to this project, you agree to abide by these guidelines. Thank you for helping make
+Bedtime Story Magic better for everyone!

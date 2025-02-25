@@ -54,8 +54,8 @@ export default authMiddleware({
       headers.set('x-clerk-auth-session-id', `dev-session-${testUserId}`);
       return NextResponse.next({
         request: {
-          headers
-        }
+          headers,
+        },
       });
     }
     return NextResponse.next();

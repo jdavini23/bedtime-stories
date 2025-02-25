@@ -41,7 +41,7 @@ export default {
           DEFAULT: '#84B4C8', // Soft Sky Blue
           dark: '#6A9FB5',
           light: '#9EC8D9',
-        }, 
+        },
         lavender: {
           DEFAULT: '#A5A58D', // Sage Green
           dark: '#8A8A73',
@@ -66,19 +66,19 @@ export default {
         dyslexic: ['OpenDyslexic', 'Quicksand', 'sans-serif'],
       },
       fontSize: {
-        'story': ['1.125rem', { lineHeight: '1.75rem' }], // 18px for story text
+        story: ['1.125rem', { lineHeight: '1.75rem' }], // 18px for story text
       },
       borderRadius: {
-        'xl': '1rem',
+        xl: '1rem',
         '2xl': '1.5rem',
       },
       boxShadow: {
-        'dreamy': '0 4px 14px 0 rgba(60, 110, 113, 0.2)', // Updated to match new primary color
-        'glow': '0 0 15px rgba(242, 204, 143, 0.5)', // Updated to match new golden color
+        dreamy: '0 4px 14px 0 rgba(60, 110, 113, 0.2)', // Updated to match new primary color
+        glow: '0 0 15px rgba(242, 204, 143, 0.5)', // Updated to match new golden color
       },
       animation: {
-        'float': 'float 6s ease-in-out infinite',
-        'twinkle': 'twinkle 4s ease-in-out infinite',
+        float: 'float 6s ease-in-out infinite',
+        twinkle: 'twinkle 4s ease-in-out infinite',
         'page-turn': 'pageTurn 0.6s ease-in-out',
       },
       keyframes: {

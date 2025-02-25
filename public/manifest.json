@@ -1,0 +1,21 @@
+{
+  "name": "Step Into Story Time",
+  "short_name": "Story Time",
+  "description": "Personalized, AI-powered bedtime stories for your child—crafted in seconds.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#7c3aed",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/images/illustrations/book-magic.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

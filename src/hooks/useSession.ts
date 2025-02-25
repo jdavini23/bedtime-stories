@@ -21,7 +21,7 @@ export function useSession() {
   useEffect(() => {
     // This is just a mock implementation
     setIsLoading(true);
-    
+
     // Simulate API call
     setTimeout(() => {
       setSession(mockSession);

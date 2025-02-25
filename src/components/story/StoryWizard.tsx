@@ -80,7 +80,12 @@ export function StoryWizard({ onComplete, isLoading = false }: StoryWizardProps)
               handleStepComplete({
                 childName,
                 gender: gender as StoryGender,
-                interests: interests ? interests.split(',').map(i => i.trim()).filter(Boolean) : []
+                interests: interests
+                  ? interests
+                      .split(',')
+                      .map((i) => i.trim())
+                      .filter(Boolean)
+                  : [],
               });
             }}
             initialValues={{
@@ -93,9 +98,9 @@ export function StoryWizard({ onComplete, isLoading = false }: StoryWizardProps)
       case 'readingLevel':
         return (
           <ReadingLevelStep
-            onComplete={(level) => 
-              handleStepComplete({ 
-                readingLevel: level as StoryMetadata['readingLevel'] 
+            onComplete={(level) =>
+              handleStepComplete({
+                readingLevel: level as StoryMetadata['readingLevel'],
               })
             }
             initialValue={storyInput.readingLevel}
@@ -122,26 +127,26 @@ export function StoryWizard({ onComplete, isLoading = false }: StoryWizardProps)
   // Update animation properties based on direction
   const getAnimationProps = () => {
     return {
-      initial: { 
-        x: direction > 0 ? '100%' : '-100%', 
-        opacity: 0 
+      initial: {
+        x: direction > 0 ? '100%' : '-100%',
+        opacity: 0,
       },
-      animate: { 
-        x: 0, 
+      animate: {
+        x: 0,
         opacity: 1,
         transition: {
           x: { type: 'spring', stiffness: 300, damping: 30 },
           opacity: { duration: 0.2 },
         },
       },
-      exit: { 
-        x: direction > 0 ? '-100%' : '100%', 
+      exit: {
+        x: direction > 0 ? '-100%' : '100%',
         opacity: 0,
         transition: {
           x: { type: 'spring', stiffness: 300, damping: 30 },
           opacity: { duration: 0.2 },
         },
-      }
+      },
     };
   };
 
@@ -154,27 +159,29 @@ export function StoryWizard({ onComplete, isLoading = false }: StoryWizardProps)
         <div className="flex justify-between items-center mb-2">
           {STEPS.map((step, index) => (
             <div key={step.id} className="flex flex-col items-center">
-              <div 
+              <div
                 className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-colors duration-300 ${
                   index < currentStepIndex
                     ? 'bg-primary text-text-primary'
                     : index === currentStepIndex
-                    ? 'bg-primary text-text-primary ring-4 ring-primary/20'
-                    : 'bg-gray-200 text-gray-500'
+                      ? 'bg-primary text-text-primary ring-4 ring-primary/20'
+                      : 'bg-gray-200 text-gray-500'
                 }`}
               >
                 {index + 1}
               </div>
-              <span className={`text-xs mt-1 font-medium ${
-                index <= currentStepIndex ? 'text-primary' : 'text-gray-500'
-              }`}>
+              <span
+                className={`text-xs mt-1 font-medium ${
+                  index <= currentStepIndex ? 'text-primary' : 'text-gray-500'
+                }`}
+              >
                 {step.label}
               </span>
             </div>
           ))}
         </div>
         <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden">
-          <div 
+          <div
             className="absolute top-0 left-0 h-full bg-primary transition-all duration-300 ease-in-out"
             style={{ width: `${(currentStepIndex / (STEPS.length - 1)) * 100}%` }}
           />
@@ -205,9 +212,9 @@ export function StoryWizard({ onComplete, isLoading = false }: StoryWizardProps)
         >
           Back
         </Button>
-        
+
         {currentStep !== 'preview' && (
-          <Button 
+          <Button
             variant="primary"
             onClick={goToNextStep}
             disabled={

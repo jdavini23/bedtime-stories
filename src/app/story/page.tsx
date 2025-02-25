@@ -19,7 +19,7 @@ export default function StoryPage() {
       // Here you would call your API to generate the story
       console.log('Generating story with input:', storyInput);
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
       // Redirect to the generated story or display it
       console.log('Story generated successfully!');
     } catch (error) {
@@ -69,7 +69,7 @@ export default function StoryPage() {
           </h1>
           <div className="w-24"></div> {/* Spacer for centering */}
         </div>
-        
+
         <div className="max-w-2xl mx-auto">
           <StoryWizard onComplete={handleStoryGeneration} isLoading={isGenerating} />
         </div>

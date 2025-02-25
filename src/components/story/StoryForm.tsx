@@ -225,7 +225,12 @@ function StoryForm({ onSubmit, isLoading = false }: StoryFormProps) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.8 }}
       >
-        <form onSubmit={handleSubmit} className="space-y-6" role="form" aria-label="Story Generation Form">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-6"
+          role="form"
+          aria-label="Story Generation Form"
+        >
           <Input
             label="Character Name"
             id="characterName"

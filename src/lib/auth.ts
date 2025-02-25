@@ -2,13 +2,7 @@ import { clerkClient } from '@clerk/nextjs/server';
 import { logger } from '@/utils/loggerInstance';
 
 // See https://clerk.com/docs/nextjs/middleware for more information about configuring your middleware
-export const publicRoutes = [
-  '/',
-  '/sign-in',
-  '/sign-up',
-  '/api/story',
-  '/api/webhook/clerk',
-];
+export const publicRoutes = ['/', '/sign-in', '/sign-up', '/api/story', '/api/webhook/clerk'];
 
 export const ignoredRoutes = ['/about', '/contact', '/_next/static', '/favicon.ico'];
 
@@ -38,7 +32,7 @@ export const getUser = async (userId: string | null) => {
       logger.warn('No user ID provided');
       return null;
     }
-    
+
     const user = await clerkClient.users.getUser(userId);
     if (!user) {
       logger.warn('User not found:', { userId });
@@ -48,11 +42,11 @@ export const getUser = async (userId: string | null) => {
     return user;
   } catch (error) {
     const authError = error as AuthError;
-    logger.error('Error fetching user:', { 
+    logger.error('Error fetching user:', {
       error: authError,
       userId,
       code: authError.code,
-      statusCode: authError.statusCode 
+      statusCode: authError.statusCode,
     });
     throw new Error('Failed to fetch user data');
   }
@@ -63,7 +57,7 @@ export const handleAuthError = (error: unknown): AuthError => {
   logger.error('Authentication error:', {
     message: authError.message,
     code: authError.code,
-    statusCode: authError.statusCode
+    statusCode: authError.statusCode,
   });
   return authError;
 };

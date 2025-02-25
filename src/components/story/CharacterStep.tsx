@@ -74,8 +74,12 @@ export function CharacterStep({ onComplete, initialValues }: CharacterStepProps)
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-midnight dark:text-text-primary">Create Your Character</h2>
-        <p className="mt-2 text-sm text-text-secondary dark:text-text-primary/80">Tell us about who the story is for</p>
+        <h2 className="text-2xl font-bold text-midnight dark:text-text-primary">
+          Create Your Character
+        </h2>
+        <p className="mt-2 text-sm text-text-secondary dark:text-text-primary/80">
+          Tell us about who the story is for
+        </p>
       </div>
 
       <div className="space-y-4">

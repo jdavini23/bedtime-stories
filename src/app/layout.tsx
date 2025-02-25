@@ -17,7 +17,12 @@ export const dynamic = 'force-static';
 
 export const metadata: Metadata = {
   title: 'Step Into Story Time',
-  description: 'Create enchanting, personalized bedtime stories for your children in seconds',
+  description: 'Personalized, AI-powered bedtime stories for your child—crafted in seconds.',
+  icons: {
+    icon: '/favicon.svg',
+  },
+  manifest: '/manifest.json',
+  themeColor: '#7c3aed',
 };
 
 interface RootLayoutProps {
@@ -27,6 +32,14 @@ interface RootLayoutProps {
 export default function RootLayout({ children }: RootLayoutProps): React.JSX.Element {
   return (
     <html lang="en">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body className={inter.className}>
         <ClerkProvider>
           <Providers>

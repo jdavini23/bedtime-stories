@@ -6,7 +6,7 @@ import { useSession } from '@/hooks/useSession';
 import { redirect } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/Select';
+import { Select } from '@/components/ui/Select'; // Fixed casing to match actual file
 import { logger } from '@/utils/loggerInstance';
 
 export default function OnboardingPage() {
@@ -82,7 +82,7 @@ export default function OnboardingPage() {
           <Select
             label="Child's Age"
             value={childAge}
-            onChange={(e) => setChildAge(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setChildAge(e.target.value)}
             options={Array.from({ length: 12 }, (_, i) => ({
               value: `${i + 3}`,
               label: `${i + 3} years old`,

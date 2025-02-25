@@ -1,6 +1,7 @@
 # Next Steps Priority Breakdown
 
 ## Priority 1: Story Generation MVP (In Progress)
+
 - [x] Project setup and configuration
   - Next.js setup with TypeScript
   - ESLint and Prettier configuration
@@ -29,6 +30,7 @@
   - [ ] Implement save draft functionality
 
 ## Priority 2: Authentication & User Management (1 week)
+
 - [x] Set up Clerk authentication
   - [x] Configure Clerk provider
   - [ ] Create protected routes
@@ -39,6 +41,7 @@
   - [ ] Create auth middleware
 
 ## Priority 3: Database Integration (1 week)
+
 - [ ] Set up PostgreSQL with Prisma
   - [ ] Create initial schema migrations
   - [ ] Define story and user preference models
@@ -49,6 +52,7 @@
   - [ ] Add caching layer with Vercel KV
 
 ## Priority 4: User Dashboard Enhancement (1 week)
+
 - [ ] Improve story management
   - [ ] Add story categorization
   - [ ] Implement favorites system
@@ -59,6 +63,7 @@
   - [ ] Add reading level tracking
 
 ## Priority 5: Testing & Performance (1 week)
+
 - [ ] Implement comprehensive testing
   - [ ] Add unit tests for core components
   - [ ] Create integration tests for story generation
@@ -69,6 +74,7 @@
   - [ ] Optimize API response times
 
 ## Priority 6: Polish & Launch Prep (1 week)
+
 - [x] UI/UX refinements
   - [x] Add loading states and animations
   - [ ] Improve error messaging
@@ -79,6 +85,7 @@
   - [x] Add Vercel Speed Insights
 
 ## Future Considerations
+
 - Text-to-speech integration
 - AI image generation for story illustrations
 - Multiple language support
@@ -87,9 +94,10 @@
 - Accessibility enhancements (dyslexia mode, high contrast)
 
 ## Notes
+
 - Design system has been implemented with a focus on a magical, child-friendly aesthetic
 - Basic form interface is in place, but needs to be converted to a step-by-step wizard
 - Authentication is partially set up with Clerk
 - Analytics are configured with Vercel's built-in tools
 - Next focus should be on completing the story generation wizard and OpenAI integration
-- Accessibility features have been added to the design system 
+- Accessibility features have been added to the design system

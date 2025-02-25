@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { motion } from "framer-motion";
-import React from "react";
-import { cn } from "@/lib/utils";
+import { motion } from 'framer-motion';
+import React from 'react';
+import { cn } from '@/lib/utils';
 
 interface StoryCardProps {
   className?: string;
@@ -13,7 +13,7 @@ interface StoryCardProps {
 }
 
 const StoryCard = React.forwardRef<HTMLDivElement, StoryCardProps>(
-  ({ className, title, description, icon, color = "#FFB6C1" }, ref) => {
+  ({ className, title, description, icon, color = '#FFB6C1' }, ref) => {
     return (
       <motion.div
         ref={ref}
@@ -21,8 +21,8 @@ const StoryCard = React.forwardRef<HTMLDivElement, StoryCardProps>(
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.3 }}
         className={cn(
-          "p-6 rounded-2xl bg-midnight dark:bg-midnight-dark shadow-dreamy hover:shadow-glow transition-all duration-300",
-          "border-2 border-opacity-30",
+          'p-6 rounded-2xl bg-midnight dark:bg-midnight-dark shadow-dreamy hover:shadow-glow transition-all duration-300',
+          'border-2 border-opacity-30',
           className
         )}
         style={{ borderColor: color }}
@@ -30,24 +30,16 @@ const StoryCard = React.forwardRef<HTMLDivElement, StoryCardProps>(
         <div className="relative h-20 w-20 mx-auto mb-4">
           <AnimatedIcon>{icon}</AnimatedIcon>
         </div>
-        
-        {title && (
-          <h3 className="text-xl font-bold text-center mb-2 text-white">
-            {title}
-          </h3>
-        )}
-        
-        {description && (
-          <p className="text-sm text-center text-text-primary/80">
-            {description}
-          </p>
-        )}
+
+        {title && <h3 className="text-xl font-bold text-center mb-2 text-white">{title}</h3>}
+
+        {description && <p className="text-sm text-center text-text-primary/80">{description}</p>}
       </motion.div>
     );
   }
 );
 
-StoryCard.displayName = "StoryCard";
+StoryCard.displayName = 'StoryCard';
 
 const AnimatedIcon = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -59,7 +51,7 @@ const AnimatedIcon = ({ children }: { children: React.ReactNode }) => {
       transition={{
         duration: 2,
         repeat: Infinity,
-        repeatType: "reverse",
+        repeatType: 'reverse',
       }}
       className="w-full h-full flex items-center justify-center"
     >
@@ -75,37 +67,31 @@ export function StoryFeatureGrid() {
         title="Interactive Stories"
         description="Engage with magical tales that come to life"
         color="#FF85A1"
-        icon={
-          <BookIcon className="w-12 h-12 text-dreamy" />
-        }
+        icon={<BookIcon className="w-12 h-12 text-dreamy" />}
       />
-      
+
       <StoryCard
         title="Fun Characters"
         description="Meet delightful friends along the journey"
         color="#7B3F92"
-        icon={
-          <StarIcon className="w-12 h-12 text-primary" />
-        }
+        icon={<StarIcon className="w-12 h-12 text-primary" />}
       />
-      
+
       <StoryCard
         title="Learning Adventures"
         description="Discover new worlds while learning"
         color="#00A6FB"
-        icon={
-          <RocketIcon className="w-12 h-12 text-sky" />
-        }
+        icon={<RocketIcon className="w-12 h-12 text-sky" />}
       />
     </div>
   );
 }
 
 const BookIcon = ({ className }: { className?: string }) => (
-  <svg 
+  <svg
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 24 24"
-    fill="none" 
+    fill="none"
     stroke="currentColor"
     strokeWidth="2"
     strokeLinecap="round"
@@ -122,7 +108,7 @@ const StarIcon = ({ className }: { className?: string }) => (
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 24 24"
     fill="none"
-    stroke="currentColor" 
+    stroke="currentColor"
     strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -134,11 +120,11 @@ const StarIcon = ({ className }: { className?: string }) => (
 
 const RocketIcon = ({ className }: { className?: string }) => (
   <svg
-    xmlns="http://www.w3.org/2000/svg"  
+    xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    strokeWidth="2" 
+    strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
     className={className}
@@ -150,4 +136,4 @@ const RocketIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-export { StoryCard }; 
+export { StoryCard };
