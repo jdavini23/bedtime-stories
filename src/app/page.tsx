@@ -7,8 +7,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect, useRef } from 'react';
 import { StoryFeatureGrid } from '@/components/StoryFeatureCard';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { ChevronLeft, ChevronRight, Menu, X, Moon, Sun } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Utility function to create typing animation elements
 interface TypedTextProps {
@@ -173,11 +173,89 @@ const TypedText = ({ text, delay = 0, className = "", onComplete }: TypedTextPro
   );
 };
 
+// FAQ Accordion Item Component
+interface FaqAccordionItemProps {
+  question: string;
+  answer: string;
+}
+
+function FaqAccordionItem({ question, answer }: FaqAccordionItemProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  
+  return (
+    <div className="border border-lavender/30 dark:border-lavender/10 rounded-lg overflow-hidden">
+      <button
+        className="w-full p-4 flex justify-between items-center bg-dreamy-light/50 dark:bg-midnight hover:bg-dreamy-light dark:hover:bg-midnight-light transition-colors text-left"
+        onClick={() => setIsOpen(!isOpen)}
+        aria-expanded={isOpen}
+      >
+        <h3 className="text-primary text-lg font-medium">{question}</h3>
+        <div className={`transform transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </div>
+      </button>
+      
+      <div 
+        className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-96' : 'max-h-0'}`}
+      >
+        <div className="p-4 bg-white/50 dark:bg-midnight-light/10">
+          <p className="text-text-secondary dark:text-text-primary/80">
+            {answer}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   const [activeStoryIndex, setActiveStoryIndex] = useState(0);
   const [childName, setChildName] = useState('Emma');
   const [showPreview, setShowPreview] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0); // Used to force re-render of typing animations
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [isCarouselPaused, setIsCarouselPaused] = useState(false);
+  const [selectedTheme, setSelectedTheme] = useState('fantasy'); // Default theme
+  
+  // Handle scroll events for sticky header and progress bar
+  useEffect(() => {
+    const handleScroll = () => {
+      // For sticky header
+      const scrollPosition = window.scrollY;
+      setIsScrolled(scrollPosition > 50);
+      
+      // For progress indicator
+      const windowHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const scrolled = (scrollPosition / windowHeight) * 100;
+      setScrollProgress(scrolled);
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+  
+  // Check system preference for dark mode on initial load
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setIsDarkMode(isDark);
+      
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+      }
+    }
+  }, []);
+  
+  // Toggle dark mode
+  const toggleDarkMode = () => {
+    setIsDarkMode(!isDarkMode);
+    document.documentElement.classList.toggle('dark');
+  };
   
   const sampleStories = [
     {
@@ -196,6 +274,20 @@ export default function Home() {
       image: "/images/illustrations/storybook.svg"
     }
   ];
+  
+  // Auto-rotate story carousel
+  useEffect(() => {
+    if (isCarouselPaused) return;
+    
+    const interval = setInterval(() => {
+      setActiveStoryIndex((prev) => 
+        prev === sampleStories.length - 1 ? 0 : prev + 1
+      );
+      setRefreshKey(prev => prev + 1); // Force re-render of typing animations
+    }, 8000); // Change story every 8 seconds
+    
+    return () => clearInterval(interval);
+  }, [isCarouselPaused, sampleStories.length]);
 
   const faqs = [
     {
@@ -240,9 +332,207 @@ export default function Home() {
       `As ${name} was exploring near the old oak tree, a tiny woodland fairy with shimmering wings appeared...`
     ];
   };
+  
+  // Theme-specific story previews
+  const getThemePreview = (theme: string, name: string) => {
+    switch (theme) {
+      case 'space':
+        return [
+          `Far beyond the stars, in a galaxy of wonders, a brave space explorer named ${name} piloted their shimmering starship.`,
+          `${name} had always dreamed of discovering new planets, and today was the day their wish would come true.`,
+          `As ${name} approached the mysterious nebula, the ship's sensors detected something extraordinary...`
+        ];
+      case 'pirates':
+        return [
+          `Across the seven seas, aboard the mighty ship "The Golden Adventure," sailed the courageous Captain ${name}.`,
+          `${name} had always dreamed of finding hidden treasure, and today was the day their map would lead to fortune.`,
+          `As ${name} followed the ancient map to the mysterious island, strange birds with colorful feathers guided the way...`
+        ];
+      case 'fantasy':
+      default:
+        return [
+          `Once upon a time, in a magical kingdom filled with enchanted creatures and whispering trees, there lived a brave hero named ${name}.`,
+          `${name} had always dreamed of magical adventures, and today was the day their wish would come true.`,
+          `As ${name} was exploring near the ancient castle, a tiny dragon with shimmering scales appeared...`
+        ];
+    }
+  };
+  
+  // Get the appropriate story preview based on the selected theme
+  const getActiveStoryPreview = (name: string) => {
+    return getThemePreview(selectedTheme, name).join('\n\n');
+  };
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-cloud to-sky-50 dark:from-midnight dark:to-teal-900">
+      {/* Sticky Navigation */}
+      <div className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-white/90 dark:bg-midnight/90 shadow-md backdrop-blur-sm' : 'bg-transparent'}`}>
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <div className="flex items-center">
+              <Link href="/" className="flex items-center">
+                <Image 
+                  src="/images/illustrations/book-magic.svg" 
+                  alt="Step Into Story Time" 
+                  width={32} 
+                  height={32}
+                  className="mr-2"
+                />
+                <span className={`font-bold text-lg ${isScrolled ? 'text-primary' : 'text-midnight dark:text-text-primary'}`}>
+                  Step Into Story Time
+                </span>
+              </Link>
+            </div>
+            
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-4">
+              <a 
+                href="#how-it-works" 
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${isScrolled ? 'text-text-secondary hover:text-primary dark:text-text-primary/70 dark:hover:text-primary' : 'text-text-secondary dark:text-text-primary/70 hover:text-primary dark:hover:text-primary'}`}
+              >
+                How It Works
+              </a>
+              <a 
+                href="#features" 
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${isScrolled ? 'text-text-secondary hover:text-primary dark:text-text-primary/70 dark:hover:text-primary' : 'text-text-secondary dark:text-text-primary/70 hover:text-primary dark:hover:text-primary'}`}
+              >
+                Features
+              </a>
+              <a 
+                href="#pricing" 
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${isScrolled ? 'text-text-secondary hover:text-primary dark:text-text-primary/70 dark:hover:text-primary' : 'text-text-secondary dark:text-text-primary/70 hover:text-primary dark:hover:text-primary'}`}
+              >
+                Pricing
+              </a>
+              <button
+                onClick={toggleDarkMode}
+                className="p-2 rounded-full bg-lavender/10 dark:bg-lavender/20 text-text-secondary dark:text-text-primary"
+                aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+              >
+                {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+              </button>
+              <Link href="/story">
+                <Button size="sm" className="ml-4">
+                  Start Your Story
+                </Button>
+              </Link>
+            </div>
+            
+            {/* Mobile menu button */}
+            <div className="md:hidden flex items-center">
+              <button
+                onClick={toggleDarkMode}
+                className="p-2 rounded-full bg-lavender/10 dark:bg-lavender/20 text-text-secondary dark:text-text-primary mr-2"
+                aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+              >
+                {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+              </button>
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className={`p-2 rounded-md ${isScrolled ? 'text-primary' : 'text-midnight dark:text-text-primary'}`}
+                aria-label="Open main menu"
+              >
+                <Menu className="h-6 w-6" />
+              </button>
+            </div>
+          </div>
+          
+          {/* Progress bar */}
+          <div className="h-1 w-full bg-lavender/10 dark:bg-lavender/20">
+            <div 
+              className="h-1 bg-gradient-to-r from-primary to-golden transition-all duration-300 ease-out"
+              style={{ width: `${scrollProgress}%` }}
+            ></div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Mobile menu, show/hide based on menu state */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div 
+            className="fixed inset-0 z-50 md:hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div className="fixed inset-0 bg-black/25 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)}></div>
+            <motion.div 
+              className="fixed top-0 right-0 bottom-0 w-64 bg-white dark:bg-midnight p-6 shadow-xl"
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+            >
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-lg font-bold text-primary">Menu</h2>
+                <button
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="p-2 rounded-md text-text-secondary"
+                  aria-label="Close menu"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+              <nav className="flex flex-col space-y-4">
+                <a 
+                  href="#how-it-works" 
+                  className="px-3 py-2 rounded-md text-base font-medium text-text-secondary dark:text-text-primary/70 hover:text-primary dark:hover:text-primary"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  How It Works
+                </a>
+                <a 
+                  href="#features" 
+                  className="px-3 py-2 rounded-md text-base font-medium text-text-secondary dark:text-text-primary/70 hover:text-primary dark:hover:text-primary"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Features
+                </a>
+                <a 
+                  href="#pricing" 
+                  className="px-3 py-2 rounded-md text-base font-medium text-text-secondary dark:text-text-primary/70 hover:text-primary dark:hover:text-primary"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Pricing
+                </a>
+                <Link 
+                  href="/story"
+                  className="mt-4"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Button fullWidth>
+                    Start Your Story
+                  </Button>
+                </Link>
+              </nav>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
+      {/* Quick Action Buttons (Floating) */}
+      <div className="fixed bottom-6 right-6 z-40 flex flex-col gap-3">
+        <motion.div
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <Link href="/story">
+            <Button size="icon" className="rounded-full w-12 h-12 shadow-dreamy">
+              <span className="sr-only">Start Your Story</span>
+              <Image 
+                src="/images/illustrations/book-magic.svg" 
+                alt="Create Story" 
+                width={24} 
+                height={24}
+              />
+            </Button>
+          </Link>
+        </motion.div>
+      </div>
+
       {/* Hero Section */}
       <section className="relative py-20 px-8 overflow-hidden">
         <div className="absolute inset-0 z-0 opacity-10">
@@ -403,7 +693,12 @@ export default function Home() {
                     Select from magical worlds like enchanted forests, space odysseys, or underwater kingdoms.
                   </p>
                   <div className="flex gap-2 flex-wrap mt-4 justify-center">
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant={selectedTheme === 'space' ? 'primary' : 'outline'} 
+                      size="sm"
+                      onClick={() => setSelectedTheme('space')}
+                      className={selectedTheme === 'space' ? 'bg-primary' : ''}
+                    >
                       <Image 
                         src="/images/illustrations/space-rocket.svg" 
                         alt="Space" 
@@ -413,7 +708,12 @@ export default function Home() {
                       /> 
                       Space
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant={selectedTheme === 'fantasy' ? 'primary' : 'outline'} 
+                      size="sm"
+                      onClick={() => setSelectedTheme('fantasy')}
+                      className={selectedTheme === 'fantasy' ? 'bg-primary' : ''}
+                    >
                       <Image 
                         src="/images/illustrations/fairy.svg" 
                         alt="Fantasy" 
@@ -423,7 +723,12 @@ export default function Home() {
                       /> 
                       Fantasy
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant={selectedTheme === 'pirates' ? 'primary' : 'outline'} 
+                      size="sm"
+                      onClick={() => setSelectedTheme('pirates')}
+                      className={selectedTheme === 'pirates' ? 'bg-primary' : ''}
+                    >
                       <Image 
                         src="/images/illustrations/pirate.svg" 
                         alt="Pirates" 
@@ -448,7 +753,12 @@ export default function Home() {
                     Personalize with your child's name, age, and favorite things to make them the star.
                   </p>
                   <div className="flex flex-col gap-2 mt-4">
-                    <Input placeholder="Child's name" className="text-center" />
+                    <Input 
+                      placeholder="Child's name" 
+                      className="text-center" 
+                      value={childName}
+                      onChange={(e) => setChildName(e.target.value)}
+                    />
                     <div className="flex gap-2 justify-center mt-2">
                       <Button variant="outline" size="sm">
                         <Image 
@@ -486,25 +796,37 @@ export default function Home() {
                     Our AI crafts a unique tale in seconds. Save, print, or read it together at bedtime.
                   </p>
                   <div className="relative h-48 mt-4 overflow-hidden rounded-lg bg-white/50 dark:bg-midnight-light/50 shadow-sm">
-                    {/* Story Generation Process - Optimized */}
+                    {/* Story Generation Process - Interactive Preview */}
                     <div className="h-full flex items-center justify-center">
-                      <div className="text-center px-4">
+                      <div className="text-center px-4 w-full">
+                        {/* Theme-specific icon */}
                         <Image 
-                          src="/images/illustrations/book-magic.svg" 
-                          alt="Magical storybook" 
+                          src={selectedTheme === 'space' 
+                            ? "/images/illustrations/space-rocket.svg" 
+                            : selectedTheme === 'pirates' 
+                              ? "/images/illustrations/pirate.svg" 
+                              : "/images/illustrations/fairy.svg"} 
+                          alt="Story theme" 
                           width={60} 
                           height={60}
                           className="object-contain mx-auto mb-3"
                         />
-                        <h4 className="text-primary font-medium text-sm mb-2">Generating Your Story...</h4>
-                        <div className="flex justify-center items-center gap-1 mb-2">
-                          <span className="h-2 w-2 bg-primary rounded-full animate-bounce"></span>
-                          <span className="h-2 w-2 bg-primary rounded-full animate-bounce delay-75"></span>
-                          <span className="h-2 w-2 bg-primary rounded-full animate-bounce delay-150"></span>
+                        <h4 className="text-primary font-medium text-sm mb-2">
+                          {childName}'s {selectedTheme === 'space' 
+                            ? 'Space Adventure' 
+                            : selectedTheme === 'pirates' 
+                              ? 'Pirate Quest' 
+                              : 'Magical Journey'}
+                        </h4>
+                        
+                        <div className="h-20 overflow-y-auto text-xs text-text-secondary dark:text-text-primary/70 max-w-xs mx-auto text-left story-text">
+                          <TypedText 
+                            key={`theme-preview-${selectedTheme}-${childName}-${refreshKey}`}
+                            text={getActiveStoryPreview(childName)}
+                            className="whitespace-pre-line"
+                            delay={300}
+                          />
                         </div>
-                        <p className="text-xs text-text-secondary dark:text-text-primary/70 max-w-xs mx-auto">
-                          Weaving together characters, settings, and a magical plot just for you.
-                        </p>
                       </div>
                     </div>
                   </div>
@@ -556,7 +878,11 @@ export default function Home() {
         <div className="max-w-5xl mx-auto">
           <h2 className="text-primary text-center mb-12">Story Previews</h2>
           
-          <div className="relative">
+          <div 
+            className="relative" 
+            onMouseEnter={() => setIsCarouselPaused(true)}
+            onMouseLeave={() => setIsCarouselPaused(false)}
+          >
             <div className="overflow-hidden">
               <div className="flex transition-transform duration-500 ease-in-out" 
                    style={{ transform: `translateX(-${activeStoryIndex * 100}%)` }}>
@@ -604,10 +930,21 @@ export default function Home() {
                           className="whitespace-pre-line"
                         />
                       </div>
-                      <div className="flex justify-center">
+                      <div className="flex justify-center mt-4">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="mr-2"
+                          onClick={() => {
+                            // Show a modal with a longer preview (to be implemented)
+                            alert(`Read more of "${story.title}" coming soon!`);
+                          }}
+                        >
+                          Read More
+                        </Button>
                         <Link href="/story">
                           <Button>
-                            Create Your Own Story
+                            Create Your Own
                           </Button>
                         </Link>
                       </div>
@@ -617,15 +954,38 @@ export default function Home() {
               </div>
             </div>
             
-            <div className="flex justify-center mt-6 gap-2">
-              {sampleStories.map((_, index) => (
-                <button 
-                  key={index}
-                  className={`w-3 h-3 rounded-full transition-all duration-300 ${index === activeStoryIndex ? 'bg-primary scale-125' : 'bg-lavender'}`}
-                  onClick={() => setActiveStoryIndex(index)}
-                  aria-label={`Go to story ${index + 1}`}
-                />
-              ))}
+            {/* Carousel controls */}
+            <div className="flex justify-center mt-6 items-center gap-4">
+              <button
+                onClick={() => setIsCarouselPaused(!isCarouselPaused)}
+                className="text-primary hover:text-primary/80 transition-colors"
+                aria-label={isCarouselPaused ? "Resume auto-rotation" : "Pause auto-rotation"}
+              >
+                {isCarouselPaused ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="6" y="4" width="4" height="16"></rect>
+                    <rect x="14" y="4" width="4" height="16"></rect>
+                  </svg>
+                )}
+              </button>
+              
+              <div className="flex gap-2">
+                {sampleStories.map((_, index) => (
+                  <button 
+                    key={index}
+                    className={`w-3 h-3 rounded-full transition-all duration-300 ${index === activeStoryIndex ? 'bg-primary scale-125' : 'bg-lavender'}`}
+                    onClick={() => {
+                      setActiveStoryIndex(index);
+                      setRefreshKey(prev => prev + 1);
+                    }}
+                    aria-label={`Go to story ${index + 1}`}
+                  />
+                ))}
+              </div>
             </div>
             
             <motion.button 
@@ -817,17 +1177,54 @@ export default function Home() {
       {/* FAQ Section */}
       <section className="py-16 px-8 bg-white dark:bg-midnight-dark">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-primary text-center mb-12">Frequently Asked Questions</h2>
+          <h2 className="text-primary text-center mb-6">Frequently Asked Questions</h2>
+          <p className="text-center text-text-secondary dark:text-text-primary/80 mb-12 max-w-xl mx-auto">
+            Find answers to common questions about our service, pricing, and features.
+          </p>
           
-          <div className="space-y-6">
+          {/* FAQ Search */}
+          <div className="mb-8 relative">
+            <Input 
+              placeholder="Search FAQs..." 
+              className="pl-10"
+              onChange={(e) => {
+                // This would be implemented with actual filtering logic
+                console.log('Searching for:', e.target.value);
+              }}
+            />
+            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </div>
+          </div>
+          
+          {/* FAQ Categories */}
+          <div className="flex justify-center mb-8 gap-2 flex-wrap">
+            <Button variant="outline" size="sm" className="rounded-full">All</Button>
+            <Button variant="outline" size="sm" className="rounded-full">Pricing</Button>
+            <Button variant="outline" size="sm" className="rounded-full">Features</Button>
+            <Button variant="outline" size="sm" className="rounded-full">Technical</Button>
+          </div>
+          
+          {/* FAQ Accordion */}
+          <div className="space-y-4">
             {faqs.map((faq, index) => (
-              <Card key={index} className="p-6 bg-dreamy-light/50 dark:bg-midnight">
-                <h3 className="text-primary text-xl mb-2">{faq.question}</h3>
-                <p className="text-text-secondary dark:text-text-primary/80">
-                  {faq.answer}
-                </p>
-              </Card>
+              <FaqAccordionItem key={index} question={faq.question} answer={faq.answer} />
             ))}
+          </div>
+          
+          {/* Additional Help */}
+          <div className="mt-12 text-center">
+            <p className="text-text-secondary dark:text-text-primary/80 mb-4">
+              Still have questions? We're here to help!
+            </p>
+            <Link href="/contact">
+              <Button variant="outline">
+                Contact Support
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
