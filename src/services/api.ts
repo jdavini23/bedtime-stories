@@ -24,6 +24,35 @@ const handleApiError = (error: AxiosError): never => {
     const responseData = error.response.data as { message?: string } | undefined;
     const errorMessage = responseData?.message || error.response.statusText || 'An error occurred';
     const errorDetails = error.response.data || {};
+
+    // Special handling for common error codes
+    if (error.response.status === 405) {
+      logger.error('Method Not Allowed Error:', {
+        status: error.response.status,
+        method: error.config?.method,
+        url: error.config?.url,
+        message: errorMessage,
+      });
+      throw new ApiError(
+        'The request method is not allowed. This may be an authentication issue.',
+        405,
+        errorDetails
+      );
+    }
+
+    if (error.response.status === 401) {
+      logger.error('Authentication Error:', {
+        status: error.response.status,
+        message: errorMessage,
+      });
+      // Redirect to sign-in page if not authenticated
+      if (typeof window !== 'undefined') {
+        window.location.href = `/auth/signin?redirect_url=${encodeURIComponent(window.location.href)}`;
+        // Never reached, but TypeScript needs this
+        throw new ApiError('Authentication required', 401);
+      }
+    }
+
     logger.error('API Error:', {
       status: error.response.status,
       message: errorMessage,

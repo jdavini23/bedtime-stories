@@ -37,7 +37,16 @@ const isDevelopmentApiRoute = (path: string): boolean => {
 
 const createSignInUrl = (request: NextRequest): URL => {
   const signInUrl = new URL('/auth/signin', request.url);
-  signInUrl.searchParams.set('redirect_url', request.url);
+
+  // Get the original URL path
+  const originalPath = request.nextUrl.pathname;
+
+  // If trying to access an API route directly, redirect to the home page instead
+  const redirectUrl = originalPath.startsWith('/api/')
+    ? new URL('/', request.url).toString()
+    : request.url;
+
+  signInUrl.searchParams.set('redirect_url', redirectUrl);
   return signInUrl;
 };
 
@@ -53,8 +62,8 @@ export default authMiddleware({
       headers.set('x-clerk-auth-session-id', `dev-session-${testUserId}`);
       return NextResponse.next({
         request: {
-          headers
-        }
+          headers,
+        },
       });
     }
     return NextResponse.next();

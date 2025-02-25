@@ -12,6 +12,18 @@ export async function POST(req: NextRequest) {
   logger.info('Request Headers:', Object.fromEntries(req.headers));
   logger.info('Environment:', { environment: env.NODE_ENV });
 
+  // Add OPTIONS method handling for CORS
+  if (req.method === 'OPTIONS') {
+    return new NextResponse(null, {
+      status: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
+    });
+  }
+
   try {
     // Comprehensive authentication logging
     logger.info('Attempting authentication...');
@@ -21,8 +33,20 @@ export async function POST(req: NextRequest) {
     try {
       const devAuth = env.NODE_ENV === 'development' ? devAuthMiddleware(req) : undefined;
       authContext = devAuth || auth();
+
+      // Log authentication context for debugging
+      logger.info('Auth Context:', {
+        userId: authContext?.userId,
+        isDevAuth: !!devAuth,
+        environment: env.NODE_ENV,
+      });
     } catch (authError) {
-      logger.error('Authentication Error:', { error: authError });
+      logger.error('Authentication Error:', {
+        error: authError,
+        headers: Object.fromEntries(req.headers),
+        url: req.url,
+        method: req.method,
+      });
       return NextResponse.json(
         {
           message: 'Authentication failed',
@@ -34,8 +58,6 @@ export async function POST(req: NextRequest) {
         { status: 401 }
       );
     }
-
-    logger.info('Auth Context:', authContext);
 
     const { userId } = authContext;
 
@@ -106,7 +128,13 @@ export async function POST(req: NextRequest) {
               input: JSON.stringify(input),
               userId,
             }),
-          } as { message: string; error: string; fullError?: string; input?: string; userId?: string },
+          } as {
+            message: string;
+            error: string;
+            fullError?: string;
+            input?: string;
+            userId?: string;
+          },
           { status: 500 }
         );
       }
