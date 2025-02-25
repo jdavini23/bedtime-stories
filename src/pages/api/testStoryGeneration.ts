@@ -2,15 +2,12 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { userPersonalizationEngine } from '@/services/personalizationEngine';
 import { StoryInput } from '@/types/story';
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const input: StoryInput = {
     childName: 'Alice',
     gender: 'girl',
     theme: 'adventure',
-    interests: ['magic', 'animals']
+    interests: ['magic', 'animals'],
   };
 
   try {

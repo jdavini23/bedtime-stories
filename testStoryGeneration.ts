@@ -6,7 +6,7 @@ async function testStoryGeneration() {
     childName: 'Alice',
     gender: 'girl',
     theme: 'adventure',
-    interests: ['magic', 'animals']
+    interests: ['magic', 'animals'],
   };
 
   try {

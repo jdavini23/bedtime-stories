@@ -1,110 +1,131 @@
-# Bedtime Story Magic
+# Bedtime Stories
 
-## Overview
-
-Bedtime Story Magic is an AI-powered application that generates personalized, enchanting bedtime
-stories for children. Using advanced AI technology, it creates unique stories tailored to a child's
-name, interests, and preferred theme.
+A Next.js application that generates personalized bedtime stories for children using AI.
 
 ## Features
 
-- 🤖 AI-generated personalized stories
-- 📚 Multiple story themes (Adventure, Fantasy, Educational, etc.)
-- 🎨 Customizable story inputs
-- 🔐 Secure Clerk authentication
-- 📊 User preferences and story generation tracking
-- 🌈 Engaging and child-friendly design
-- 📱 Responsive web application
+- Generate personalized bedtime stories based on child's name, interests, and preferences
+- Multiple story themes (adventure, fantasy, educational, etc.)
+- Responsive design for all devices
+- Caching system for improved performance
+- Fallback to mock stories when API is unavailable
 
-## Technologies
+## Tech Stack
 
-- Next.js 14
-- TypeScript
-- Tailwind CSS
-- Framer Motion
-- Clerk Authentication
-- OpenAI GPT
-- Vercel KV (Caching)
-- Vercel Analytics & Speed Insights
+- **Framework**: Next.js 15
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **Authentication**: Clerk
+- **Database**: Vercel KV (Redis)
+- **AI**: OpenAI GPT-3.5 Turbo
+- **Deployment**: Vercel
+- **Testing**: Vitest
 
-## Prerequisites
+## Project Structure
 
-- Node.js 20+
-- npm 10+
-- Clerk Account
-- OpenAI API Key (optional)
+```
+src/
+├── app/                  # Next.js App Router
+│   ├── api/              # API routes
+│   │   └── generateStory/# Story generation endpoint
+│   ├── dashboard/        # Dashboard pages
+│   └── ...               # Other app routes
+├── components/           # Reusable UI components
+├── constants/            # Application constants
+├── hooks/                # Custom React hooks
+├── lib/                  # Library code
+│   └── env.ts            # Environment configuration
+├── services/             # Service modules
+│   ├── cache.ts          # Cache service
+│   └── openai.ts         # OpenAI service
+├── types/                # TypeScript type definitions
+│   ├── api.ts            # API types
+│   └── story.ts          # Story-related types
+└── utils/                # Utility functions
+    ├── logger.ts         # Logging utility
+    ├── mockStoryGenerator.ts # Mock story generation
+    └── storyUtils.ts     # Story processing utilities
+```
 
-## Setup and Installation
+## Environment Variables
+
+Create a `.env.local` file with the following variables:
+
+```
+# OpenAI
+NEXT_PUBLIC_OPENAI_API_KEY=your_openai_api_key
+
+# Vercel KV
+KV_REST_API_URL=your_kv_url
+KV_REST_API_TOKEN=your_kv_token
+
+# Feature Flags
+ENABLE_MOCK_STORIES=false
+ENABLE_CACHING=true
+
+# Performance
+STORY_CACHE_TTL_SECONDS=86400
+API_TIMEOUT_MS=25000
+```
+
+## Getting Started
 
 1. Clone the repository
-
-```bash
-git clone https://github.com/jdavini23/bedtime-stories.git
-cd bedtime-stories
-```
-
-2. Install dependencies
-
-```bash
-npm install
-```
-
+2. Install dependencies: `npm install`
 3. Set up environment variables
+4. Run the development server: `npm run dev`
+5. Open [http://localhost:3000](http://localhost:3000)
 
-```bash
-cp .env.local.example .env.local
+## API Routes
+
+### POST /api/generateStory
+
+Generates a personalized bedtime story.
+
+**Request Body:**
+
+```json
+{
+  "childName": "Alex",
+  "gender": "boy",
+  "theme": "adventure",
+  "interests": ["dinosaurs", "space"],
+  "mostLikedCharacterTypes": ["explorers", "scientists"]
+}
 ```
 
-4. Configure Clerk
+**Response:**
 
-- Create a Clerk account at [Clerk.com](https://clerk.com)
-- Create a new application
-- Copy your Publishable and Secret keys into `.env.local`
-
-5. (Optional) Configure OpenAI
-
-- Get an OpenAI API key from [OpenAI](https://platform.openai.com/)
-- Add the key to `.env.local`
-
-## Development Scripts
-
-- `npm run dev`: Start development server
-- `npm run build`: Build production application
-- `npm run start`: Start production server
-- `npm run test`: Run tests
-- `npm run lint`: Run ESLint
-- `npm run type:check`: Run TypeScript type checking
-- `npm run validate`: Run comprehensive project validation
-
-## Testing
-
-- Unit tests with Vitest
-- React component testing with Testing Library
-- Run tests with `npm test`
-- View test coverage with `npm run test:coverage`
-
-## Security and Performance
-
-- Trufflehog for secrets scanning
-- Clerk for secure authentication
-- Vercel Speed Insights
-- Vercel Analytics
+```json
+{
+  "id": "story-123",
+  "content": "# Alex's Space Adventure\n\nOnce upon a time...",
+  "createdAt": "2023-06-15T12:34:56Z",
+  "input": { ... },
+  "generatedWith": "openai",
+  "metadata": {
+    "wordCount": 250,
+    "readingTime": 2,
+    "title": "Alex's Space Adventure"
+  }
+}
+```
 
 ## Contributing
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+2. Create a feature branch: `git checkout -b feature/my-feature`
+3. Commit your changes: `git commit -m 'Add my feature'`
+4. Push to the branch: `git push origin feature/my-feature`
+5. Open a pull request
 
 ## License
 
-Distributed under the MIT License. See `LICENSE` for more information.
+This project is licensed under the MIT License.
 
 ## Contact
 
-Your Name - [@your_twitter](https://twitter.com/your_twitter)
+GitHub: [@jdavini23](https://github.com/jdavini23)
 
 Project Link:
 [https://github.com/jdavini23/bedtime-stories](https://github.com/jdavini23/bedtime-stories)

@@ -48,3 +48,13 @@ Thumbs.db
 # Clerk
 .clerk
 clerk.json
+
+# Testing
+/coverage/
+.vitest-cache/
+.nyc_output/
+
+# Misc
+.vercel
+.turbo
+tsconfig.tsbuildinfo

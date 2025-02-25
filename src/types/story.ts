@@ -1,28 +1,10 @@
-export type StoryTheme =
-  | 'adventure'
-  | 'fantasy'
-  | 'educational'
-  | 'friendship'
-  | 'courage'
-  | 'kindness'
-  | 'curiosity'
-  | 'creativity'
-  | 'nature'
-  | 'science';
+import { STORY_THEMES, STORY_MOODS, GENDER_OPTIONS, READING_LEVELS, AGE_GROUPS } from '@/constants';
 
-export type StoryMood =
-  | 'humorous'
-  | 'adventurous'
-  | 'calming'
-  | 'mysterious'
-  | 'exciting'
-  | 'whimsical'
-  | 'dramatic'
-  | 'peaceful'
-  | 'inspiring'
-  | 'magical';
-
-export type StoryGender = 'boy' | 'girl' | 'neutral';
+export type StoryTheme = (typeof STORY_THEMES)[number];
+export type StoryMood = (typeof STORY_MOODS)[number];
+export type StoryGender = (typeof GENDER_OPTIONS)[number];
+export type ReadingLevel = (typeof READING_LEVELS)[number];
+export type AgeGroup = (typeof AGE_GROUPS)[number];
 
 export type StoryMetadata = {
   pronouns: string;
@@ -30,7 +12,7 @@ export type StoryMetadata = {
   generatedAt: string;
   language?: string;
   wordCount?: number;
-  readingLevel?: 'beginner' | 'intermediate' | 'advanced';
+  readingLevel?: ReadingLevel;
 };
 
 export interface StoryInput {
@@ -42,7 +24,7 @@ export interface StoryInput {
   mostLikedCharacterTypes?: string[];
   mood?: StoryMood;
   language?: string;
-  readingLevel?: StoryMetadata['readingLevel'];
+  readingLevel?: ReadingLevel;
   themes?: StoryTheme[];
 }
 
@@ -57,6 +39,8 @@ export interface Story {
     pronouns: string;
     possessivePronouns: string;
     generatedAt: string;
+    wordCount?: number;
+    readingTime?: number;
   };
   userId?: string;
   pronouns: string;
@@ -72,7 +56,7 @@ export interface UserPreferences {
   generatedStories?: number;
   lastStoryGeneratedAt?: Date;
   learningInterests: string[];
-  ageGroup: '3-5' | '6-8' | '9-12';
+  ageGroup: AgeGroup;
   theme: 'light' | 'dark';
   language: string;
   notifications: {

@@ -62,10 +62,9 @@ export class UserPersonalizationEngine {
     const apiKey = process.env.OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY;
 
     if (!apiKey) {
-      logger.error(
-        'CRITICAL: OpenAI API key is missing. Set OPENAI_API_KEY in .env.local',
-        { userId }
-      );
+      logger.error('CRITICAL: OpenAI API key is missing. Set OPENAI_API_KEY in .env.local', {
+        userId,
+      });
       // Ensure openai is set to prevent null checks from failing
       this.openai = undefined;
       return;

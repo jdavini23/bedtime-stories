@@ -145,3 +145,51 @@
   }
 }
 
+[2025-02-25T18:34:09.138Z] [DevAuth] Development Authentication Request
+{
+  "method": "POST",
+  "url": "http://localhost:3000/api/story/generate",
+  "headers": {
+    "accept": "application/json, text/plain, */*",
+    "accept-encoding": "gzip, deflate, br, zstd",
+    "accept-language": "en-US,en;q=0.9",
+    "authorization": "Bearer eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18ydEgwcWtNQ2twUkFoRXZpb3E2cXlnMWtzbFYiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDA1MDg0ODIsImZ2YSI6WzU0MTUsLTFdLCJpYXQiOjE3NDA1MDg0MjIsImlzcyI6Imh0dHBzOi8vcmljaC1tYXN0aWZmLTIwLmNsZXJrLmFjY291bnRzLmRldiIsIm5iZiI6MTc0MDUwODQxMiwic2lkIjoic2Vzc18ydE5EOWJTVXdNZ2pEV2xBaXEyZFk5cFBMWTkiLCJzdWIiOiJ1c2VyXzJ0TjZ6STBKa0ZEUGpOb2VZaGxocFBFZDUzNSJ9.fhjTg8snhWjTOFgphXT5GGLh81XWm62Hrt5afMSWvU4XWN5ELc46f8GZubW5JW75vQ52R-08d8XiUAJSFonXOZm_OQ63YkJ6iD4RJUF3ptyXWntD5GPKhU6UEQJwNVpjG1_jpkAp-Na5o3CFmaEV3v2-NR4bTSkVgzylnJg45xDd20zAU7Elr8gb76SK_3iAn8NdqHaMwPmwOCAXHcUx17s4RV9fuMjBtCFpALOZurwguv02W4GIFP5tvQVkCZ5cwgZh-KK5psUzrYSJ3n6T7sN6iHyf03r8F6zmqTQo85V48k6_b4bzZdCfy6b3fnBSxt1U9DjvOUiebr5o2DOc2w",
+    "cache-control": "no-cache",
+    "connection": "keep-alive",
+    "content-length": "164",
+    "content-type": "application/json",
+    "cookie": "next-auth.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..6Tgnogh_WyxQ8H1v.7FrHGmfTBsbIeD4WimE2tdBwsELZ9uVXFVfM7TdtiBO3vn6XTGjFncLV68vLEbHJecs2hDo-3QFOrKKejcMIzXfjK6R421e7F6ywWwu0el64wKV6TNshWWAtGTvltPCFRjjgbY4ajV91JMhBuU--_dvGUl3EBf0HSwoMr9hRsbD8-ZuncxrRd5udxNSrrSK4dzcvDmdESTyAHPcZ2Qr46H0E3lCxr01WWlU9sIm7qUNvEgdF9ti1ChrmuJl3fZHlUz1u1IFSiRowIomdSXbsXitSZSM9L7NowVzg6mj6aHwdk_tI1AGF3b88-1lUXBBefi_CiePY0SnrDvBjchupfuXtfcjGRXz8YA36lwWLvLUyVz9r1sgM9jMaCOPpv2_mQfDVxz3iLDK4fYEGquS1X9iAik9hlB-8FcW9FIoHC0xMSLqxkIr0Qe3BjHtUuoi55hDETv4jvbhFzmeT7lAG1YWGyaa_lnT8C2fU_1EJdjRPXkLfDel4VHZQrDcP79SrLiZgKq24CKEYwiHrnz0VEmOYomRzhY33HfBkDX7xgbeJCAMiOH_DKg_Ej8GlH8GwSQPr7aR68DnI1nbO48Sq9sq_Ar-2Bktvjg5mPu3uipo3v-4TlcdHz58oaulSplu2h8I_Gm0cH5dRh5h6KAnC5zgKRpGb4QFn66ZrCZ-FsHQWadZD3QpslpcmYUG1uc7F1r_-Zen0fqNunJSc3uia89qJHA.QXm5im34MY2CSB6X4hO92w; __clerk_db_jwt_2P6n4I7_=dvb_2tH1Pxe7aYwKV3rJGEg03sDFXeL; __client_uat_2P6n4I7_=0; __client_uat=1740183487; __clerk_db_jwt=dvb_2tHK24HmV4hIJ0oRWse5G5ZfaYe; __session=eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18ydEgwcWtNQ2twUkFoRXZpb3E2cXlnMWtzbFYiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJleHAiOjE3NDA1MDg0ODIsImZ2YSI6WzU0MTUsLTFdLCJpYXQiOjE3NDA1MDg0MjIsImlzcyI6Imh0dHBzOi8vcmljaC1tYXN0aWZmLTIwLmNsZXJrLmFjY291bnRzLmRldiIsIm5iZiI6MTc0MDUwODQxMiwic2lkIjoic2Vzc18ydE5EOWJTVXdNZ2pEV2xBaXEyZFk5cFBMWTkiLCJzdWIiOiJ1c2VyXzJ0TjZ6STBKa0ZEUGpOb2VZaGxocFBFZDUzNSJ9.fhjTg8snhWjTOFgphXT5GGLh81XWm62Hrt5afMSWvU4XWN5ELc46f8GZubW5JW75vQ52R-08d8XiUAJSFonXOZm_OQ63YkJ6iD4RJUF3ptyXWntD5GPKhU6UEQJwNVpjG1_jpkAp-Na5o3CFmaEV3v2-NR4bTSkVgzylnJg45xDd20zAU7Elr8gb76SK_3iAn8NdqHaMwPmwOCAXHcUx17s4RV9fuMjBtCFpALOZurwguv02W4GIFP5tvQVkCZ5cwgZh-KK5psUzrYSJ3n6T7sN6iHyf03r8F6zmqTQo85V48k6_b4bzZdCfy6b3fnBSxt1U9DjvOUiebr5o2DOc2w",
+    "dnt": "1",
+    "host": "localhost:3000",
+    "origin": "http://localhost:3000",
+    "pragma": "no-cache",
+    "referer": "http://localhost:3000/",
+    "sec-ch-ua": "\"Not(A:Brand\";v=\"99\", \"Google Chrome\";v=\"133\", \"Chromium\";v=\"133\"",
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "sec-fetch-dest": "empty",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-site": "same-origin",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
+    "x-forwarded-for": "::1",
+    "x-forwarded-host": "localhost:3000",
+    "x-forwarded-port": "3000",
+    "x-forwarded-proto": "http"
+  }
+}
+
+[2025-02-25T18:34:09.143Z] [DevAuth] User ID Source Identified
+{
+  "userId": "dev-default-user",
+  "source": ""
+}
+
+[2025-02-25T18:34:09.144Z] [DevAuth] Development Authentication Context Created
+{
+  "userId": "dev-default-user",
+  "sessionId": "dev-session-dev-default-user",
+  "claims": {
+    "source": "development-auth"
+  }
+}
+

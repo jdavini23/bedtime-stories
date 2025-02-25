@@ -1,6 +1,8 @@
 import { env } from '@/lib/env';
 
-// Log levels with numeric severity
+/**
+ * Log levels with numeric severity
+ */
 export enum LogLevel {
   ERROR = 0,
   WARN = 1,
@@ -8,35 +10,51 @@ export enum LogLevel {
   DEBUG = 3,
 }
 
-// Interface for log entry
+/**
+ * Interface for log entry
+ */
 export interface LogEntry {
   level: LogLevel;
   message: string;
   context?: Record<string, any>;
-  timestamp?: number;
+  timestamp: number;
 }
 
-// Configuration interface for logger
+/**
+ * Configuration interface for logger
+ */
 interface LoggerConfig {
   level?: LogLevel;
   enableConsole?: boolean;
   enableRemoteLogging?: boolean;
 }
 
+/**
+ * Default logger configuration based on environment
+ */
+const DEFAULT_CONFIG: LoggerConfig = {
+  level: env.NODE_ENV === 'production' ? LogLevel.WARN : LogLevel.DEBUG,
+  enableConsole: true,
+  enableRemoteLogging: env.NODE_ENV === 'production',
+};
+
+/**
+ * Logger class implementing singleton pattern
+ */
 class Logger {
   private config: LoggerConfig;
   private static instance: Logger;
 
   private constructor(config?: LoggerConfig) {
     this.config = {
-      level: env.NODE_ENV === 'production' ? LogLevel.WARN : LogLevel.DEBUG,
-      enableConsole: true,
-      enableRemoteLogging: env.NODE_ENV === 'production',
+      ...DEFAULT_CONFIG,
       ...config,
     };
   }
 
-  // Singleton pattern
+  /**
+   * Get singleton instance
+   */
   public static getInstance(config?: LoggerConfig): Logger {
     if (!Logger.instance) {
       Logger.instance = new Logger(config);
@@ -44,15 +62,17 @@ class Logger {
     return Logger.instance;
   }
 
-  // Core logging method
+  /**
+   * Core logging method
+   */
   private log(level: LogLevel, message: string, context?: unknown): void {
     // Only log if the current log level allows
-    if (!this.config || !this.config.level || level > this.config.level) return;
+    if (level > (this.config.level ?? LogLevel.INFO)) return;
 
     // Convert unknown context to Record<string, any> or undefined
     const safeContext = context ? this.convertToRecord(context) : undefined;
 
-    const logEntry: LogEntry | null = {
+    const logEntry: LogEntry = {
       level,
       message,
       context: safeContext,
@@ -60,7 +80,7 @@ class Logger {
     };
 
     // Console logging
-    if (this.config.enableConsole && logEntry) {
+    if (this.config.enableConsole) {
       this.consoleLog(logEntry);
     }
 
@@ -70,10 +90,15 @@ class Logger {
     }
   }
 
-  // Console logging with color and formatting
+  /**
+   * Convert unknown value to a safe record
+   */
   private convertToRecord(value: unknown): Record<string, any> {
+    if (value === null) return { value: null };
+    if (value === undefined) return { value: undefined };
+
     if (typeof value === 'object' && value !== null) {
-      return Object.entries(value).reduce(
+      return Object.entries(value as Record<string, unknown>).reduce(
         (acc, [key, val]) => {
           acc[key] = val;
           return acc;
@@ -81,148 +106,149 @@ class Logger {
         {} as Record<string, any>
       );
     }
+
     return { value };
   }
 
-  private consoleLog(entry: LogEntry): void {
-    const { level, message, context, timestamp } = entry;
+  /**
+   * Format timestamp to ISO string
+   */
+  private formatTimestamp(timestamp: number): string {
+    return new Date(timestamp).toISOString();
+  }
 
-    // Modify the timestamp handling to ensure a valid timestamp
-    const ensureValidTimestamp = (timestamp?: number | string | Date): string => {
-      if (timestamp == null) {
-        return new Date().toISOString();
-      }
-
-      const date = timestamp instanceof Date ? timestamp : new Date(timestamp);
-
-      return date.toISOString();
-    };
-
-    const formattedTimestamp = ensureValidTimestamp(timestamp);
-
-    // Advanced context stringification with depth and circular reference handling
-    const safeStringify = (value: unknown, depth: number = 0): string => {
-      // Prevent excessive recursion
-      if (depth > 3) return '[Depth Limit Exceeded]';
-
-      // Handle primitive types
-      if (value == null) return 'null';
-      if (value == null) return 'undefined';
-
-      // Handle basic types
-      if (['string', 'number', 'boolean'].includes(typeof value)) {
-        return String(value);
-      }
-
-      // Handle Date objects
-      if (value instanceof Date) {
-        return value.toISOString();
-      }
-
-      // Handle arrays
-      if (Array.isArray(value)) {
-        return `[${value.map((item) => safeStringify(item, depth + 1)).join(', ')}]`;
-      }
-
-      // Handle objects
-      if (typeof value === 'object') {
-        try {
-          // Prevent circular references
-          const seen = new WeakSet();
-
-          const stringifyObject = (obj: object): string => {
-            if (seen.has(obj)) return '[Circular]';
-            seen.add(obj);
-
-            const entries = Object.entries(obj).map(
-              ([key, val]) => `${key}: ${safeStringify(val, depth + 1)}`
-            );
-
-            return `{ ${entries.join(', ')} }`;
-          };
-
-          return stringifyObject(value as object);
-        } catch {
-          return '[Unable to stringify]';
-        }
-      }
-
-      // Fallback for functions or other unhandled types
-      return String(value);
-    };
-
-    const contextString = context ? safeStringify(context) : '';
-
-    // Colorized log levels with context
-    const logWithContext = (
-      consoleMethod: (...args: unknown[]) => void,
-      levelColor: string,
-      levelName: string
-    ) => {
-      if (contextString) {
-        consoleMethod(
-          `${levelColor}[${levelName}]\x1b[0m ${formattedTimestamp} - ${message}`,
-          contextString
-        );
-      } else {
-        consoleMethod(`${levelColor}[${levelName}]\x1b[0m ${formattedTimestamp} - ${message}`);
-      }
-    };
-
+  /**
+   * Get level name and color for console output
+   */
+  private getLevelInfo(level: LogLevel): { name: string; color: string } {
     switch (level) {
       case LogLevel.ERROR:
-        logWithContext(console.error, '\x1b[31m', 'ERROR');
-        break;
+        return { name: 'ERROR', color: '\x1b[31m' }; // Red
       case LogLevel.WARN:
-        logWithContext(console.warn, '\x1b[33m', 'WARN');
-        break;
+        return { name: 'WARN', color: '\x1b[33m' }; // Yellow
       case LogLevel.INFO:
-        logWithContext(console.info, '\x1b[36m', 'INFO');
-        break;
+        return { name: 'INFO', color: '\x1b[36m' }; // Cyan
       case LogLevel.DEBUG:
-        logWithContext(console.debug, '\x1b[90m', 'DEBUG');
-        break;
+        return { name: 'DEBUG', color: '\x1b[90m' }; // Gray
+      default:
+        return { name: 'UNKNOWN', color: '\x1b[0m' };
     }
   }
 
-  // Placeholder for remote logging (e.g., to Sentry, LogRocket, etc.)
-  private remoteLog(entry: LogEntry): void {
-    if (env.SENTRY_DSN) {
+  /**
+   * Safely stringify context with depth limit and circular reference handling
+   */
+  private safeStringify(value: unknown, depth: number = 0): string {
+    // Prevent excessive recursion
+    if (depth > 3) return '[Depth Limit Exceeded]';
+
+    // Handle null and undefined
+    if (value === null) return 'null';
+    if (value === undefined) return 'undefined';
+
+    // Handle primitive types
+    if (['string', 'number', 'boolean'].includes(typeof value)) {
+      return String(value);
+    }
+
+    // Handle Date objects
+    if (value instanceof Date) {
+      return value.toISOString();
+    }
+
+    // Handle arrays
+    if (Array.isArray(value)) {
+      return `[${value.map((item) => this.safeStringify(item, depth + 1)).join(', ')}]`;
+    }
+
+    // Handle objects
+    if (typeof value === 'object') {
       try {
-        // Basic implementation of Sentry logging
-        const level = entry.level;
-        const { message, context, timestamp } = entry;
+        // Prevent circular references
+        const seen = new WeakSet();
 
-        // Log to console in development for debugging
-        if (env.NODE_ENV === 'development') {
-          console.debug('[Sentry Mock]', {
-            level,
-            message,
-            context,
-            timestamp,
-          });
-        }
+        const stringifyObject = (obj: object): string => {
+          if (seen.has(obj)) return '[Circular]';
+          seen.add(obj);
 
-        // TODO: Implement actual Sentry integration
-        // Sentry.captureMessage(message, {
-        //   level: this.convertLogLevel(level),
-        //   extra: { context, timestamp }
-        // });
-      } catch (error) {
-        // Fail silently in production, log in development
-        if (env.NODE_ENV === 'development') {
-          console.error('[Remote Logging Error]', error);
-        }
+          const entries = Object.entries(obj).map(
+            ([key, val]) => `${key}: ${this.safeStringify(val, depth + 1)}`
+          );
+
+          return `{ ${entries.join(', ')} }`;
+        };
+
+        return stringifyObject(value as object);
+      } catch {
+        return '[Unable to stringify]';
+      }
+    }
+
+    // Fallback for functions or other unhandled types
+    return String(value);
+  }
+
+  /**
+   * Console logging with color and formatting
+   */
+  private consoleLog(entry: LogEntry): void {
+    const { level, message, context, timestamp } = entry;
+    const formattedTimestamp = this.formatTimestamp(timestamp);
+    const { name: levelName, color: levelColor } = this.getLevelInfo(level);
+    const contextString = context ? this.safeStringify(context) : '';
+
+    // Get the appropriate console method
+    const consoleMethod =
+      level === LogLevel.ERROR
+        ? console.error
+        : level === LogLevel.WARN
+          ? console.warn
+          : level === LogLevel.INFO
+            ? console.info
+            : console.debug;
+
+    // Format the log message
+    const logPrefix = `${levelColor}[${levelName}]\x1b[0m ${formattedTimestamp} -`;
+
+    if (contextString) {
+      consoleMethod(`${logPrefix} ${message}`, contextString);
+    } else {
+      consoleMethod(`${logPrefix} ${message}`);
+    }
+  }
+
+  /**
+   * Remote logging implementation (placeholder)
+   */
+  private remoteLog(entry: LogEntry): void {
+    if (!env.SENTRY_DSN) return;
+
+    try {
+      // Log to console in development for debugging
+      if (env.NODE_ENV === 'development') {
+        console.debug('[Remote Log]', {
+          level: entry.level,
+          message: entry.message,
+          context: entry.context,
+          timestamp: entry.timestamp,
+        });
+      }
+
+      // TODO: Implement actual remote logging integration
+      // Example: Sentry.captureMessage(entry.message, {...})
+    } catch (error) {
+      // Fail silently in production, log in development
+      if (env.NODE_ENV === 'development') {
+        console.error('[Remote Logging Error]', error);
       }
     }
   }
 
-  // Public logging methods
+  /**
+   * Public logging methods
+   */
   public error(message: string, context?: Record<string, any>): void {
-    // Ensure context is not an empty object
-    const validContext = context && Object.keys(context).length > 0 ? context : undefined;
-
-    this.log(LogLevel.ERROR, message, validContext);
+    this.log(LogLevel.ERROR, message, context);
   }
 
   public warn(message: string, context?: Record<string, any>): void {
@@ -237,17 +263,22 @@ class Logger {
     this.log(LogLevel.DEBUG, message, context);
   }
 
-  // Method to set log level dynamically
+  /**
+   * Set log level dynamically
+   */
   public setLogLevel(level: LogLevel): void {
     this.config.level = level;
   }
 }
 
-// Export singleton instance
+/**
+ * Export singleton instance
+ */
 export const logger = Logger.getInstance();
-export { Logger };
 
-// Optional: Export a function to configure logger if needed
+/**
+ * Configure logger with custom settings
+ */
 export function configureLogger(config: LoggerConfig): Logger {
   return Logger.getInstance(config);
 }

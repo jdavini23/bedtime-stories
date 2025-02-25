@@ -9,13 +9,14 @@
     "lint": "eslint .",
     "type:check": "tsc --noEmit",
     "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "validate": "npm run lint && npm run type:check && npm test",
     "prepare": "husky install",
     "secrets:generate": "powershell -ExecutionPolicy Bypass -File ./scripts/setup-secrets.ps1",
     "secrets:scan": "npx trufflehog filesystem .",
     "pre-commit": "npx trufflehog filesystem .",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage",
     "build:clean": "powershell -Command \"Remove-Item -Path .next -Recurse -Force; next clean\"",
     "format": "prettier --write .",
     "fix:types": "node scripts/type-migration.js"
@@ -66,10 +67,7 @@
     "vitest": "^1.3.1"
   },
   "lint-staged": {
-    "**/*": [
-      "prettier --write --ignore-unknown",
-      "eslint --fix"
-    ]
+    "**/*": ["prettier --write --ignore-unknown", "eslint --fix"]
   },
   "husky": {
     "hooks": {
