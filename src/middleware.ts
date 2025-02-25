@@ -14,6 +14,8 @@ const publicRoutes: Route[] = [
   { path: '/auth/signin', exact: true },
   { path: '/auth/signup', exact: true },
   { path: '/api/webhook/clerk', exact: true },
+  // Add public API routes here
+  { path: '/api/health', exact: true },
 ];
 
 // Routes that can be accessed while signed in or not
@@ -22,6 +24,8 @@ const ignoredRoutes: Route[] = [
   { path: '/contact', exact: true },
   { path: '/_next/static' },
   { path: '/favicon.ico', exact: true },
+  { path: '/api/story/generate', exact: true }, // Allow direct access to story generation API
+  { path: '/api/generateStory', exact: true }, // Allow direct access to story generation API
 ];
 
 const isRouteMatch = (route: Route, path: string): boolean => {
@@ -55,6 +59,23 @@ export default authMiddleware({
   ignoredRoutes: ignoredRoutes.map((route) => route.path),
   debug: env.NODE_ENV === 'development',
   beforeAuth: (request) => {
+    // Add CORS headers for API routes
+    const path = request.nextUrl.pathname;
+    if (path.startsWith('/api/')) {
+      // Handle OPTIONS requests for CORS
+      if (request.method === 'OPTIONS') {
+        return new NextResponse(null, {
+          status: 200,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-clerk-auth-token',
+            'Access-Control-Max-Age': '86400',
+          },
+        });
+      }
+    }
+
     if (env.NODE_ENV === 'development') {
       const testUserId = request.headers.get('x-test-user-id') || 'dev-default-user';
       const headers = new Headers(request.headers);
@@ -87,6 +108,21 @@ export default authMiddleware({
 
     // If the user is not signed in and the route is protected, redirect to sign-in
     if (!userId) {
+      // For API routes, return 401 instead of redirecting
+      if (path.startsWith('/api/')) {
+        return new NextResponse(
+          JSON.stringify({
+            error: 'Unauthorized',
+            message: 'Authentication required',
+          }),
+          {
+            status: 401,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+      }
       return NextResponse.redirect(createSignInUrl(request));
     }
 
