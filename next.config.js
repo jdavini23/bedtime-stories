@@ -1,6 +1,12 @@
+// This file sets up the Next.js configuration with Sentry integration
+const { withSentryConfig } = require('@sentry/nextjs');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  images: {
+    domains: ['images.unsplash.com', 'via.placeholder.com'],
+  },
   experimental: {
     serverActions: { bodySizeLimit: '2mb' },
   },
@@ -18,4 +24,16 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+// For all available options, see:
+// https://github.com/getsentry/sentry-webpack-plugin#options
+const sentryWebpackPluginOptions = {
+  // Additional config options for the Sentry webpack plugin. Keep in mind that
+  // the following options are set automatically, and overriding them is not
+  // recommended:
+  //   release, url, authToken, configFile, stripPrefix,
+  //   urlPrefix, include, ignore
+  silent: true, // Suppresses all logs
+};
+
+// Make sure adding Sentry options is the last code to run before exporting
+module.exports = withSentryConfig(nextConfig, sentryWebpackPluginOptions);

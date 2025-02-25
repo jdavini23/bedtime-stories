@@ -5,6 +5,11 @@ import { Story } from '@/types/story';
 import { Button } from '../common/Button';
 import { motion } from 'framer-motion';
 import { logger } from '@/utils/loggerInstance';
+import dynamic from 'next/dynamic';
+import ReadingTime from './ReadingTime';
+
+// Dynamically import TextToSpeech with no SSR to avoid hydration issues
+const TextToSpeech = dynamic(() => import('./TextToSpeech'), { ssr: false });
 
 interface StoryDisplayProps {
   story: Story;
@@ -106,6 +111,8 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
                     year: 'numeric',
                   })}
                 </time>
+                <span>•</span>
+                <ReadingTime text={story.content} />
               </div>
             </div>
 
@@ -122,6 +129,8 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
           </div>
 
           <div className="prose prose-lg max-w-none">{formatStoryParagraphs(story.content)}</div>
+
+          <TextToSpeech text={story.content} />
 
           <motion.div
             className="flex gap-4 mt-8"

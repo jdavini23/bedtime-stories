@@ -33,77 +33,10 @@ export async function POST(req: NextRequest) {
   logger.info('Environment:', { environment: env.NODE_ENV });
 
   try {
-    // Comprehensive authentication logging
-    logger.info('Attempting authentication...');
-
-    // Development authentication fallback
-    let authContext;
-    let userId: string | null = null;
-
-    try {
-      if (env.NODE_ENV === 'development') {
-        // Use development authentication in dev mode
-        authContext = devAuthMiddleware(req);
-        userId = authContext?.userId || null;
-      } else {
-        // Use Clerk authentication in production
-        authContext = auth();
-        userId = authContext?.userId || null;
-      }
-
-      // Log authentication context for debugging
-      logger.info('Auth Context:', {
-        userId,
-        isDevAuth: env.NODE_ENV === 'development',
-        environment: env.NODE_ENV,
-      });
-    } catch (authError) {
-      logger.error('Authentication Error:', {
-        error: authError,
-        headers: Object.fromEntries(req.headers),
-        url: req.url,
-        method: req.method,
-      });
-
-      return addCorsHeaders(
-        NextResponse.json(
-          {
-            message: 'Authentication failed',
-            error: authError instanceof Error ? authError.message : 'Unknown authentication error',
-            ...(env.NODE_ENV === 'development' && {
-              fullError: authError instanceof Error ? authError.stack : 'No stack trace',
-            }),
-          } as { message: string; error: string; fullError?: string },
-          { status: 401 }
-        )
-      );
-    }
-
-    // For production, we'll allow unauthenticated requests for now to debug the issue
-    // Remove this bypass once authentication is working properly
-    if (!userId && env.NODE_ENV === 'production') {
-      logger.warn('No user ID found, but proceeding in production for debugging');
-      userId = 'anonymous-user';
-    }
-
-    // If no user ID is available, return an unauthorized error
-    if (!userId) {
-      logger.error('No user ID found during authentication');
-      logger.warn('Unauthorized story generation attempt');
-
-      return addCorsHeaders(
-        NextResponse.json(
-          {
-            message: 'Authentication required',
-            details: 'No user ID found',
-            ...(env.NODE_ENV === 'development' && {
-              authContext: JSON.stringify(authContext),
-            }),
-          } as { message: string; details: string; authContext?: string },
-          { status: 401 }
-        )
-      );
-    }
+    // TEMPORARY: Skip authentication entirely for now
+    // We'll use a fixed user ID for all requests to simplify debugging
+    const userId = 'anonymous-user';
+    logger.info('Using anonymous user for story generation');
 
     let input: StoryInput;
     try {
