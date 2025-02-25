@@ -121,14 +121,17 @@ export const useStoryApi = () => {
       }
 
       try {
-        // Use a separate axios instance without auth interceptors for story generation
-        // This allows unauthenticated users to generate stories
-        const response: AxiosResponse<Story> = await axios.post('/api/story/generate', input, {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          timeout: 30000,
-        });
+        // Use the new public endpoint that doesn't require authentication
+        const response: AxiosResponse<Story> = await axios.post(
+          '/api/public/generate-story',
+          input,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            timeout: 30000,
+          }
+        );
         return response.data;
       } catch (error: unknown) {
         if (axios.isAxiosError(error)) {

@@ -16,6 +16,9 @@ const publicRoutes: Route[] = [
   { path: '/api/webhook/clerk', exact: true },
   // Add public API routes here
   { path: '/api/health', exact: true },
+  { path: '/api/story/generate', exact: true }, // Make story generation completely public
+  { path: '/api/generateStory', exact: true }, // Make story generation completely public
+  { path: '/api/public/generate-story', exact: true }, // New public story generation endpoint
 ];
 
 // Routes that can be accessed while signed in or not
@@ -24,8 +27,6 @@ const ignoredRoutes: Route[] = [
   { path: '/contact', exact: true },
   { path: '/_next/static' },
   { path: '/favicon.ico', exact: true },
-  { path: '/api/story/generate', exact: true }, // Allow direct access to story generation API
-  { path: '/api/generateStory', exact: true }, // Allow direct access to story generation API
 ];
 
 const isRouteMatch = (route: Route, path: string): boolean => {
