@@ -58,3 +58,8 @@ clerk.json
 .vercel
 .turbo
 tsconfig.tsbuildinfo
+
+*storybook.log
+
+# Sentry Config File
+.env.sentry-build-plugin

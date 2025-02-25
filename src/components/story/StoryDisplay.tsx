@@ -58,8 +58,8 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
       await navigator.clipboard.writeText(story?.content || '');
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 2000);
-    } catch (err) {
-      logger.error('Failed to copy text:', err);
+    } catch (err: unknown) {
+      logger.error('Failed to copy text:', { error: err });
     }
   }, [story?.content]);
 

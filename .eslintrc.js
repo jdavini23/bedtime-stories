@@ -6,6 +6,7 @@ module.exports = {
     'plugin:react-hooks/recommended',
     'next/core-web-vitals',
     'prettier',
+    'plugin:storybook/recommended',
   ],
   parser: '@typescript-eslint/parser',
   plugins: ['@typescript-eslint'],
