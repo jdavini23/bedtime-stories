@@ -10,52 +10,52 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Primary Colors
+        // Primary Colors - Woodland Theme
         primary: {
-          DEFAULT: '#7B3F92', // Magical Purple
-          dark: '#6A3480',
-          light: '#9355A8',
+          DEFAULT: '#3C6E71', // Forest Teal
+          dark: '#2C5152',
+          light: '#4F8A8D',
         },
         midnight: {
-          DEFAULT: '#1A2A6C', // Midnight Blue
-          dark: '#15225A',
-          light: '#2C3E85',
+          DEFAULT: '#284B63', // Deep Blue
+          dark: '#1D3649',
+          light: '#345F7D',
         },
         dreamy: {
-          DEFAULT: '#FF85A1', // Dreamy Pink
-          dark: '#FF6B8E',
-          light: '#FFA0B5',
+          DEFAULT: '#D9C5B2', // Warm Beige
+          dark: '#C3B09E',
+          light: '#E5D6C8',
         },
         golden: {
-          DEFAULT: '#FFC75F', // Golden Glow
-          dark: '#FFBB42',
-          light: '#FFD47F',
+          DEFAULT: '#F2CC8F', // Honey Gold
+          dark: '#E5B96E',
+          light: '#F7DCAC',
         },
         cloud: {
-          DEFAULT: '#FAFAFA', // Cloud White
-          dark: '#F0F0F0',
+          DEFAULT: '#F5F5F5', // Soft White
+          dark: '#E8E8E8',
           light: '#FFFFFF',
         },
         // Secondary Colors
         sky: {
-          DEFAULT: '#00A6FB', // Sky Blue
-          dark: '#0095E2',
-          light: '#33B5FC',
+          DEFAULT: '#84B4C8', // Soft Sky Blue
+          dark: '#6A9FB5',
+          light: '#9EC8D9',
         }, 
         lavender: {
-          DEFAULT: '#C3B1E1', // Soft Lavender
-          dark: '#B49FD8',
-          light: '#D2C4E9',
+          DEFAULT: '#A5A58D', // Sage Green
+          dark: '#8A8A73',
+          light: '#BCBCA7',
         },
         teal: {
-          DEFAULT: '#A3E4DB', // Misty Teal
-          dark: '#8DDDCF',
-          light: '#B9ECE5',
+          DEFAULT: '#6B9080', // Forest Green
+          dark: '#567568',
+          light: '#7FA895',
         },
         // Text Colors
         text: {
           primary: '#FDFDFD', // Soft White
-          secondary: '#333333', // Deep Charcoal
+          secondary: '#353535', // Deep Charcoal
           muted: '#AAAAAA', // Pastel Grey
         },
         background: 'var(--background)',
@@ -73,8 +73,8 @@ export default {
         '2xl': '1.5rem',
       },
       boxShadow: {
-        'dreamy': '0 4px 14px 0 rgba(123, 63, 146, 0.2)',
-        'glow': '0 0 15px rgba(255, 199, 95, 0.5)',
+        'dreamy': '0 4px 14px 0 rgba(60, 110, 113, 0.2)', // Updated to match new primary color
+        'glow': '0 0 15px rgba(242, 204, 143, 0.5)', // Updated to match new golden color
       },
       animation: {
         'float': 'float 6s ease-in-out infinite',
