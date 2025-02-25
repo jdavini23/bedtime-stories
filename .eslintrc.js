@@ -20,4 +20,5 @@ module.exports = {
       version: 'detect',
     },
   },
+  ignorePatterns: ['browser-tools-mcp/**/*', '**/node_modules/**'],
 };
