@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Rocket body -->
+  <path d="M50 10C45 25 45 50 45 70H55C55 50 55 25 50 10Z" fill="#F472B6" />
+  <path d="M50 10C47.5 25 47.5 50 47.5 70H50C50 50 50 25 50 10Z" fill="#FB7185" />
+  
+  <!-- Rocket nose -->
+  <path d="M45 10C45 5 50 0 55 5C55 10 55 10 55 10H45C45 10 45 10 45 10Z" fill="#F472B6" />
+  <path d="M47.5 10C47.5 5 50 2.5 52.5 5C52.5 10 52.5 10 52.5 10H47.5C47.5 10 47.5 10 47.5 10Z" fill="#FB7185" />
+  
+  <!-- Rocket fins -->
+  <path d="M45 70L35 80V70H45Z" fill="#F472B6" />
+  <path d="M55 70L65 80V70H55Z" fill="#F472B6" />
+  
+  <!-- Rocket window -->
+  <circle cx="50" cy="30" r="5" fill="#BFDBFE" />
+  <circle cx="50" cy="30" r="3" fill="#60A5FA" />
+  
+  <!-- Rocket flames -->
+  <path d="M45 70H55L50 90L45 70Z" fill="#FBBF24" />
+  <path d="M47 70H53L50 85L47 70Z" fill="#F59E0B" />
+  
+  <!-- Stars -->
+  <circle cx="20" cy="20" r="2" fill="#E5E7EB" />
+  <circle cx="80" cy="30" r="2" fill="#E5E7EB" />
+  <circle cx="70" cy="15" r="1" fill="#E5E7EB" />
+  <circle cx="15" cy="50" r="1" fill="#E5E7EB" />
+  <circle cx="85" cy="60" r="1" fill="#E5E7EB" />
+  <circle cx="30" cy="80" r="2" fill="#E5E7EB" />
+  <circle cx="60" cy="40" r="1" fill="#E5E7EB" />
+</svg> 

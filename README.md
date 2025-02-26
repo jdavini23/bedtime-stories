@@ -23,29 +23,10 @@ A Next.js application that generates personalized bedtime stories for children u
 
 ## Project Structure
 
-```
-src/
-├── app/                  # Next.js App Router
-│   ├── api/              # API routes
-│   │   └── generateStory/# Story generation endpoint
-│   ├── dashboard/        # Dashboard pages
-│   └── ...               # Other app routes
-├── components/           # Reusable UI components
-├── constants/            # Application constants
-├── hooks/                # Custom React hooks
-├── lib/                  # Library code
-│   └── env.ts            # Environment configuration
-├── services/             # Service modules
-│   ├── cache.ts          # Cache service
-│   └── openai.ts         # OpenAI service
-├── types/                # TypeScript type definitions
-│   ├── api.ts            # API types
-│   └── story.ts          # Story-related types
-└── utils/                # Utility functions
-    ├── logger.ts         # Logging utility
-    ├── mockStoryGenerator.ts # Mock story generation
-    └── storyUtils.ts     # Story processing utilities
-```
+- Node.js 20+
+- npm 10+
+- Clerk Account
+- OpenAI API Key (required for AI story generation)
 
 ## Environment Variables
 
@@ -96,20 +77,57 @@ Generates a personalized bedtime story.
 
 **Response:**
 
-```json
-{
-  "id": "story-123",
-  "content": "# Alex's Space Adventure\n\nOnce upon a time...",
-  "createdAt": "2023-06-15T12:34:56Z",
-  "input": { ... },
-  "generatedWith": "openai",
-  "metadata": {
-    "wordCount": 250,
-    "readingTime": 2,
-    "title": "Alex's Space Adventure"
-  }
-}
-```
+- Create a Clerk account at [Clerk.com](https://clerk.com)
+- Create a new application
+- Copy your Publishable and Secret keys into `.env.local`
+
+5. Configure OpenAI (Required for AI story generation)
+
+- Create an OpenAI account at [OpenAI](https://platform.openai.com/)
+- Navigate to the API keys section in your account
+- Generate a new API key
+- Add the key to `.env.local` as `NEXT_PUBLIC_OPENAI_API_KEY=your_key_here`
+- The application will use a fallback mock story generator if no API key is provided, but for the
+  full experience, an OpenAI API key is required
+
+## Development Scripts
+
+- `npm run dev`: Start development server
+- `npm run build`: Build production application
+- `npm run start`: Start production server
+- `npm run test`: Run tests
+- `npm run lint`: Run ESLint
+- `npm run type:check`: Run TypeScript type checking
+- `npm run validate`: Run comprehensive project validation
+
+## Testing
+
+- Unit tests with Vitest
+- React component testing with Testing Library
+- Run tests with `npm test`
+- View test coverage with `npm run test:coverage`
+
+## Security and Performance
+
+- Trufflehog for secrets scanning
+- Clerk for secure authentication
+- Vercel Speed Insights
+- Vercel Analytics
+
+## OpenAI Integration
+
+The application uses OpenAI's GPT models to generate personalized stories based on user input. The
+integration works as follows:
+
+1. User inputs (child name, interests, theme, etc.) are collected through the StoryWizard component
+2. The data is sent to the `/api/generateStory` endpoint
+3. The API route uses the OpenAI SDK to generate a unique story
+4. The generated story is returned to the client and displayed to the user
+
+For development and testing without incurring API costs:
+
+- The application includes a fallback mock story generator
+- Set `NEXT_PUBLIC_OPENAI_API_KEY=mock` to always use the mock generator
 
 ## Contributing
 

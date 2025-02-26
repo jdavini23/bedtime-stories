@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://bedtime-stories.vercel.app';
+  const baseUrl = 'https://step-into-story-time.vercel.app';
 
   return [
     {

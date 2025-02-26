@@ -2,16 +2,16 @@
 
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { AlertTriangle, Lock, Network, ShieldOff } from 'lucide-react';
+import { AlertCircle, Lock, ShieldX, Wifi } from 'lucide-react';
 
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 // Comprehensive error mapping for different authentication scenarios
 const ERROR_MESSAGES = {
   OAuthSignin: {
     title: 'Authentication Failed',
     description: 'There was an issue signing in with the selected provider.',
-    icon: AlertTriangle,
+    icon: AlertCircle,
     actions: [
       { label: 'Try Again', variant: 'primary' as const },
       { label: 'Back to Login', variant: 'secondary' as const },
@@ -20,7 +20,7 @@ const ERROR_MESSAGES = {
   OAuthCallback: {
     title: 'Callback Error',
     description: 'The authentication callback encountered an unexpected issue.',
-    icon: Network,
+    icon: Wifi,
     actions: [
       { label: 'Retry Login', variant: 'primary' as const },
       { label: 'Contact Support', variant: 'secondary' as const },
@@ -29,7 +29,7 @@ const ERROR_MESSAGES = {
   OAuthCreateAccount: {
     title: 'Account Creation Failed',
     description: 'Unable to create an account with the selected provider.',
-    icon: ShieldOff,
+    icon: ShieldX,
     actions: [
       { label: 'Try Different Provider', variant: 'primary' as const },
       { label: 'Back to Login', variant: 'secondary' as const },
@@ -47,7 +47,7 @@ const ERROR_MESSAGES = {
   Default: {
     title: 'Authentication Error',
     description: 'An unexpected error occurred during authentication.',
-    icon: AlertTriangle,
+    icon: AlertCircle,
     actions: [
       { label: 'Retry', variant: 'primary' as const },
       { label: 'Back to Home', variant: 'secondary' as const },
@@ -87,7 +87,7 @@ const getErrorMessage = (error: string | null) => {
 export default function AuthErrorPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const errorType = searchParams.get('error') || 'Default';
+  const errorType = searchParams?.get('error') || 'Default';
   const errorConfig =
     ERROR_MESSAGES[errorType as keyof typeof ERROR_MESSAGES] || ERROR_MESSAGES.Default;
   const ErrorIcon = errorConfig.icon;

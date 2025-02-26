@@ -48,18 +48,5 @@ Thumbs.db
 # Clerk
 .clerk
 clerk.json
-
-# Testing
-/coverage/
-.vitest-cache/
-.nyc_output/
-
-# Misc
-.vercel
-.turbo
-tsconfig.tsbuildinfo
-
-*storybook.log
-
-# Sentry Config File
-.env.sentry-build-plugin
+browser-tools-mcp/
+perplexity-mcp/

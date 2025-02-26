@@ -14,7 +14,7 @@ export default function DashboardPage() {
   const { userId } = useAuth();
 
   if (!userId) {
-    redirect('/sign-in');
+    redirect('/auth/signin');
   }
 
   return <DashboardClientContent userId={userId} />;

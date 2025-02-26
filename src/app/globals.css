@@ -2,20 +2,416 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Google Fonts are now imported via link tags in the layout.tsx file */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Base Colors */
+  --foreground-rgb: 53, 53, 53; /* Deep Charcoal */
+  --background-start-rgb: 245, 245, 245; /* Soft White */
+  --background-end-rgb: 240, 240, 235;
+
+  /* Primary Colors - Woodland Theme */
+  --midnight-blue: 40, 75, 99; /* #284B63 - Deep Blue */
+  --magical-purple: 60, 110, 113; /* #3C6E71 - Forest Teal */
+  --dreamy-pink: 217, 197, 178; /* #D9C5B2 - Warm Beige */
+  --golden-glow: 242, 204, 143; /* #F2CC8F - Honey Gold */
+  --cloud-white: 245, 245, 245; /* #F5F5F5 - Soft White */
+
+  /* Secondary Colors */
+  --sky-blue: 132, 180, 200; /* #84B4C8 - Soft Sky Blue */
+  --soft-lavender: 165, 165, 141; /* #A5A58D - Sage Green */
+  --misty-teal: 107, 144, 128; /* #6B9080 - Forest Green */
+
+  /* Theme Colors - Light Mode */
+  --color-primary: rgb(60, 110, 113);
+  --color-primary-dark: rgb(44, 81, 82);
+  --color-primary-light: rgb(79, 138, 141);
+
+  --color-secondary: rgb(242, 204, 143);
+  --color-secondary-dark: rgb(229, 185, 110);
+  --color-secondary-light: rgb(247, 220, 172);
+
+  --color-background: rgb(245, 245, 245);
+  --color-card: rgba(255, 255, 255, 0.9);
+  --color-card-hover: rgba(255, 255, 255, 1);
+
+  --color-text: rgb(53, 53, 53);
+  --color-text-muted: rgba(53, 53, 53, 0.8);
+
+  /* Animation Speeds */
+  --transition-slow: 500ms;
+  --transition-medium: 300ms;
+  --transition-fast: 150ms;
+
+  /* Spacing */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --shadow-dreamy: 0 4px 14px 0 rgba(60, 110, 113, 0.2);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --foreground-rgb: 245, 245, 245; /* Soft White */
+    --background-start-rgb: 40, 75, 99; /* Deep Blue */
+    --background-end-rgb: 30, 45, 60;
+
+    /* Theme Colors - Dark Mode */
+    --color-primary: rgb(79, 138, 141);
+    --color-primary-dark: rgb(60, 110, 113);
+    --color-primary-light: rgb(98, 157, 160);
+
+    --color-secondary: rgb(247, 220, 172);
+    --color-secondary-dark: rgb(242, 204, 143);
+    --color-secondary-light: rgb(250, 231, 196);
+
+    --color-background: rgb(40, 75, 99);
+    --color-card: rgba(30, 45, 60, 0.9);
+    --color-card-hover: rgba(35, 50, 65, 1);
+
+    --color-text: rgb(245, 245, 245);
+    --color-text-muted: rgba(245, 245, 245, 0.8);
+
+    /* Shadows for Dark Mode */
+    --shadow-dreamy: 0 4px 14px 0 rgba(0, 0, 0, 0.3);
   }
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(to bottom, transparent, rgb(var(--background-end-rgb)))
+    rgb(var(--background-start-rgb));
+  font-family: 'Quicksand', sans-serif;
+}
+
+@layer base {
+  h1 {
+    @apply text-3xl font-bold md:text-4xl lg:text-5xl;
+  }
+  h2 {
+    @apply text-2xl font-bold md:text-3xl lg:text-4xl;
+  }
+  h3 {
+    @apply text-xl font-bold md:text-2xl lg:text-3xl;
+  }
+  p {
+    @apply text-base md:text-lg;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary text-text-primary px-6 py-3 rounded-xl font-medium shadow-dreamy 
+    hover:bg-primary-dark transition-colors duration-300;
+  }
+
+  .btn-secondary {
+    @apply bg-golden text-midnight px-6 py-3 rounded-xl font-medium shadow-dreamy 
+    hover:bg-golden-dark transition-colors duration-300;
+  }
+
+  .card {
+    @apply bg-cloud p-6 rounded-2xl shadow-dreamy;
+  }
+
+  .dark .card {
+    @apply bg-midnight-dark text-text-primary;
+  }
+
+  .input-field {
+    @apply bg-cloud-light border border-lavender rounded-xl px-4 py-3 w-full focus:outline-none
+    focus:ring-2 focus:ring-primary focus:border-transparent;
+  }
+
+  .dark .input-field {
+    @apply bg-midnight-light border-primary-light text-text-primary;
+  }
+
+  .floating-element {
+    @apply animate-float;
+  }
+
+  .twinkling-star {
+    @apply animate-twinkle;
+  }
+}
+
+/* Accessibility Classes */
+.dyslexia-mode {
+  font-family: 'OpenDyslexic', 'Quicksand', sans-serif;
+  line-height: 1.6;
+  letter-spacing: 0.5px;
+  word-spacing: 3px;
+}
+
+.high-contrast-mode {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 0, 0, 0;
+  --background-end-rgb: 0, 0, 0;
+}
+
+/* Transitions */
+.page-transition {
+  @apply transition-all duration-500 ease-in-out;
+}
+
+.story-text {
+  @apply text-story leading-relaxed;
+}
+
+/* Custom scrollbar styling */
+.story-text::-webkit-scrollbar {
+  width: 6px;
+}
+
+.story-text::-webkit-scrollbar-track {
+  background: rgba(var(--cloud-white), 0.3);
+  border-radius: 10px;
+}
+
+.story-text::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, rgb(var(--magical-purple)), rgb(var(--dreamy-pink)));
+  border-radius: 10px;
+}
+
+.story-text::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, rgb(var(--midnight-blue)), rgb(var(--magical-purple)));
+}
+
+/* Dark mode scrollbar */
+.dark .story-text::-webkit-scrollbar-track {
+  background: rgba(var(--midnight-blue), 0.5);
+}
+
+.dark .story-text::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, rgb(var(--dreamy-pink)), rgb(var(--golden-glow)));
+}
+
+.dark .story-text::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, rgb(var(--magical-purple)), rgb(var(--dreamy-pink)));
+}
+
+/* Typing animation for story generation */
+.typing-animation {
+  overflow: hidden;
+  white-space: pre-line;
+  margin-bottom: 1rem;
+  opacity: 0;
+  display: block;
+  position: relative;
+  animation: fadeIn 0.5s ease forwards;
+  line-height: 1.8;
+}
+
+.typing-animation .word-container {
+  display: inline-block;
+  margin-right: 0; /* We'll handle spaces manually */
+}
+
+.typing-animation .word-container:last-child {
+  margin-right: 0;
+}
+
+.typing-animation.delay-2 {
+  animation-delay: 2s;
+}
+
+.typing-animation.delay-4 {
+  animation-delay: 4s;
+}
+
+.typing-animation span {
+  opacity: 0;
+  display: inline-block;
+  animation: typingChar 0.05s ease forwards;
+  transform-origin: bottom;
+}
+
+/* Cursor styling */
+.typing-cursor {
+  display: inline-block;
+  animation: blink 1s infinite;
+  color: rgb(var(--magical-purple));
+  font-weight: 700;
+  font-size: 1.2em;
+  margin-left: 1px;
+  margin-right: 1px;
+  text-shadow: 0 0 3px rgba(var(--magical-purple), 0.5);
+  position: relative;
+  top: 2px;
+  line-height: 0;
+}
+
+/* Add a subtle bounce effect to some characters */
+.typing-animation span:nth-child(5n + 1) {
+  animation: typingCharBounce 0.2s ease forwards;
+}
+
+/* Add a subtle fade effect to some characters */
+.typing-animation span:nth-child(7n + 3) {
+  animation: typingCharFade 0.15s ease forwards;
+}
+
+/* Custom cursor styles for interactive elements */
+.cursor-magic {
+  cursor:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='none' stroke='%233C6E71' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 6L6 18'/%3E%3Cpath d='M6 6l12 12'/%3E%3C/svg%3E"),
+    auto;
+}
+
+.cursor-book {
+  cursor:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='none' stroke='%23F2CC8F' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 19.5A2.5 2.5 0 0 1 6.5 17H20'/%3E%3Cpath d='M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z'/%3E%3C/svg%3E"),
+    pointer;
+}
+
+.cursor-star {
+  cursor:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='%23F2CC8F' stroke='%23F2CC8F' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolygon points='12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2'/%3E%3C/svg%3E"),
+    pointer;
+}
+
+/* Interactive element hover effects with cursor changes */
+.btn-primary,
+.btn-secondary {
+  @apply cursor-pointer transition-all duration-300;
+}
+
+.btn-primary:hover,
+.btn-secondary:hover {
+  @apply transform scale-105;
+  cursor:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='%23F2CC8F' stroke='%23284B63' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 11.08V12a10 10 0 1 1-5.93-9.14'/%3E%3Cpolyline points='22 4 12 14.01 9 11.01'/%3E%3C/svg%3E"),
+    pointer;
+}
+
+/* Story element cursor effects */
+.story-element {
+  @apply transition-all duration-300;
+}
+
+.story-element:hover {
+  @apply cursor-book transform scale-102;
+}
+
+.story-character {
+  @apply transition-all duration-300;
+}
+
+.story-character:hover {
+  @apply cursor-star transform scale-105;
+}
+
+/* Text selection styling */
+::selection {
+  background-color: rgba(var(--golden-glow), 0.3);
+  color: rgb(var(--midnight-blue));
+  text-shadow: 0 0 2px rgba(var(--cloud-white), 0.5);
+}
+
+.dark ::selection {
+  background-color: rgba(var(--magical-purple), 0.3);
+  color: rgb(var(--cloud-white));
+  text-shadow: 0 0 2px rgba(var(--midnight-blue), 0.5);
+}
+
+/* Reading mode cursor */
+.reading-mode {
+  cursor: text;
+}
+
+.reading-mode .story-text {
+  cursor:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='none' stroke='%233C6E71' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='8' y1='6' x2='21' y2='6'%3E%3C/line%3E%3Cline x1='8' y1='12' x2='21' y2='12'%3E%3C/line%3E%3Cline x1='8' y1='18' x2='21' y2='18'%3E%3C/line%3E%3Cline x1='3' y1='6' x2='3.01' y2='6'%3E%3C/line%3E%3Cline x1='3' y1='12' x2='3.01' y2='12'%3E%3C/line%3E%3Cline x1='3' y1='18' x2='3.01' y2='18'%3E%3C/line%3E%3C/svg%3E"),
+    text;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes typingChar {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes typingCharBounce {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes typingCharFade {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Cursor trail effect for magical elements */
+.cursor-trail {
+  pointer-events: none;
+  position: fixed;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: rgba(var(--golden-glow), 0.6);
+  transform: translate(-50%, -50%);
+  mix-blend-mode: screen;
+  z-index: 9999;
+  animation: cursorTrailFade 1s ease-out forwards;
+  box-shadow: 0 0 10px 2px rgba(var(--golden-glow), 0.3);
+}
+
+@keyframes cursorTrailFade {
+  0% {
+    opacity: 0.8;
+    width: 4px;
+    height: 4px;
+  }
+  100% {
+    opacity: 0;
+    width: 16px;
+    height: 16px;
+  }
 }

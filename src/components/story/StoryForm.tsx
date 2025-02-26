@@ -214,30 +214,12 @@ function StoryForm({ onSubmit, isLoading = false }: StoryFormProps) {
         role="form"
         aria-label="Story Generation Form"
       >
-        <Input
-          label="Character Name"
-          id="characterName"
-          value={characterName}
-          onChange={(e) => setCharacterName(e.target.value)}
-          required
-          error={errors.characterName}
-          placeholder="Enter character name"
-        />
-
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">Character Gender</label>
-          <Select
-            options={GENDER_OPTIONS}
-            value={selectedGender.value}
-            onChange={(e) => {
-              const selected = GENDER_OPTIONS.find((opt) => opt.value === e.target.value);
-              setSelectedGender(selected || GENDER_OPTIONS[0]);
-            }}
-            className="w-full"
-          />
-        </div>
-
-        <div className="relative">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-6"
+          role="form"
+          aria-label="Story Generation Form"
+        >
           <Input
             label="Interests"
             id="interests"
