@@ -23,7 +23,7 @@ const nextConfig = {
       ],
     },
   },
-  webpack: (config, { isServer }) => {
+  webpack: (config) => {
     // Resolve module not found issues
     config.resolve.fallback = {
       fs: false,

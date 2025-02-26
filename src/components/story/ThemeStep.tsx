@@ -67,7 +67,7 @@ export function ThemeStep({ onComplete, initialValue = '' }: ThemeStepProps) {
       <div className="text-center">
         <h2 className="text-2xl font-bold text-midnight dark:text-text-primary">Choose a Theme</h2>
         <p className="mt-2 text-sm text-text-secondary dark:text-text-primary/80">
-          Select a theme for your story's adventure
+          Select a theme for your story&apos;s adventure
         </p>
       </div>
 

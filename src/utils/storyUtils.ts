@@ -52,7 +52,8 @@ export const processStoryText = (story: string): string => {
  * Counts words in a story
  */
 export const countWords = (text: string): number => {
-  return text.trim().split(/\s+/).length;
+  const trimmedText = text.trim();
+  return trimmedText ? trimmedText.split(/\s+/).length : 0;
 };
 
 /**

@@ -15,7 +15,7 @@ import { env } from '@/lib/env';
 
 // Initialize OpenAI client
 const openai = new OpenAI({
-  apiKey: env.NEXT_PUBLIC_OPENAI_API_KEY,
+  apiKey: env.OPENAI_API_KEY,
 });
 
 interface ErrorResponse {
@@ -261,7 +261,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
 
     // Check if OpenAI API key is available or if mock stories are enabled
-    const hasOpenAIKey = !!env.NEXT_PUBLIC_OPENAI_API_KEY;
+    const hasOpenAIKey = !!env.OPENAI_API_KEY;
 
     // If no API key or mock stories are enabled, generate mock story
     if (!hasOpenAIKey || env.ENABLE_MOCK_STORIES) {

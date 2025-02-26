@@ -30,59 +30,9 @@ export default function StoryPage() {
     setError(null);
 
     try {
-      // Option 1: Use the API route
-      const response = await fetch('/api/generateStory', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(storyInput),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to generate story');
-      }
-
-      const storyData = await response.json();
-
-      // Create a properly formatted Story object from the API response
-      const story: Story = {
-        id: storyData.id || `story-${Date.now()}`,
-        title: storyData.title || `${storyInput.childName}'s ${storyInput.theme} Adventure`,
-        content: storyData.content,
-        theme: storyInput.theme,
-        createdAt: storyData.createdAt || new Date().toISOString(),
-        input: storyInput as unknown as StoryInput,
-        metadata: storyData.metadata || {
-          pronouns:
-            storyInput.gender === 'boy'
-              ? 'he/him'
-              : storyInput.gender === 'girl'
-                ? 'she/her'
-                : 'they/them',
-          possessivePronouns:
-            storyInput.gender === 'boy' ? 'his' : storyInput.gender === 'girl' ? 'her' : 'their',
-          generatedAt: new Date().toISOString(),
-        },
-        userId: user?.id || 'anonymous',
-        pronouns:
-          storyInput.gender === 'boy'
-            ? 'he/him'
-            : storyInput.gender === 'girl'
-              ? 'she/her'
-              : 'they/them',
-        possessivePronouns:
-          storyInput.gender === 'boy' ? 'his' : storyInput.gender === 'girl' ? 'her' : 'their',
-        generatedAt: storyData.generatedAt || new Date().toISOString(),
-      };
-
-      // Option 2: Use the personalization engine directly (alternative approach)
-      // Uncomment this section if you prefer to use the engine directly
-      /*
+      // Use the personalization engine which now uses our secure server-side API
       const personalizationEngine = new UserPersonalizationEngine(user?.id);
       const story = await personalizationEngine.generatePersonalizedStory(storyInput);
-      */
 
       // Set the generated story
       setGeneratedStory(story);

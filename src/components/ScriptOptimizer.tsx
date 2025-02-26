@@ -1,52 +1,76 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import Script from 'next/script';
+import {
+  ANALYTICS_SCRIPT_PATH,
+  NON_CRITICAL_SCRIPT_PATH,
+  CRITICAL_SCRIPT_PATH,
+  THEME_SCRIPT_PATH,
+} from '../constants/scriptPaths';
+
+// Add type definition for requestIdleCallback
+declare global {
+  interface Window {
+    requestIdleCallback: (callback: IdleRequestCallback, options?: IdleRequestOptions) => number;
+  }
+}
+
+const shouldLoadProductionScripts = () => process.env.NODE_ENV === 'production';
 
 export function ScriptOptimizer() {
-  useEffect(() => {
-    // Add event listener for page load to load non-critical scripts
-    const handleLoad = () => {
-      // Load analytics or other non-critical scripts after page load
-      const loadNonCriticalScripts = () => {
-        // Example of dynamically loading a script
-        const script = document.createElement('script');
-        script.src = '/scripts/analytics.js';
-        script.async = true;
-        document.body.appendChild(script);
-      };
+  const analyticsRef = useRef<HTMLDivElement>(null);
+  const nonCriticalRef = useRef<HTMLDivElement>(null);
 
-      // Use requestIdleCallback for browsers that support it
-      if ('requestIdleCallback' in window) {
-        // @ts-ignore - TypeScript doesn't recognize requestIdleCallback
-        window.requestIdleCallback(loadNonCriticalScripts, { timeout: 2000 });
-      } else {
-        // Fallback for browsers that don't support requestIdleCallback
-        setTimeout(loadNonCriticalScripts, 2000);
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const script = document.createElement('script');
+            script.src =
+              entry.target === analyticsRef.current
+                ? ANALYTICS_SCRIPT_PATH
+                : NON_CRITICAL_SCRIPT_PATH;
+            script.async = true;
+            document.body.appendChild(script);
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      {
+        rootMargin: '200px 0px', // Load scripts 200px before they enter the viewport
+      }
+    );
+
+    if (analyticsRef.current) {
+      observer.observe(analyticsRef.current);
+    }
+    if (nonCriticalRef.current) {
+      observer.observe(nonCriticalRef.current);
+    }
+
+    return () => {
+      if (analyticsRef.current) {
+        observer.unobserve(analyticsRef.current);
+      }
+      if (nonCriticalRef.current) {
+        observer.unobserve(nonCriticalRef.current);
       }
     };
-
-    // Check if the page has already loaded
-    if (document.readyState === 'complete') {
-      handleLoad();
-    } else {
-      window.addEventListener('load', handleLoad);
-      return () => {
-        window.removeEventListener('load', handleLoad);
-      };
-    }
   }, []);
 
   return (
     <>
-      {/* Load critical third-party scripts with next/script */}
-      <Script id="critical-script" strategy="beforeInteractive" src="/scripts/critical.js" />
-
-      {/* Load less critical scripts after page load */}
-      <Script id="theme-script" strategy="afterInteractive" src="/scripts/theme.js" />
-
-      {/* Load non-critical scripts when browser is idle */}
-      <Script id="non-critical-script" strategy="lazyOnload" src="/scripts/non-critical.js" />
+      {/* These are placeholder scripts that will be replaced in production */}
+      {shouldLoadProductionScripts() && (
+        <>
+          <Script id="critical-script" strategy="beforeInteractive" src={CRITICAL_SCRIPT_PATH} />
+          <Script id="theme-script" strategy="afterInteractive" src={THEME_SCRIPT_PATH} />
+        </>
+      )}
+      <div ref={analyticsRef} />
+      <div ref={nonCriticalRef} />
     </>
   );
 }

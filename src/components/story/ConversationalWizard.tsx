@@ -179,8 +179,11 @@ export function ConversationalWizard({ onComplete, isLoading = false }: Conversa
         content: (
           <div className="space-y-2">
             <p className="text-lg font-medium">Hi there! 👋</p>
-            <p>I'm your story assistant, and I'll help you create a personalized bedtime story.</p>
-            <p>Let's start by choosing a theme for your story.</p>
+            <p>
+              I&apos;m your story assistant, and I&apos;ll help you create a personalized bedtime
+              story.
+            </p>
+            <p>Let&apos;s start by choosing a theme for your story.</p>
           </div>
         ),
         sender: 'system',
@@ -250,7 +253,7 @@ export function ConversationalWizard({ onComplete, isLoading = false }: Conversa
         type: 'name-question',
         content: (
           <div className="space-y-3">
-            <p>Great choice! Now, what's the name of the main character in our story?</p>
+            <p>Great choice! Now, what&apos;s the name of the main character in our story?</p>
           </div>
         ),
         sender: 'system',
@@ -324,7 +327,9 @@ export function ConversationalWizard({ onComplete, isLoading = false }: Conversa
         type: 'interests-question',
         content: (
           <div className="space-y-3">
-            <p>What are {nameInput}'s interests? Select from the options below or add your own!</p>
+            <p>
+              What are {nameInput}&apos;s interests? Select from the options below or add your own!
+            </p>
             <div className="flex flex-wrap gap-2">
               {COMMON_INTERESTS.map((interest) => (
                 <Button
@@ -482,7 +487,7 @@ export function ConversationalWizard({ onComplete, isLoading = false }: Conversa
         type: 'summary',
         content: (
           <div className="space-y-4">
-            <p>Perfect! Here's a summary of the story we're creating:</p>
+            <p>Perfect! Here&apos;s a summary of the story we&apos;re creating:</p>
 
             <div className="bg-midnight-light/30 p-4 rounded-lg space-y-2 text-sm border border-sky/20">
               <p>

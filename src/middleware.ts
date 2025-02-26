@@ -2,6 +2,8 @@ import { authMiddleware } from '@clerk/nextjs';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { env } from '@/lib/env';
+import { securityHeaders } from '@/middleware/securityHeaders';
+import { securityMonitoring } from '@/middleware/securityMonitoring';
 
 type Route = {
   path: string;
@@ -47,6 +49,18 @@ export default authMiddleware({
   ignoredRoutes: ignoredRoutes.map((route) => route.path),
   debug: env.NODE_ENV === 'development',
   beforeAuth: (request) => {
+    // Apply security monitoring first
+    const monitoringResponse = securityMonitoring(request);
+
+    // If monitoring blocked the request, return that response
+    if (monitoringResponse.status !== 200) {
+      return monitoringResponse;
+    }
+
+    // Apply security headers
+    const securityResponse = securityHeaders(request);
+    const headers = new Headers(securityResponse.headers);
+
     // Add CORS headers for API routes
     const path = request.nextUrl.pathname;
     if (path.startsWith('/api/')) {
@@ -62,11 +76,18 @@ export default authMiddleware({
           },
         });
       }
+
+      // Add CORS headers to non-OPTIONS requests
+      headers.set('Access-Control-Allow-Origin', '*');
+      headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      headers.set(
+        'Access-Control-Allow-Headers',
+        'Content-Type, Authorization, x-clerk-auth-token'
+      );
     }
 
     if (env.NODE_ENV === 'development') {
       const testUserId = request.headers.get('x-test-user-id') || 'dev-default-user';
-      const headers = new Headers(request.headers);
       headers.set('x-clerk-auth-user-id', testUserId);
       headers.set('x-clerk-auth-session-id', `dev-session-${testUserId}`);
       return NextResponse.next({
@@ -75,7 +96,11 @@ export default authMiddleware({
         },
       });
     }
-    return NextResponse.next();
+    return NextResponse.next({
+      request: {
+        headers,
+      },
+    });
   },
   afterAuth: (auth, request) => {
     const { userId } = auth;

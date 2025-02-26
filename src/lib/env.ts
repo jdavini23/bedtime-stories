@@ -110,12 +110,7 @@ export function isTest(): boolean {
 
 // Validate required environment variables in production
 if (isProduction()) {
-  const requiredVars = [
-    'OPENAI_API_KEY',
-    'NEXT_PUBLIC_OPENAI_API_KEY',
-    'KV_REST_API_URL',
-    'KV_REST_API_TOKEN',
-  ];
+  const requiredVars = ['OPENAI_API_KEY', 'KV_REST_API_URL', 'KV_REST_API_TOKEN'];
 
   const missing = requiredVars.filter((key) => !env[key as keyof EnvSchema]);
 

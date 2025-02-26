@@ -1,12 +1,6 @@
-import OpenAI from 'openai';
 import { env } from '@/lib/env';
 import { logger } from '@/utils/logger';
 import { OPENAI_MODELS } from '@/constants';
-
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: env.NEXT_PUBLIC_OPENAI_API_KEY,
-});
 
 /**
  * Interface for OpenAI API error
@@ -33,7 +27,7 @@ export const isQuotaError = (error: unknown): error is OpenAIError => {
 };
 
 /**
- * Generate a story using OpenAI
+ * Generate a story using OpenAI via server-side API
  */
 export async function generateStory(
   childName: string,
@@ -41,78 +35,42 @@ export async function generateStory(
   theme: string,
   interests: string[]
 ): Promise<string> {
-  // Set up a timeout for the OpenAI request
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), env.API_TIMEOUT_MS);
-
   try {
-    const completion = await openai.chat.completions.create(
-      {
-        model: OPENAI_MODELS.GPT_3_5_TURBO,
-        messages: [
-          {
-            role: 'system',
-            content: `You are a creative storyteller crafting short, engaging bedtime stories for young children (ages 2-8).
-            The story should be imaginative, warm, and simple to understand.
-            
-            FORMATTING INSTRUCTIONS:
-            - Start with a captivating title
-            - Use paragraph breaks to improve readability
-            - Start each paragraph on a new line
-            - Use clear, short sentences
-            - Avoid long, complex paragraphs
-            - Use dialogue and descriptive language
-            
-            Story Requirements:
-            - Keep the story under 300 words
-            - Include a clear beginning, middle, and end
-            - Make the story age-appropriate
-            - Use descriptive language children can understand
-            - End with a positive message or moral lesson
-            
-            THEME-SPECIFIC GUIDELINES:
-            - Adventure: Focus on exciting discoveries and overcoming challenges
-            - Fantasy: Create magical, imaginative worlds with wonder
-            - Educational: Subtly teach a lesson or introduce a new concept
-            - Friendship: Highlight the importance of kindness and teamwork
-            - Courage: Showcase bravery in facing fears or helping others
-            - Kindness: Demonstrate empathy and compassion
-            - Curiosity: Encourage exploration and asking questions
-            - Creativity: Inspire imagination and unique problem-solving
-            - Nature: Connect with the beauty and wonder of the natural world
-            - Science: Introduce simple scientific concepts through storytelling
-            
-            GENDER CONSIDERATIONS:
-            - If gender is specified as 'boy', use he/him pronouns
-            - If gender is specified as 'girl', use she/her pronouns
-            - If gender is 'neutral', use they/them pronouns
-            - Adapt story language to be inclusive and respectful`,
-          },
-          {
-            role: 'user',
-            content: `Create a ${theme} bedtime story for ${childName} who is a ${gender} and loves ${interests.join(', ')}.`,
-          },
-        ],
-        temperature: 0.8,
-        max_tokens: 600,
-        presence_penalty: 0.2,
-        frequency_penalty: 0.5,
+    const response = await fetch('/api/openai', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
-      {
-        signal: controller.signal,
-        timeout: env.API_TIMEOUT_MS,
-      }
-    );
+      body: JSON.stringify({
+        operation: 'generateStory',
+        params: {
+          childName,
+          gender,
+          theme,
+          interests,
+          readingLevel: 'intermediate',
+          ageGroup: '6-8',
+        },
+      }),
+    });
 
-    const story = completion.choices[0]?.message?.content;
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to generate story');
+    }
+
+    const data = await response.json();
+    const story = data.content;
+
     if (!story) {
       logger.error('No story generated');
-      throw new Error('No story content received from OpenAI');
+      throw new Error('No story content received from API');
     }
 
     return story;
-  } finally {
-    clearTimeout(timeoutId);
+  } catch (error) {
+    logger.error('Error generating story:', { error });
+    throw error;
   }
 }
 
@@ -120,5 +78,7 @@ export async function generateStory(
  * Check if OpenAI API is available
  */
 export function isOpenAIAvailable(): boolean {
-  return !!env.NEXT_PUBLIC_OPENAI_API_KEY;
+  // We're now using the server-side API, so we can't directly check if the API key is available
+  // Instead, we'll make a lightweight call to check if the API is responsive
+  return true; // Assume it's available and handle errors when they occur
 }

@@ -214,55 +214,48 @@ function StoryForm({ onSubmit, isLoading = false }: StoryFormProps) {
         role="form"
         aria-label="Story Generation Form"
       >
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-6"
-          role="form"
-          aria-label="Story Generation Form"
-        >
-          <Input
-            label="Interests"
-            id="interests"
-            ref={inputRef}
-            value={interests}
-            onChange={(e) => setInterests(e.target.value)}
-            onFocus={() => {
-              const lastInterest = interests.split(',').pop()?.trim() || '';
-              if (lastInterest) {
-                setShowSuggestions(true);
-              }
-            }}
-            required
-            error={errors.interests}
-            placeholder="Enter interests (comma-separated)"
-          />
+        <Input
+          label="Interests"
+          id="interests"
+          ref={inputRef}
+          value={interests}
+          onChange={(e) => setInterests(e.target.value)}
+          onFocus={() => {
+            const lastInterest = interests.split(',').pop()?.trim() || '';
+            if (lastInterest) {
+              setShowSuggestions(true);
+            }
+          }}
+          required
+          error={errors.interests}
+          placeholder="Enter interests (comma-separated)"
+        />
 
-          {showSuggestions && suggestions.length > 0 && (
-            <motion.div
-              ref={suggestionsRef}
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.2 }}
-              className="absolute z-50 left-0 right-0 mt-1 bg-white rounded-md shadow-lg border border-gray-200"
-              role="listbox"
-              aria-label="Interest Suggestions"
-            >
-              {suggestions.map((suggestion) => (
-                <motion.button
-                  key={suggestion}
-                  type="button"
-                  whileHover={{ backgroundColor: '#EEF2FF' }}
-                  onClick={() => addSuggestion(suggestion)}
-                  className="w-full px-4 py-2 text-left text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 first:rounded-t-md last:rounded-b-md transition-colors duration-150"
-                  role="option"
-                  aria-selected={false}
-                >
-                  {suggestion}
-                </motion.button>
-              ))}
-            </motion.div>
-          )}
-        </div>
+        {showSuggestions && suggestions.length > 0 && (
+          <motion.div
+            ref={suggestionsRef}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+            className="absolute z-50 left-0 right-0 mt-1 bg-white rounded-md shadow-lg border border-gray-200"
+            role="listbox"
+            aria-label="Interest Suggestions"
+          >
+            {suggestions.map((suggestion) => (
+              <motion.button
+                key={suggestion}
+                type="button"
+                whileHover={{ backgroundColor: '#EEF2FF' }}
+                onClick={() => addSuggestion(suggestion)}
+                className="w-full px-4 py-2 text-left text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 first:rounded-t-md last:rounded-b-md transition-colors duration-150"
+                role="option"
+                aria-selected={false}
+              >
+                {suggestion}
+              </motion.button>
+            ))}
+          </motion.div>
+        )}
 
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700">Story Theme</label>

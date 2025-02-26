@@ -1,20 +1,25 @@
-require('@testing-library/jest-dom');
-const { vi } = require('vitest');
+import '@testing-library/jest-dom';
+import { vi } from 'vitest';
 
 // Mock Clerk dependencies
 vi.mock('@clerk/nextjs/server', () => ({
   clerkClient: {
     users: {
-      getUser: vi.fn().mockResolvedValue({
-        publicMetadata: {
-          preferences: {
-            themes: [],
-            interests: [],
-            generatedStories: 0,
+      getUser: vi.fn().mockResolvedValue(mockUser),
+      updateUser: vi.fn().mockImplementation(({ publicMetadata }) => {
+        // Simulate updating user preferences
+        mockUser = {
+          ...mockUser,
+          publicMetadata: {
+            preferences: {
+              ...(mockUser.publicMetadata?.preferences || {}),
+              ...(publicMetadata.preferences || {}),
+            },
           },
-        },
+        };
+        this.getUser.mockResolvedValue(mockUser);
+        return Promise.resolve(mockUser);
       }),
-      updateUser: vi.fn().mockResolvedValue(true),
     },
   },
 }));
@@ -44,3 +49,15 @@ vi.stubGlobal('console', {
   error: vi.fn(),
   warn: vi.fn(),
 });
+
+// Mock IntersectionObserver API for testing
+global.IntersectionObserver = class IntersectionObserver {
+  constructor() {}
+  observe = vi.fn();
+  unobserve = vi.fn();
+  disconnect = vi.fn();
+  takeRecords = vi.fn();
+  root = null;
+  rootMargin = '';
+  thresholds = [];
+};

@@ -1,6 +1,5 @@
 import { Story, StoryInput, StoryTheme } from '@/types/story';
 import { logger } from '@/utils/logger';
-import OpenAI from 'openai';
 import { v4 as uuidv4 } from 'uuid';
 import { kv } from '@vercel/kv';
 
@@ -198,7 +197,6 @@ export interface EnhancedStoryInput extends StoryInput {
 }
 
 export class UserPersonalizationEngine {
-  private openai: OpenAI | undefined;
   protected userId: string | undefined = undefined;
   private isServerSide: boolean = typeof window === 'undefined';
 
@@ -216,36 +214,7 @@ export class UserPersonalizationEngine {
 
   constructor(userId: string | undefined) {
     this.userId = userId;
-
-    const apiKey = process.env.OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY;
-
-    if (!apiKey) {
-      logger.error('CRITICAL: OpenAI API key is missing. Set OPENAI_API_KEY in .env.local', {
-        userId,
-      });
-      // Ensure openai is set to prevent null checks from failing
-      this.openai = undefined;
-      return;
-    }
-
-    try {
-      this.openai = new OpenAI({
-        apiKey: apiKey,
-        dangerouslyAllowBrowser: false, // Disable client-side usage for security
-      });
-
-      logger.info('OpenAI client initialized successfully', {
-        userId,
-        apiKeyPresent: !!apiKey,
-      });
-    } catch (error) {
-      logger.error('Failed to initialize OpenAI client', {
-        error,
-        userId,
-      });
-      // Ensure openai is set to prevent null checks from failing
-      this.openai = undefined;
-    }
+    logger.info('UserPersonalizationEngine initialized', { userId });
   }
 
   protected setUserId(userId: string | undefined) {
@@ -351,12 +320,11 @@ export class UserPersonalizationEngine {
     }
   }
 
-  // Generate personalized story using OpenAI
+  // Generate personalized story using OpenAI API endpoint
   async generatePersonalizedStory(input: StoryInput, userPrefs?: UserPreferences): Promise<Story> {
     logger.info('Starting personalized story generation', {
       input,
       hasPreferences: !!userPrefs,
-      hasOpenAIKey: !!process.env.NEXT_PUBLIC_OPENAI_API_KEY,
     });
 
     const pronouns = input.gender === 'boy' ? 'he' : input.gender === 'girl' ? 'she' : 'they';
@@ -367,15 +335,11 @@ export class UserPersonalizationEngine {
       let storyContent = '';
 
       try {
-        if (this.openai) {
-          storyContent = await this.generateOpenAIStory(input, pronouns, possessivePronouns);
-          logger.info('OpenAI story generation completed', {
-            storyContentLength: storyContent.length,
-          });
-        } else {
-          logger.error('OpenAI client not initialized');
-          storyContent = this.generateFallbackStory(input, pronouns, possessivePronouns);
-        }
+        // Call the server-side API endpoint instead of using OpenAI directly
+        storyContent = await this.callOpenAIEndpoint(input, userPrefs);
+        logger.info('OpenAI story generation completed', {
+          storyContentLength: storyContent.length,
+        });
       } catch (openaiError) {
         logger.warn('OpenAI story generation failed, using fallback', {
           error: openaiError,
@@ -434,6 +398,84 @@ export class UserPersonalizationEngine {
         possessivePronouns,
         generatedAt: new Date().toISOString(),
       };
+    }
+  }
+
+  // New method to call the server-side OpenAI API endpoint
+  private async callOpenAIEndpoint(
+    input: StoryInput,
+    userPrefs?: UserPreferences
+  ): Promise<string> {
+    try {
+      // Get reading level based on age group from user preferences
+      const ageGroup = userPrefs?.ageGroup || '6-8';
+      const readingLevel = this.getReadingLevelForAgeGroup(ageGroup);
+
+      // Get theme-specific elements to enhance the story
+      const themeDescription = THEME_DESCRIPTIONS[input.theme] || 'adventure and discovery';
+
+      // Generate character traits if not provided
+      const enhancedInput = input as EnhancedStoryInput;
+      const characterTraits = enhancedInput.mainCharacter?.traits || [
+        CHARACTER_TRAITS.personality[
+          Math.floor(Math.random() * CHARACTER_TRAITS.personality.length)
+        ],
+      ];
+
+      // Generate supporting character if not provided
+      const supportingCharacter = enhancedInput.supportingCharacters?.[0] || {
+        name: '',
+        type: 'animal' as const,
+        traits: [
+          CHARACTER_TRAITS.personality[
+            Math.floor(Math.random() * CHARACTER_TRAITS.personality.length)
+          ],
+        ],
+        role: CHARACTER_ARCHETYPES[Math.floor(Math.random() * CHARACTER_ARCHETYPES.length)],
+      };
+
+      // Call the server-side API endpoint
+      const response = await fetch('/api/openai', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          operation: 'generateStory',
+          params: {
+            childName: input.childName,
+            interests: input.interests,
+            theme: input.theme,
+            mood: input.mood,
+            gender: input.gender,
+            favoriteCharacters: input.favoriteCharacters,
+            mainCharacter: {
+              traits: characterTraits,
+            },
+            supportingCharacters: [supportingCharacter],
+            readingLevel,
+            ageGroup,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`API error: ${errorData.error || response.statusText}`);
+      }
+
+      const data = await response.json();
+      return (
+        data.content ||
+        this.generateFallbackStory(
+          input,
+          input.gender === 'boy' ? 'he' : input.gender === 'girl' ? 'she' : 'they',
+          input.gender === 'boy' ? 'his' : input.gender === 'girl' ? 'her' : 'their'
+        )
+      );
+    } catch (error) {
+      logger.error('Error calling OpenAI API endpoint', { error });
+      throw error;
     }
   }
 
@@ -500,93 +542,6 @@ export class UserPersonalizationEngine {
     return `At the end of this wonderful adventure, ${childName} realized that the greatest magic of all was believing in ${
       pronouns === 'they' ? 'themselves' : pronouns === 'he' ? 'himself' : 'herself'
     }. The end.`;
-  }
-
-  private async generateOpenAIStory(
-    input: StoryInput,
-    pronouns: string,
-    possessivePronouns: string
-  ): Promise<string> {
-    try {
-      // Get user preferences to adjust reading level
-      const userPrefs = await this.getUserPreferences();
-      const readingLevel = this.getReadingLevelForAgeGroup(userPrefs.ageGroup);
-
-      // Get theme-specific elements to enhance the story
-      const themeDescription = THEME_DESCRIPTIONS[input.theme] || 'adventure and discovery';
-      const themeElements = THEME_ELEMENTS[input.theme] || THEME_ELEMENTS.adventure;
-
-      // Select random elements from the theme to suggest in the prompt
-      const suggestedSetting =
-        themeElements.settings[Math.floor(Math.random() * themeElements.settings.length)];
-      const suggestedCharacter =
-        themeElements.characters[Math.floor(Math.random() * themeElements.characters.length)];
-      const suggestedChallenge =
-        themeElements.challenges[Math.floor(Math.random() * themeElements.challenges.length)];
-
-      // Generate character traits if not provided
-      const enhancedInput = input as EnhancedStoryInput;
-      const characterTraits = enhancedInput.mainCharacter?.traits || [
-        CHARACTER_TRAITS.personality[
-          Math.floor(Math.random() * CHARACTER_TRAITS.personality.length)
-        ],
-      ];
-
-      // Generate supporting character if not provided
-      const supportingCharacter = enhancedInput.supportingCharacters?.[0] || {
-        name: '',
-        type: 'animal' as const,
-        traits: [
-          CHARACTER_TRAITS.personality[
-            Math.floor(Math.random() * CHARACTER_TRAITS.personality.length)
-          ],
-        ],
-        role: CHARACTER_ARCHETYPES[Math.floor(Math.random() * CHARACTER_ARCHETYPES.length)],
-      };
-
-      // Build character descriptions
-      const mainCharacterDescription = `${input.childName}, who is ${characterTraits.join(', ')}`;
-      const supportingCharacterDescription = supportingCharacter.name
-        ? `${supportingCharacter.name}, a ${supportingCharacter.traits.join(', ')} ${supportingCharacter.type} who is ${supportingCharacter.role}`
-        : `a ${supportingCharacter.traits.join(', ')} ${supportingCharacter.type} who is ${supportingCharacter.role}`;
-
-      const response = await this.openai?.chat.completions.create({
-        model: 'gpt-3.5-turbo',
-        messages: [
-          {
-            role: 'system',
-            content: `You are a creative storyteller specializing in personalized children's stories. Create an engaging, age-appropriate story that:
-            1. Features ${input.favoriteCharacters ? input.favoriteCharacters.join(', ') + ' and' : supportingCharacterDescription} alongside ${mainCharacterDescription}
-            2. Incorporates ${input.childName}'s interests: ${input.interests.join(', ')}
-            3. Is themed around ${input.theme} (${themeDescription})
-            4. Matches the desired mood: ${input.mood || 'cheerful and uplifting'}
-            5. Teaches a valuable life lesson while maintaining a sense of wonder
-            6. Uses ${pronouns} and ${possessivePronouns} pronouns for ${input.childName}
-            7. Includes magical elements and vivid descriptions
-            8. Is structured with a clear beginning, middle, and end
-            9. Is approximately 500-800 words long
-            10. Uses child-friendly language and short paragraphs
-            11. Ends with a positive, uplifting message that resonates with the chosen mood
-            12. Is written at a ${readingLevel} reading level appropriate for children aged ${userPrefs.ageGroup}
-            
-            Consider including elements like a ${suggestedSetting} as a setting, and a challenge like ${suggestedChallenge}.`,
-          },
-          {
-            role: 'user',
-            content: `Create a bedtime story for ${input.childName} about a magical adventure with ${supportingCharacterDescription} that teaches a valuable lesson about ${input.theme}.`,
-          },
-        ],
-        temperature: 0.8,
-        max_tokens: 1000,
-      });
-      return (
-        response?.choices[0]?.message?.content ||
-        this.generateFallbackStory(input, pronouns, possessivePronouns)
-      );
-    } catch (error) {
-      logger.error('OpenAI story generation failed', { error });
-      return this.generateFallbackStory(input, pronouns, possessivePronouns);
-    }
   }
 
   // Helper method to determine reading level based on age group

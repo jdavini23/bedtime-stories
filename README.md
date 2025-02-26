@@ -33,8 +33,8 @@ A Next.js application that generates personalized bedtime stories for children u
 Create a `.env.local` file with the following variables:
 
 ```
-# OpenAI
-NEXT_PUBLIC_OPENAI_API_KEY=your_openai_api_key
+# OpenAI (server-side only)
+OPENAI_API_KEY=your_openai_api_key
 
 # Vercel KV
 KV_REST_API_URL=your_kv_url
@@ -86,7 +86,7 @@ Generates a personalized bedtime story.
 - Create an OpenAI account at [OpenAI](https://platform.openai.com/)
 - Navigate to the API keys section in your account
 - Generate a new API key
-- Add the key to `.env.local` as `NEXT_PUBLIC_OPENAI_API_KEY=your_key_here`
+- Add the key to `.env.local` as `OPENAI_API_KEY=your_key_here` (server-side only for security)
 - The application will use a fallback mock story generator if no API key is provided, but for the
   full experience, an OpenAI API key is required
 

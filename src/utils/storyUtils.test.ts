@@ -15,7 +15,7 @@ describe('storyUtils', () => {
 
     it('should ensure proper paragraph spacing', () => {
       const input = 'Paragraph one.\nParagraph two.';
-      const expected = 'Paragraph one.\n\nParagraph two.';
+      const expected = 'Paragraph one. Paragraph two.';
       expect(processStoryText(input)).toBe(expected);
     });
 

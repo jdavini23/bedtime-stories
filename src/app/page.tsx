@@ -528,7 +528,9 @@ export default function Home() {
                       <div className="w-3 h-3 rounded-full bg-dreamy"></div>
                       <div className="w-3 h-3 rounded-full bg-teal"></div>
                     </div>
-                    <span className="text-sm font-medium">{childName}'s Magical Adventure</span>
+                    <span className="text-sm font-medium">
+                      {childName}&apos;s Magical Adventure
+                    </span>
                     <div className="flex items-center gap-1">
                       <span className="twinkling-star text-sm">✨</span>
                     </div>
@@ -719,8 +721,8 @@ export default function Home() {
                 >
                   <h3 className="text-primary">Create Your Hero</h3>
                   <p className="text-text-secondary dark:text-text-primary/80">
-                    Personalize with your child's name, age, and favorite things to make them the
-                    star.
+                    Personalize with your child&apos;s name, age, and favorite things to make them
+                    the star.
                   </p>
                   <div className="flex flex-col gap-2 mt-4">
                     <Input
@@ -788,7 +790,7 @@ export default function Home() {
                           className="object-contain mx-auto mb-3"
                         />
                         <h4 className="text-primary font-medium text-sm mb-2">
-                          {childName}'s{' '}
+                          {childName}&apos;s{' '}
                           {selectedTheme === 'space'
                             ? 'Space Adventure'
                             : selectedTheme === 'pirates'
@@ -814,7 +816,7 @@ export default function Home() {
 
           <div className="text-center mt-16">
             <p className="text-text-secondary dark:text-text-primary/80 mb-6 italic">
-              "From theme selection to story creation in less than a minute!"
+              &quot;From theme selection to story creation in less than a minute!&quot;
             </p>
             <Link href="/story">
               <Button size="lg" className="px-8">
@@ -840,8 +842,8 @@ export default function Home() {
             <div className="flex flex-col items-center">
               <div className="w-16 h-16 bg-lavender rounded-full mb-4"></div>
               <p className="text-lg italic mb-4">
-                "My daughter asks for a new story every night! It's become our special bedtime
-                ritual, and I love how each story incorporates her interests."
+                &quot;My daughter asks for a new story every night! It&apos;s become our special
+                bedtime ritual, and I love how each story incorporates her interests.&quot;
               </p>
               <p className="font-bold">Sarah T., Parent of 6-year-old</p>
               <div className="flex mt-2">
@@ -1117,7 +1119,7 @@ export default function Home() {
           {/* Additional Help */}
           <div className="mt-12 text-center">
             <p className="text-text-secondary dark:text-text-primary/80 mb-4">
-              Still have questions? We're here to help!
+              Still have questions? We&apos;re here to help!
             </p>
             <Link href="/contact">
               <Button variant="outline">Contact Support</Button>

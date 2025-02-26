@@ -68,7 +68,9 @@ export default function OnboardingPage() {
           <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 mb-4">
             Welcome, {userName.split(' ')[0]}!
           </h2>
-          <p className="text-gray-600 mb-6">Let's personalize your Bedtime Stories experience</p>
+          <p className="text-gray-600 mb-6">
+            Let&apos;s personalize your Bedtime Stories experience
+          </p>
         </div>
 
         <div className="space-y-4">
