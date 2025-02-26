@@ -58,8 +58,34 @@
   --shadow-dreamy: 0 4px 14px 0 rgba(60, 110, 113, 0.2);
 }
 
+.dark {
+  --foreground-rgb: 245, 245, 245; /* Soft White */
+  --background-start-rgb: 40, 75, 99; /* Deep Blue */
+  --background-end-rgb: 30, 45, 60;
+
+  /* Theme Colors - Dark Mode */
+  --color-primary: rgb(79, 138, 141);
+  --color-primary-dark: rgb(60, 110, 113);
+  --color-primary-light: rgb(98, 157, 160);
+
+  --color-secondary: rgb(247, 220, 172);
+  --color-secondary-dark: rgb(242, 204, 143);
+  --color-secondary-light: rgb(250, 231, 196);
+
+  --color-background: rgb(40, 75, 99);
+  --color-card: rgba(30, 45, 60, 0.9);
+  --color-card-hover: rgba(35, 50, 65, 1);
+
+  --color-text: rgb(245, 245, 245);
+  --color-text-muted: rgba(245, 245, 245, 0.8);
+
+  /* Shadows for Dark Mode */
+  --shadow-dreamy: 0 4px 14px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* Keep the media query as a fallback for users who haven't made a choice yet */
 @media (prefers-color-scheme: dark) {
-  :root {
+  .dark-mode-auto {
     --foreground-rgb: 245, 245, 245; /* Soft White */
     --background-start-rgb: 40, 75, 99; /* Deep Blue */
     --background-end-rgb: 30, 45, 60;
@@ -199,6 +225,15 @@ body {
   background: linear-gradient(to bottom, rgb(var(--magical-purple)), rgb(var(--dreamy-pink)));
 }
 
+/* Story preview specific styling */
+.story-text .typing-animation {
+  color: #353535 !important; /* Force darker text in light mode */
+}
+
+.dark .story-text .typing-animation {
+  color: #fdfdfd !important; /* Force lighter text in dark mode */
+}
+
 /* Typing animation for story generation */
 .typing-animation {
   overflow: hidden;
@@ -209,6 +244,18 @@ body {
   position: relative;
   animation: fadeIn 0.5s ease forwards;
   line-height: 1.8;
+  color: var(--color-text, #353535); /* Darker text in light mode */
+}
+
+/* Ensure the text content inside typing animation has proper color */
+.typed-text-content {
+  color: inherit;
+}
+
+/* Dark mode styling for typing animation */
+:root.dark .typing-animation,
+.dark .typing-animation {
+  color: var(--color-text-primary, #fdfdfd); /* Light text in dark mode */
 }
 
 .typing-animation .word-container {

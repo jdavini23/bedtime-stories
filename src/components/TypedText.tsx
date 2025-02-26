@@ -55,6 +55,7 @@ export const TypedText = ({
     // For better performance, we'll use a simpler approach
     // that doesn't create as many DOM elements
     const textNode = document.createElement('span');
+    textNode.className = 'typed-text-content';
     container.appendChild(textNode);
 
     const cursor = document.createElement('span');
@@ -63,7 +64,7 @@ export const TypedText = ({
     cursor.style.animation = 'blink 1s step-end infinite';
     container.appendChild(cursor);
 
-    // Add CSS for cursor blinking
+    // Add CSS for cursor blinking only, remove the text color styling
     if (!document.getElementById('cursor-style')) {
       const style = document.createElement('style');
       style.id = 'cursor-style';

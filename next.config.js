@@ -4,6 +4,7 @@ const { withSentryConfig } = require('@sentry/nextjs');
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  swcMinify: true,
   // Add assetPrefix to ensure static assets are loaded from the correct port
   assetPrefix: process.env.NODE_ENV === 'development' ? '' : undefined,
   experimental: {
@@ -22,8 +23,23 @@ const nextConfig = {
         'localhost:3010',
       ],
     },
+    // Enable optimizeCss for production builds
+    optimizeCss: true,
+    // Enable scroll restoration
+    scrollRestoration: true,
+    // Enable memory optimization
+    optimizePackageImports: [
+      'framer-motion',
+      'lucide-react',
+      'react-dom',
+      '@clerk/nextjs',
+      'swr',
+      'zod',
+      'class-variance-authority',
+      'tailwind-merge',
+    ],
   },
-  webpack: (config) => {
+  webpack: (config, { dev, isServer }) => {
     // Resolve module not found issues
     config.resolve.fallback = {
       fs: false,
@@ -55,6 +71,33 @@ const nextConfig = {
       use: ['@svgr/webpack', 'url-loader'],
     });
 
+    // Add bundle analyzer in analyze mode
+    if (process.env.ANALYZE === 'true') {
+      const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+      config.plugins.push(
+        new BundleAnalyzerPlugin({
+          analyzerMode: process.env.ANALYZE_MODE === 'static' ? 'static' : 'server',
+          analyzerPort: process.env.ANALYZER_PORT || 8888,
+          openAnalyzer: process.env.ANALYZE_MODE !== 'static',
+          reportFilename:
+            process.env.ANALYZE_MODE === 'static' ? '../analyze/client.html' : undefined,
+        })
+      );
+    }
+
+    // Add compression plugin for production builds
+    if (!dev && !isServer) {
+      const CompressionPlugin = require('compression-webpack-plugin');
+      config.plugins.push(
+        new CompressionPlugin({
+          algorithm: 'gzip',
+          test: /\.(js|css|html|svg)$/,
+          threshold: 10240,
+          minRatio: 0.8,
+        })
+      );
+    }
+
     return config;
   },
   images: {
@@ -67,10 +110,57 @@ const nextConfig = {
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    // Enable image optimization
+    formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 60,
   },
   typescript: {
     // Ignore type errors during build (we'll handle them separately)
     ignoreBuildErrors: true,
+  },
+  // Add compression for responses
+  compress: true,
+  // Add poweredByHeader to false to remove the X-Powered-By header
+  poweredByHeader: false,
+  // Configure headers for better security and caching
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
+          },
+        ],
+      },
+      {
+        source: '/images/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        source: '/fonts/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+    ];
   },
 };
 

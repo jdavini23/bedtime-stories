@@ -18,47 +18,92 @@ declare global {
 
 const shouldLoadProductionScripts = () => process.env.NODE_ENV === 'production';
 
-export function ScriptOptimizer() {
+interface ScriptOptimizerProps {
+  /**
+   * Whether to load analytics scripts
+   */
+  loadAnalytics?: boolean;
+
+  /**
+   * Whether to load non-critical scripts
+   */
+  loadNonCritical?: boolean;
+}
+
+/**
+ * ScriptOptimizer component that optimizes the loading of third-party scripts
+ * - Loads analytics scripts only when needed
+ * - Defers non-critical scripts
+ * - Uses appropriate loading strategies for different script types
+ */
+export function ScriptOptimizer({
+  loadAnalytics = true,
+  loadNonCritical = true,
+}: ScriptOptimizerProps) {
   const analyticsRef = useRef<HTMLDivElement>(null);
   const nonCriticalRef = useRef<HTMLDivElement>(null);
 
+  // Load analytics scripts when they come into view
   useEffect(() => {
+    if (!loadAnalytics) return;
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            const script = document.createElement('script');
-            script.src =
-              entry.target === analyticsRef.current
-                ? ANALYTICS_SCRIPT_PATH
-                : NON_CRITICAL_SCRIPT_PATH;
-            script.async = true;
-            document.body.appendChild(script);
-            observer.unobserve(entry.target);
+            // When analytics container is visible, load analytics scripts
+            const analyticsContainer = document.getElementById('analytics-scripts');
+            if (analyticsContainer) {
+              analyticsContainer.dataset.loaded = 'true';
+            }
+            observer.disconnect();
           }
         });
       },
-      {
-        rootMargin: '200px 0px', // Load scripts 200px before they enter the viewport
-      }
+      { rootMargin: '200px' }
     );
 
     if (analyticsRef.current) {
       observer.observe(analyticsRef.current);
-    }
-    if (nonCriticalRef.current) {
-      observer.observe(nonCriticalRef.current);
     }
 
     return () => {
       if (analyticsRef.current) {
         observer.unobserve(analyticsRef.current);
       }
+    };
+  }, [loadAnalytics]);
+
+  // Load non-critical scripts when they come into view
+  useEffect(() => {
+    if (!loadNonCritical) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            // When non-critical container is visible, load non-critical scripts
+            const nonCriticalContainer = document.getElementById('non-critical-scripts');
+            if (nonCriticalContainer) {
+              nonCriticalContainer.dataset.loaded = 'true';
+            }
+            observer.disconnect();
+          }
+        });
+      },
+      { rootMargin: '200px' }
+    );
+
+    if (nonCriticalRef.current) {
+      observer.observe(nonCriticalRef.current);
+    }
+
+    return () => {
       if (nonCriticalRef.current) {
         observer.unobserve(nonCriticalRef.current);
       }
     };
-  }, []);
+  }, [loadNonCritical]);
 
   return (
     <>
@@ -69,8 +114,39 @@ export function ScriptOptimizer() {
           <Script id="theme-script" strategy="afterInteractive" src={THEME_SCRIPT_PATH} />
         </>
       )}
-      <div ref={analyticsRef} />
-      <div ref={nonCriticalRef} />
+      <div ref={analyticsRef} id="analytics-scripts" data-loaded="false">
+        {loadAnalytics && (
+          <>
+            <Script
+              id="google-analytics"
+              strategy="lazyOnload"
+              src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
+            />
+            <Script
+              id="analytics-config"
+              strategy="lazyOnload"
+              dangerouslySetInnerHTML={{
+                __html: `
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+                  gtag('js', new Date());
+                  gtag('config', '${process.env.NEXT_PUBLIC_GA_ID}');
+                `,
+              }}
+            />
+          </>
+        )}
+      </div>
+      <div ref={nonCriticalRef} id="non-critical-scripts" data-loaded="false">
+        {loadNonCritical && (
+          <>
+            <Script id="social-share" strategy="lazyOnload" src="/scripts/social-share.js" />
+            <Script id="feedback-widget" strategy="lazyOnload" src="/scripts/feedback.js" />
+          </>
+        )}
+      </div>
     </>
   );
 }
+
+export default ScriptOptimizer;

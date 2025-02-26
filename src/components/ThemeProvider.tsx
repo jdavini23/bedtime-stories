@@ -12,14 +12,14 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('system');
+  const [theme, setTheme] = useState<Theme>('light');
   const [mounted, setMounted] = useState(false);
 
   // Only run on client side
   useEffect(() => {
     setMounted(true);
 
-    // Get initial theme from localStorage or default to system
+    // Get initial theme from localStorage or default to light
     const savedTheme = localStorage.getItem('theme') as Theme | null;
     if (savedTheme) {
       setTheme(savedTheme);
@@ -84,13 +84,19 @@ export function ThemeToggle() {
     return <div className="w-10 h-10"></div>; // Placeholder with same dimensions
   }
 
+  const isDarkMode = theme === 'dark';
+
   return (
     <button
       onClick={toggleTheme}
-      className="p-2 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors"
-      aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+      className={`p-2 rounded-full transition-colors ${
+        isDarkMode
+          ? 'bg-primary/30 hover:bg-primary/40 text-text-primary'
+          : 'bg-primary/10 hover:bg-primary/20 text-midnight'
+      }`}
+      aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
     >
-      {theme === 'dark' ? (
+      {isDarkMode ? (
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="20"
