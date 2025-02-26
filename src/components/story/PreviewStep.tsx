@@ -3,9 +3,15 @@
 import React from 'react';
 import { StoryInput } from '@/types/story';
 import { Button } from '@/components/ui/button';
+import { EnhancedStoryInput, StoryCharacter } from '@/services/personalizationEngine';
+
+// Extend the interface to include the ageGroup property
+interface ExtendedStoryInput extends EnhancedStoryInput {
+  ageGroup?: string;
+}
 
 interface PreviewStepProps {
-  storyInput: StoryInput;
+  storyInput: ExtendedStoryInput;
   onBack: () => void;
   onComplete: () => void;
   isLoading?: boolean;
@@ -17,6 +23,19 @@ export function PreviewStep({
   onComplete,
   isLoading = false,
 }: PreviewStepProps) {
+  // Helper function to display supporting character details
+  const renderSupportingCharacter = (character?: StoryCharacter) => {
+    if (!character) return 'None';
+
+    const parts = [];
+    if (character.name) parts.push(character.name);
+    if (character.type) parts.push(character.type);
+    if (character.traits && character.traits.length > 0) parts.push(character.traits.join(', '));
+    if (character.role) parts.push(`role: ${character.role}`);
+
+    return parts.join(' - ') || 'None';
+  };
+
   return (
     <div className="space-y-6">
       <div className="text-center">
@@ -55,9 +74,10 @@ export function PreviewStep({
               Reading Level
             </h3>
             <p className="mt-1 text-sm text-midnight dark:text-text-primary">
-              {storyInput.readingLevel}
+              {storyInput.readingLevel} {storyInput.ageGroup ? `(Ages ${storyInput.ageGroup})` : ''}
             </p>
           </div>
+
           {storyInput.interests && storyInput.interests.length > 0 && (
             <div className="col-span-2">
               <h3 className="text-sm font-medium text-text-secondary dark:text-text-primary/80">
@@ -70,17 +90,37 @@ export function PreviewStep({
               </p>
             </div>
           )}
+
+          {storyInput.mainCharacter?.traits && storyInput.mainCharacter.traits.length > 0 && (
+            <div className="col-span-2">
+              <h3 className="text-sm font-medium text-text-secondary dark:text-text-primary/80">
+                Character Traits
+              </h3>
+              <p className="mt-1 text-sm text-midnight dark:text-text-primary">
+                {storyInput.mainCharacter.traits.join(', ')}
+              </p>
+            </div>
+          )}
+
+          {storyInput.supportingCharacters && storyInput.supportingCharacters.length > 0 && (
+            <div className="col-span-2">
+              <h3 className="text-sm font-medium text-text-secondary dark:text-text-primary/80">
+                Supporting Character
+              </h3>
+              <p className="mt-1 text-sm text-midnight dark:text-text-primary">
+                {renderSupportingCharacter(storyInput.supportingCharacters[0])}
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="flex justify-end">
-        <Button
-          variant="primary"
-          onClick={onComplete}
-          disabled={isLoading}
-          isLoading={isLoading}
-          className="w-full"
-        >
+      <div className="flex justify-between">
+        <Button variant="outline" onClick={onBack}>
+          Back
+        </Button>
+
+        <Button variant="primary" onClick={onComplete} disabled={isLoading} className="w-1/2">
           {isLoading ? (
             <>
               <span className="inline-block animate-pulse mr-2">✨</span>
@@ -88,7 +128,7 @@ export function PreviewStep({
             </>
           ) : (
             <>
-              <span className="inline-block animate-float mr-2">✨</span>
+              <span className="inline-block mr-2">✨</span>
               Create Story
             </>
           )}

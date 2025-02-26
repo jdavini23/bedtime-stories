@@ -7,6 +7,9 @@ import './globals.css';
 import { Providers } from '@/providers/Providers';
 import { ClerkProvider } from '@clerk/nextjs';
 import { ErrorBoundary } from '@/components/error-boundaries/ErrorBoundary';
+import { CriticalCSS } from '@/components/CriticalCSS';
+import { PreloadResources } from '@/components/PreloadResources';
+import { ScriptOptimizer } from '@/components/ScriptOptimizer';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -39,6 +42,8 @@ export default function RootLayout({ children }: RootLayoutProps): React.JSX.Ele
           href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
           rel="stylesheet"
         />
+        <CriticalCSS />
+        <PreloadResources />
       </head>
       <body className={inter.className}>
         <ClerkProvider>
@@ -51,6 +56,7 @@ export default function RootLayout({ children }: RootLayoutProps): React.JSX.Ele
               {children}
               <SpeedInsights />
               <Analytics />
+              <ScriptOptimizer />
             </ErrorBoundary>
           </Providers>
         </ClerkProvider>

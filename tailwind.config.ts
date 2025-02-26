@@ -76,6 +76,9 @@ export default {
         dreamy: '0 4px 14px 0 rgba(60, 110, 113, 0.2)', // Updated to match new primary color
         glow: '0 0 15px rgba(242, 204, 143, 0.5)', // Updated to match new golden color
       },
+      scale: {
+        '102': '1.02',
+      },
       animation: {
         float: 'float 6s ease-in-out infinite',
         twinkle: 'twinkle 4s ease-in-out infinite',

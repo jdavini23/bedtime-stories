@@ -2,7 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   // Add assetPrefix to ensure static assets are loaded from the correct port
-  assetPrefix: process.env.NODE_ENV === 'development' ? undefined : undefined,
+  assetPrefix: process.env.NODE_ENV === 'development' ? '' : undefined,
   experimental: {
     serverActions: {
       allowedOrigins: [

@@ -2,25 +2,48 @@
 
 import React, { useState } from 'react';
 import { StoryMetadata } from '@/types/story';
+import { UserPreferences } from '@/services/personalizationEngine';
 
 interface ReadingLevelStepProps {
-  onComplete: (level: string) => void;
+  onComplete: (level: string, ageGroup: UserPreferences['ageGroup']) => void;
   initialValue?: string;
+  initialAgeGroup?: UserPreferences['ageGroup'];
 }
 
 const READING_LEVEL_OPTIONS = [
-  { value: 'beginner', label: '📖 Beginner (Ages 3-5)' },
-  { value: 'intermediate', label: '📚 Intermediate (Ages 6-8)' },
-  { value: 'advanced', label: '🎓 Advanced (Ages 9-12)' },
+  {
+    value: 'beginner',
+    label: '📖 Beginner (Ages 3-5)',
+    ageGroup: '3-5' as const,
+    description: 'Simple words, short sentences, lots of repetition',
+  },
+  {
+    value: 'intermediate',
+    label: '📚 Intermediate (Ages 6-8)',
+    ageGroup: '6-8' as const,
+    description: 'Varied vocabulary, longer sentences, basic plot',
+  },
+  {
+    value: 'advanced',
+    label: '🎓 Advanced (Ages 9-12)',
+    ageGroup: '9-12' as const,
+    description: 'Rich vocabulary, complex sentences, detailed storylines',
+  },
 ];
 
 export function ReadingLevelStep({
   onComplete,
   initialValue = 'intermediate',
+  initialAgeGroup = '6-8',
 }: ReadingLevelStepProps) {
   const [selectedLevel, setSelectedLevel] = useState(
     READING_LEVEL_OPTIONS.find((level) => level.value === initialValue) || READING_LEVEL_OPTIONS[1]
   );
+
+  const handleLevelSelect = (level: (typeof READING_LEVEL_OPTIONS)[0]) => {
+    setSelectedLevel(level);
+    onComplete(level.value, level.ageGroup);
+  };
 
   return (
     <div className="space-y-6">
@@ -43,10 +66,7 @@ export function ReadingLevelStep({
                   ? 'border-primary bg-primary/5 dark:bg-primary/10'
                   : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-midnight/30'
               }`}
-              onClick={() => {
-                setSelectedLevel(level);
-                onComplete(level.value);
-              }}
+              onClick={() => handleLevelSelect(level)}
             >
               <div className="flex items-center">
                 <div className="flex-1">
@@ -54,12 +74,7 @@ export function ReadingLevelStep({
                     {level.label}
                   </h3>
                   <p className="text-sm text-text-secondary dark:text-text-primary/80">
-                    {level.value === 'beginner' &&
-                      'Simple words, short sentences, lots of repetition'}
-                    {level.value === 'intermediate' &&
-                      'Varied vocabulary, longer sentences, basic plot'}
-                    {level.value === 'advanced' &&
-                      'Rich vocabulary, complex sentences, detailed storylines'}
+                    {level.description}
                   </p>
                 </div>
                 <div
@@ -85,9 +100,9 @@ export function ReadingLevelStep({
             Reading Level Guide
           </h3>
           <ul className="text-sm text-blue-700 dark:text-blue-200 space-y-2">
-            <li>• Beginner: Simple words, short sentences, lots of repetition</li>
-            <li>• Intermediate: Varied vocabulary, longer sentences, basic plot</li>
-            <li>• Advanced: Rich vocabulary, complex sentences, detailed storylines</li>
+            <li>• Beginner (Ages 3-5): Simple words, short sentences, lots of repetition</li>
+            <li>• Intermediate (Ages 6-8): Varied vocabulary, longer sentences, basic plot</li>
+            <li>• Advanced (Ages 9-12): Rich vocabulary, complex sentences, detailed storylines</li>
           </ul>
         </div>
       </div>

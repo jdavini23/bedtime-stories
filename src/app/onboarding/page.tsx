@@ -6,7 +6,7 @@ import { useSession } from '@/hooks/useSession';
 import { redirect } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/Select'; // Fixed casing to match actual file
+import { Select } from '@/components/ui/select'; // Fixed casing to match file system case sensitivity
 import { logger } from '@/utils/loggerInstance';
 
 export default function OnboardingPage() {

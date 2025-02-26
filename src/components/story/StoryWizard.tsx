@@ -9,9 +9,19 @@ import { ReadingLevelStep } from './ReadingLevelStep';
 import { PreviewStep } from './PreviewStep';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import {
+  EnhancedStoryInput,
+  StoryCharacter,
+  UserPreferences,
+} from '@/services/personalizationEngine';
+
+// Extend the EnhancedStoryInput to include ageGroup
+interface ExtendedStoryInput extends EnhancedStoryInput {
+  ageGroup?: UserPreferences['ageGroup'];
+}
 
 interface StoryWizardProps {
-  onComplete: (input: StoryInput) => Promise<void>;
+  onComplete: (input: ExtendedStoryInput) => Promise<void>;
   isLoading?: boolean;
 }
 
@@ -27,18 +37,26 @@ const STEPS: { id: WizardStep; label: string }[] = [
 export function StoryWizard({ onComplete, isLoading = false }: StoryWizardProps) {
   const [currentStep, setCurrentStep] = useState<WizardStep>('theme');
   const [direction, setDirection] = useState(0);
-  const [storyInput, setStoryInput] = useState<Partial<StoryInput>>({
+  const [storyInput, setStoryInput] = useState<Partial<ExtendedStoryInput>>({
     theme: '' as StoryTheme,
     childName: '',
     gender: 'neutral' as StoryGender,
     mood: 'adventurous',
     interests: [],
+    mostLikedCharacterTypes: [],
     readingLevel: 'intermediate' as StoryMetadata['readingLevel'],
+    ageGroup: '6-8',
+    mainCharacter: {
+      traits: [],
+      appearance: [],
+      skills: [],
+    },
+    supportingCharacters: [],
   });
 
   const currentStepIndex = STEPS.findIndex((step) => step.id === currentStep);
 
-  const handleStepComplete = (stepData: Partial<StoryInput>) => {
+  const handleStepComplete = (stepData: Partial<ExtendedStoryInput>) => {
     setStoryInput((prev) => ({ ...prev, ...stepData }));
     goToNextStep();
   };
@@ -48,7 +66,7 @@ export function StoryWizard({ onComplete, isLoading = false }: StoryWizardProps)
       setDirection(1);
       setCurrentStep(STEPS[currentStepIndex + 1].id);
     } else if (isValidStoryInput(storyInput)) {
-      onComplete(storyInput as StoryInput);
+      onComplete(storyInput as ExtendedStoryInput);
     }
   };
 
@@ -59,8 +77,15 @@ export function StoryWizard({ onComplete, isLoading = false }: StoryWizardProps)
     }
   };
 
-  const isValidStoryInput = (input: Partial<StoryInput>): input is StoryInput => {
-    return !!input.theme && !!input.childName && !!input.readingLevel;
+  const isValidStoryInput = (input: Partial<ExtendedStoryInput>): input is ExtendedStoryInput => {
+    return (
+      !!input.theme &&
+      !!input.childName &&
+      !!input.readingLevel &&
+      !!input.gender &&
+      Array.isArray(input.mostLikedCharacterTypes) &&
+      input.mostLikedCharacterTypes.length > 0
+    );
   };
 
   const renderStepContent = () => {
@@ -76,8 +101,17 @@ export function StoryWizard({ onComplete, isLoading = false }: StoryWizardProps)
         return (
           <CharacterStep
             onComplete={(characterData) => {
-              const { childName, gender, interests } = characterData;
-              handleStepComplete({
+              const {
+                childName,
+                gender,
+                interests,
+                characterTraits,
+                supportingCharacter,
+                mostLikedCharacterTypes,
+              } = characterData;
+
+              // Create enhanced story input with character customization
+              const enhancedData: Partial<ExtendedStoryInput> = {
                 childName,
                 gender: gender as StoryGender,
                 interests: interests
@@ -86,34 +120,50 @@ export function StoryWizard({ onComplete, isLoading = false }: StoryWizardProps)
                       .map((i) => i.trim())
                       .filter(Boolean)
                   : [],
-              });
+                mostLikedCharacterTypes: mostLikedCharacterTypes || [],
+                mainCharacter: {
+                  traits: characterTraits || [],
+                },
+              };
+
+              // Add supporting character if provided
+              if (supportingCharacter) {
+                enhancedData.supportingCharacters = [supportingCharacter];
+              }
+
+              handleStepComplete(enhancedData);
             }}
             initialValues={{
               childName: storyInput.childName || '',
               gender: storyInput.gender || 'neutral',
               interests: Array.isArray(storyInput.interests) ? storyInput.interests.join(', ') : '',
+              characterTraits: storyInput.mainCharacter?.traits || [],
+              supportingCharacter: storyInput.supportingCharacters?.[0],
             }}
+            theme={storyInput.theme}
           />
         );
       case 'readingLevel':
         return (
           <ReadingLevelStep
-            onComplete={(level) =>
+            onComplete={(level, ageGroup) =>
               handleStepComplete({
                 readingLevel: level as StoryMetadata['readingLevel'],
+                ageGroup,
               })
             }
             initialValue={storyInput.readingLevel}
+            initialAgeGroup={storyInput.ageGroup}
           />
         );
       case 'preview':
         return (
           <PreviewStep
-            storyInput={storyInput as StoryInput}
+            storyInput={storyInput as ExtendedStoryInput}
             onBack={goToPreviousStep}
             onComplete={() => {
               if (isValidStoryInput(storyInput)) {
-                onComplete(storyInput as StoryInput);
+                onComplete(storyInput as ExtendedStoryInput);
               }
             }}
             isLoading={isLoading}

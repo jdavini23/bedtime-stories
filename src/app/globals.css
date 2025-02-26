@@ -5,6 +5,7 @@
 /* Google Fonts are now imported via link tags in the layout.tsx file */
 
 :root {
+  /* Base Colors */
   --foreground-rgb: 53, 53, 53; /* Deep Charcoal */
   --background-start-rgb: 245, 245, 245; /* Soft White */
   --background-end-rgb: 240, 240, 235;
@@ -20,6 +21,41 @@
   --sky-blue: 132, 180, 200; /* #84B4C8 - Soft Sky Blue */
   --soft-lavender: 165, 165, 141; /* #A5A58D - Sage Green */
   --misty-teal: 107, 144, 128; /* #6B9080 - Forest Green */
+
+  /* Theme Colors - Light Mode */
+  --color-primary: rgb(60, 110, 113);
+  --color-primary-dark: rgb(44, 81, 82);
+  --color-primary-light: rgb(79, 138, 141);
+
+  --color-secondary: rgb(242, 204, 143);
+  --color-secondary-dark: rgb(229, 185, 110);
+  --color-secondary-light: rgb(247, 220, 172);
+
+  --color-background: rgb(245, 245, 245);
+  --color-card: rgba(255, 255, 255, 0.9);
+  --color-card-hover: rgba(255, 255, 255, 1);
+
+  --color-text: rgb(53, 53, 53);
+  --color-text-muted: rgba(53, 53, 53, 0.8);
+
+  /* Animation Speeds */
+  --transition-slow: 500ms;
+  --transition-medium: 300ms;
+  --transition-fast: 150ms;
+
+  /* Spacing */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --shadow-dreamy: 0 4px 14px 0 rgba(60, 110, 113, 0.2);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -27,6 +63,25 @@
     --foreground-rgb: 245, 245, 245; /* Soft White */
     --background-start-rgb: 40, 75, 99; /* Deep Blue */
     --background-end-rgb: 30, 45, 60;
+
+    /* Theme Colors - Dark Mode */
+    --color-primary: rgb(79, 138, 141);
+    --color-primary-dark: rgb(60, 110, 113);
+    --color-primary-light: rgb(98, 157, 160);
+
+    --color-secondary: rgb(247, 220, 172);
+    --color-secondary-dark: rgb(242, 204, 143);
+    --color-secondary-light: rgb(250, 231, 196);
+
+    --color-background: rgb(40, 75, 99);
+    --color-card: rgba(30, 45, 60, 0.9);
+    --color-card-hover: rgba(35, 50, 65, 1);
+
+    --color-text: rgb(245, 245, 245);
+    --color-text-muted: rgba(245, 245, 245, 0.8);
+
+    /* Shadows for Dark Mode */
+    --shadow-dreamy: 0 4px 14px 0 rgba(0, 0, 0, 0.3);
   }
 }
 

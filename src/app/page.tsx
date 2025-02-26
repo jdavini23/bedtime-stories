@@ -5,190 +5,74 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
 import Image from 'next/image';
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { StoryFeatureGrid } from '@/components/StoryFeatureCard';
+import React, { useState, useEffect, useRef, useMemo, useCallback, Suspense } from 'react';
 import { ChevronLeft, ChevronRight, Menu, X, Moon, Sun } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import StoryBookIcon from '@/components/StoryBookIcon';
+import StorybookSvg from '@/components/StorybookSvg';
+import dynamic from 'next/dynamic';
+import ThemeToggleWrapper from '@/components/ThemeToggleWrapper';
+import { TypedText } from '@/components/TypedText';
 
-// Utility function to create typing animation elements
-interface TypedTextProps {
-  text: string;
-  delay?: number;
-  className?: string;
-  onComplete?: () => void;
+// Dynamically import components that are below the fold
+const StoryFeatureGrid = dynamic(
+  () => import('@/components/StoryFeatureCard').then((mod) => mod.StoryFeatureGrid),
+  {
+    loading: () => (
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 animate-pulse">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div key={i} className="bg-lavender/20 dark:bg-lavender/10 h-64 rounded-lg"></div>
+        ))}
+      </div>
+    ),
+    ssr: false,
+  }
+);
+
+// Dynamically import the FAQ section
+const FaqSection = dynamic(() => import('../components/FaqSection'), {
+  loading: () => (
+    <div className="space-y-4 animate-pulse">
+      {[1, 2, 3, 4].map((i) => (
+        <div key={i} className="bg-lavender/20 dark:bg-lavender/10 h-20 rounded-lg"></div>
+      ))}
+    </div>
+  ),
+  ssr: false,
+});
+
+// Dynamically import the footer
+const Footer = dynamic(() => import('../components/Footer'), {
+  loading: () => (
+    <div className="h-40 bg-lavender/10 dark:bg-midnight/30 animate-pulse rounded-t-lg"></div>
+  ),
+  ssr: false,
+});
+
+// Custom hook for Intersection Observer
+function useIntersectionObserver(options = {}) {
+  const [isIntersecting, setIsIntersecting] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!ref.current) return;
+
+    const observer = new IntersectionObserver(([entry]) => {
+      setIsIntersecting(entry.isIntersecting);
+    }, options);
+
+    observer.observe(ref.current);
+
+    return () => {
+      if (ref.current) {
+        observer.unobserve(ref.current);
+      }
+    };
+  }, [options]);
+
+  return { ref, isIntersecting };
 }
 
-const TypedText = ({ text, delay = 0, className = '', onComplete }: TypedTextProps) => {
-  const containerRef = useRef<HTMLParagraphElement | null>(null);
-  const [isVisible, setIsVisible] = useState(false);
-  const timersRef = useRef<NodeJS.Timeout[]>([]);
-
-  // Cleanup function to clear all timers
-  const clearAllTimers = () => {
-    timersRef.current.forEach((timer) => clearTimeout(timer));
-    timersRef.current = [];
-  };
-
-  useEffect(() => {
-    // Set visibility after delay
-    const timer = setTimeout(() => {
-      setIsVisible(true);
-    }, delay);
-
-    timersRef.current.push(timer);
-
-    return () => {
-      clearTimeout(timer);
-      clearAllTimers();
-    };
-  }, [delay]);
-
-  useEffect(() => {
-    if (!isVisible || !containerRef.current) return;
-
-    const container = containerRef.current;
-    container.innerHTML = '';
-
-    // Split text into paragraphs first
-    const paragraphs = text.split('\n\n');
-    let paragraphIndex = 0;
-    let wordIndex = 0;
-    let charIndex = 0;
-    let currentWords: string[] = [];
-    let currentParagraphElement: HTMLElement | null = null;
-
-    // Create a simple cursor element that will be moved around
-    const createCursor = () => {
-      const cursor = document.createElement('span');
-      cursor.className = 'typing-cursor';
-      cursor.textContent = '|';
-      return cursor;
-    };
-
-    const typeNextParagraph = () => {
-      if (paragraphIndex < paragraphs.length) {
-        // Create a new paragraph element
-        currentParagraphElement = document.createElement('div');
-        currentParagraphElement.className = 'paragraph';
-        currentParagraphElement.style.marginBottom = '1rem';
-        container.appendChild(currentParagraphElement);
-
-        // Add initial cursor to the paragraph
-        currentParagraphElement.appendChild(createCursor());
-
-        // Split paragraph into words
-        currentWords = paragraphs[paragraphIndex].split(' ');
-        wordIndex = 0;
-
-        // Start typing the first word
-        typeNextWord();
-      } else {
-        // All paragraphs complete
-        if (onComplete) {
-          const timer = setTimeout(onComplete, 500);
-          timersRef.current.push(timer);
-        }
-      }
-    };
-
-    const typeNextWord = () => {
-      if (wordIndex < currentWords.length && currentParagraphElement) {
-        const word = currentWords[wordIndex];
-
-        // Create word container
-        const wordContainer = document.createElement('span');
-        wordContainer.className = 'word-container';
-
-        // Remove existing cursor
-        const existingCursor = currentParagraphElement.querySelector('.typing-cursor');
-        if (existingCursor) {
-          existingCursor.remove();
-        }
-
-        // Add the word container
-        currentParagraphElement.appendChild(wordContainer);
-
-        // Type each character in the word
-        charIndex = 0;
-
-        const typeChar = () => {
-          if (charIndex < word.length) {
-            // Create character span
-            const span = document.createElement('span');
-            span.textContent = word[charIndex];
-            wordContainer.appendChild(span);
-
-            // Remove existing cursor
-            const existingCursor = currentParagraphElement?.querySelector('.typing-cursor');
-            if (existingCursor) {
-              existingCursor.remove();
-            }
-
-            // Add cursor after this character
-            wordContainer.appendChild(createCursor());
-
-            charIndex++;
-
-            // Continue typing after delay
-            const timer = setTimeout(typeChar, 15 + Math.random() * 25);
-            timersRef.current.push(timer);
-          } else {
-            // Word complete
-
-            // Remove existing cursor
-            const existingCursor = currentParagraphElement?.querySelector('.typing-cursor');
-            if (existingCursor) {
-              existingCursor.remove();
-            }
-
-            // Add space after word (except for last word)
-            if (wordIndex < currentWords.length - 1) {
-              const space = document.createElement('span');
-              space.innerHTML = '&nbsp;';
-              currentParagraphElement?.appendChild(space);
-            }
-
-            // Add cursor after space
-            currentParagraphElement?.appendChild(createCursor());
-
-            // Move to next word
-            wordIndex++;
-
-            // If not the last word, add a small delay before the next word
-            if (wordIndex < currentWords.length) {
-              const timer = setTimeout(typeNextWord, 30);
-              timersRef.current.push(timer);
-            } else {
-              // Paragraph complete, move to next paragraph
-              paragraphIndex++;
-
-              // Add a longer delay between paragraphs
-              const timer = setTimeout(typeNextParagraph, 500);
-              timersRef.current.push(timer);
-            }
-          }
-        };
-
-        typeChar();
-      }
-    };
-
-    // Start typing the first paragraph
-    typeNextParagraph();
-
-    return () => {
-      // Cleanup
-      if (containerRef.current) {
-        containerRef.current.innerHTML = '';
-      }
-      clearAllTimers();
-    };
-  }, [isVisible, text, onComplete]);
-
-  return <div ref={containerRef} className={`typing-animation ${className}`}></div>;
-};
-
-// FAQ Accordion Item Component
 interface FaqAccordionItemProps {
   question: string;
   answer: string;
@@ -196,9 +80,18 @@ interface FaqAccordionItemProps {
 
 function FaqAccordionItem({ question, answer }: FaqAccordionItemProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const { ref, isIntersecting } = useIntersectionObserver({
+    threshold: 0.1,
+    rootMargin: '100px',
+  });
 
   return (
-    <div className="border border-lavender/30 dark:border-lavender/10 rounded-lg overflow-hidden">
+    <div
+      ref={ref}
+      className={`border border-lavender/30 dark:border-lavender/10 rounded-lg overflow-hidden transition-opacity duration-500 ${
+        isIntersecting ? 'opacity-100' : 'opacity-0'
+      }`}
+    >
       <button
         className="w-full p-4 flex justify-between items-center bg-dreamy-light/50 dark:bg-midnight hover:bg-dreamy-light dark:hover:bg-midnight-light transition-colors text-left"
         onClick={() => setIsOpen(!isOpen)}
@@ -242,7 +135,6 @@ export default function Home() {
   const [refreshKey, setRefreshKey] = useState(0); // Used to force re-render of typing animations
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isCarouselPaused, setIsCarouselPaused] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState('fantasy'); // Default theme
@@ -267,29 +159,13 @@ export default function Home() {
     };
 
     window.addEventListener('scroll', handleScroll);
+    handleScroll();
+
     return () => {
       isMounted.current = false;
       window.removeEventListener('scroll', handleScroll);
     };
   }, []);
-
-  // Check system preference for dark mode on initial load
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setIsDarkMode(isDark);
-
-      if (isDark) {
-        document.documentElement.classList.add('dark');
-      }
-    }
-  }, []);
-
-  // Toggle dark mode
-  const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
-    document.documentElement.classList.toggle('dark');
-  };
 
   const sampleStories = useMemo(
     () => [
@@ -315,25 +191,15 @@ export default function Home() {
     []
   );
 
-  // Auto-rotate story carousel with debounce
+  // Auto-rotate carousel unless paused
   useEffect(() => {
-    if (isCarouselPaused) return;
+    if (!isCarouselPaused && carouselRef.current) {
+      const interval = setInterval(() => {
+        setActiveStoryIndex((prevIndex) => (prevIndex + 1) % sampleStories.length);
+      }, 5000);
 
-    // Use a ref to track if component is mounted
-    const isMounted = { current: true };
-
-    const interval = setInterval(() => {
-      if (isMounted.current) {
-        setActiveStoryIndex((prev) => (prev === sampleStories.length - 1 ? 0 : prev + 1));
-        // Only update refreshKey when necessary
-        setRefreshKey((prev) => prev + 1);
-      }
-    }, 8000); // Change story every 8 seconds
-
-    return () => {
-      isMounted.current = false;
-      clearInterval(interval);
-    };
+      return () => clearInterval(interval);
+    }
   }, [isCarouselPaused, sampleStories.length]);
 
   const faqs = useMemo(
@@ -433,6 +299,29 @@ export default function Home() {
     setIsCarouselPaused(false);
   }, []);
 
+  // Memoize the carousel items to prevent unnecessary re-renders
+  const carouselItems = useMemo(() => {
+    return sampleStories.map((story, index) => (
+      <div
+        key={index}
+        className={`carousel-item absolute inset-0 transition-opacity duration-500 ${
+          index === activeStoryIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
+        }`}
+      >
+        <Card className="h-full overflow-hidden shadow-dreamy border-none">
+          <div className="p-6 h-full flex flex-col">
+            <h3 className="text-xl font-bold text-primary mb-2">{story.title}</h3>
+            <p className="text-text-secondary dark:text-text-primary/80 flex-1">{story.excerpt}</p>
+            <div className="mt-4 flex justify-between items-center">
+              <span className="text-sm text-lavender">Fantasy</span>
+              <span className="text-sm text-golden">5-8 years</span>
+            </div>
+          </div>
+        </Card>
+      </div>
+    ));
+  }, [sampleStories, activeStoryIndex]);
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-cloud to-sky-50 dark:from-midnight dark:to-teal-900">
       {/* Sticky Navigation */}
@@ -479,13 +368,7 @@ export default function Home() {
               >
                 Pricing
               </a>
-              <button
-                onClick={toggleDarkMode}
-                className="p-2 rounded-full bg-lavender/10 dark:bg-lavender/20 text-text-secondary dark:text-text-primary"
-                aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-              >
-                {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
-              </button>
+              <ThemeToggleWrapper />
               <Link href="/story">
                 <Button size="sm" className="ml-4">
                   Start Your Story
@@ -495,13 +378,6 @@ export default function Home() {
 
             {/* Mobile menu button */}
             <div className="md:hidden flex items-center">
-              <button
-                onClick={toggleDarkMode}
-                className="p-2 rounded-full bg-lavender/10 dark:bg-lavender/20 text-text-secondary dark:text-text-primary mr-2"
-                aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-              >
-                {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
-              </button>
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className={`p-2 rounded-md ${isScrolled ? 'text-primary' : 'text-midnight dark:text-text-primary'}`}
@@ -575,6 +451,9 @@ export default function Home() {
                 >
                   Pricing
                 </a>
+                <div className="flex justify-center my-2">
+                  <ThemeToggleWrapper />
+                </div>
                 <Link href="/story" className="mt-4" onClick={() => setMobileMenuOpen(false)}>
                   <Button fullWidth>Start Your Story</Button>
                 </Link>
@@ -649,7 +528,7 @@ export default function Home() {
                       <div className="w-3 h-3 rounded-full bg-dreamy"></div>
                       <div className="w-3 h-3 rounded-full bg-teal"></div>
                     </div>
-                    <span className="text-sm font-medium">{childName}'s Woodland Adventure</span>
+                    <span className="text-sm font-medium">{childName}'s Magical Adventure</span>
                     <div className="flex items-center gap-1">
                       <span className="twinkling-star text-sm">✨</span>
                     </div>
@@ -676,6 +555,10 @@ export default function Home() {
                           width={100}
                           height={100}
                           className="object-contain"
+                          priority
+                          loading="eager"
+                          sizes="(max-width: 768px) 100px, 100px"
+                          quality={90}
                         />
                         <p className="text-text-secondary dark:text-text-primary/80">
                           See a personalized story preview!
@@ -973,169 +856,29 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Story Previews */}
+      {/* Story Carousel */}
       <section className="py-16 px-8 bg-gradient-to-r from-teal-50 to-sky-50 dark:from-teal-900 dark:to-sky-900">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-primary text-center mb-12">Story Previews</h2>
 
-          <div
-            ref={carouselRef}
-            className="relative"
-            onMouseEnter={handleCarouselMouseEnter}
-            onMouseLeave={handleCarouselMouseLeave}
-          >
-            <div className="overflow-hidden">
-              <div
-                className="flex transition-transform duration-500 ease-in-out"
-                style={{ transform: `translateX(-${activeStoryIndex * 100}%)` }}
-              >
-                {sampleStories.map((story, index) => (
-                  <div key={index} className="w-full flex-shrink-0 px-4">
-                    <Card
-                      variant="outline"
-                      className="p-8 space-y-6 bg-gradient-to-br from-cloud to-dreamy-light dark:from-midnight dark:to-teal-900"
-                    >
-                      <div className="relative w-full h-48 bg-lavender/20 rounded-lg mb-4 overflow-hidden">
-                        {/* Use actual image with fallback to SVG illustration */}
-                        {story.image ? (
-                          <Image
-                            src={story.image}
-                            alt={story.title}
-                            fill
-                            className="object-cover"
-                            loading="eager"
-                            unoptimized
-                            priority={index === activeStoryIndex}
-                            onError={(e) => {
-                              // If image fails to load, show the SVG illustration
-                              const target = e.target as HTMLImageElement;
-                              target.onerror = null;
-                              target.src = '/images/illustrations/storybook.svg';
-                              target.className = 'object-contain p-8';
-                              target.style.width = '100%';
-                              target.style.height = '100%';
-                              target.style.position = 'relative';
-                            }}
-                          />
-                        ) : (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <Image
-                              src="/images/illustrations/storybook.svg"
-                              alt="Storybook"
-                              width={100}
-                              height={100}
-                              className="object-contain"
-                              loading="eager"
-                              unoptimized
-                              priority={index === activeStoryIndex}
-                            />
-                          </div>
-                        )}
-                      </div>
-                      <h3 className="text-primary text-center">{story.title}</h3>
-                      <div className="story-text">
-                        <TypedText
-                          text={story.excerpt}
-                          delay={index === activeStoryIndex ? 300 : 9999} // Only animate the active story
-                          key={`story-${activeStoryIndex}-${index}-${refreshKey}`} // Force re-render when active story changes
-                          onComplete={() => {
-                            /* Animation complete */
-                          }}
-                          className="whitespace-pre-line"
-                        />
-                      </div>
-                      <div className="flex justify-center mt-4">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="mr-2"
-                          onClick={() => {
-                            // Show a modal with a longer preview (to be implemented)
-                            alert(`Read more of "${story.title}" coming soon!`);
-                          }}
-                        >
-                          Read More
-                        </Button>
-                        <Link href="/story">
-                          <Button>Create Your Own</Button>
-                        </Link>
-                      </div>
-                    </Card>
-                  </div>
-                ))}
-              </div>
+          <div ref={carouselRef} className="relative h-[300px] mt-12">
+            {carouselItems}
+
+            {/* Carousel Controls */}
+            <div className="absolute -bottom-12 left-0 right-0 flex justify-center gap-2 mt-4">
+              {sampleStories.map((_, index) => (
+                <button
+                  key={index}
+                  className={`w-3 h-3 rounded-full transition-colors ${
+                    index === activeStoryIndex
+                      ? 'bg-primary'
+                      : 'bg-lavender/30 hover:bg-lavender/50'
+                  }`}
+                  onClick={() => setActiveStoryIndex(index)}
+                  aria-label={`Go to story ${index + 1}`}
+                />
+              ))}
             </div>
-
-            {/* Carousel controls */}
-            <div className="flex justify-center mt-6 items-center gap-4">
-              <button
-                onClick={toggleCarouselPause}
-                className="text-primary hover:text-primary/80 transition-colors"
-                aria-label={isCarouselPaused ? 'Resume auto-rotation' : 'Pause auto-rotation'}
-              >
-                {isCarouselPaused ? (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                  </svg>
-                ) : (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <rect x="6" y="4" width="4" height="16"></rect>
-                    <rect x="14" y="4" width="4" height="16"></rect>
-                  </svg>
-                )}
-              </button>
-
-              <div className="flex gap-2">
-                {sampleStories.map((_, index) => (
-                  <button
-                    key={index}
-                    className={`w-3 h-3 rounded-full transition-all duration-300 ${index === activeStoryIndex ? 'bg-primary scale-125' : 'bg-lavender'}`}
-                    onClick={() => goToStory(index)}
-                    aria-label={`Go to story ${index + 1}`}
-                  />
-                ))}
-              </div>
-            </div>
-
-            <motion.button
-              className="absolute top-1/2 left-4 transform -translate-y-1/2 bg-white/80 dark:bg-midnight/80 rounded-full p-3 shadow-dreamy backdrop-blur-sm hover:bg-white dark:hover:bg-midnight transition-all duration-300"
-              onClick={goToPrevStory}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              aria-label="Previous story"
-            >
-              <ChevronLeft className="w-5 h-5 text-primary" />
-            </motion.button>
-
-            <motion.button
-              className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-white/80 dark:bg-midnight/80 rounded-full p-3 shadow-dreamy backdrop-blur-sm hover:bg-white dark:hover:bg-midnight transition-all duration-300"
-              onClick={goToNextStory}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              aria-label="Next story"
-            >
-              <ChevronRight className="w-5 h-5 text-primary" />
-            </motion.button>
           </div>
         </div>
       </section>
@@ -1384,106 +1127,7 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-8 bg-primary-dark text-text-primary">
-        <div className="max-w-5xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
-            <div>
-              <h3 className="text-xl mb-4">Step Into Story Time</h3>
-              <p className="text-text-primary/70">
-                Creating magical moments for families, one story at a time.
-              </p>
-            </div>
-
-            <div>
-              <h4 className="font-bold mb-4">Links</h4>
-              <ul className="space-y-2">
-                <li>
-                  <Link href="/about" className="hover:text-primary transition-colors">
-                    About
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/contact" className="hover:text-primary transition-colors">
-                    Contact
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/blog" className="hover:text-primary transition-colors">
-                    Blog
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-bold mb-4">Legal</h4>
-              <ul className="space-y-2">
-                <li>
-                  <Link href="/privacy" className="hover:text-primary transition-colors">
-                    Privacy Policy
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/terms" className="hover:text-primary transition-colors">
-                    Terms of Service
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-bold mb-4">Connect</h4>
-              <div className="flex gap-4">
-                <a href="#" className="hover:text-primary transition-colors">
-                  <span className="sr-only">Twitter</span>
-                  <Image
-                    src="/images/illustrations/twitter.svg"
-                    alt="Twitter"
-                    width={24}
-                    height={24}
-                    className="text-current"
-                  />
-                </a>
-                <a href="#" className="hover:text-primary transition-colors">
-                  <span className="sr-only">Instagram</span>
-                  <Image
-                    src="/images/illustrations/instagram.svg"
-                    alt="Instagram"
-                    width={24}
-                    height={24}
-                    className="text-current"
-                  />
-                </a>
-                <a href="#" className="hover:text-primary transition-colors">
-                  <span className="sr-only">Facebook</span>
-                  <Image
-                    src="/images/illustrations/facebook.svg"
-                    alt="Facebook"
-                    width={24}
-                    height={24}
-                    className="text-current"
-                  />
-                </a>
-              </div>
-            </div>
-          </div>
-
-          <div className="border-t border-text-primary/20 pt-6 text-center">
-            <p>
-              Made with{' '}
-              <Image
-                src="/images/illustrations/heart.svg"
-                alt="love"
-                width={16}
-                height={16}
-                className="inline"
-                unoptimized
-              />{' '}
-              for parents and kids. © {new Date().getFullYear()} Step Into Story Time
-            </p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </main>
   );
 }

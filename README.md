@@ -32,7 +32,7 @@ name, interests, and preferred theme.
 - Node.js 20+
 - npm 10+
 - Clerk Account
-- OpenAI API Key (optional)
+- OpenAI API Key (required for AI story generation)
 
 ## Setup and Installation
 
@@ -61,10 +61,14 @@ cp .env.local.example .env.local
 - Create a new application
 - Copy your Publishable and Secret keys into `.env.local`
 
-5. (Optional) Configure OpenAI
+5. Configure OpenAI (Required for AI story generation)
 
-- Get an OpenAI API key from [OpenAI](https://platform.openai.com/)
-- Add the key to `.env.local`
+- Create an OpenAI account at [OpenAI](https://platform.openai.com/)
+- Navigate to the API keys section in your account
+- Generate a new API key
+- Add the key to `.env.local` as `NEXT_PUBLIC_OPENAI_API_KEY=your_key_here`
+- The application will use a fallback mock story generator if no API key is provided, but for the
+  full experience, an OpenAI API key is required
 
 ## Development Scripts
 
@@ -89,6 +93,21 @@ cp .env.local.example .env.local
 - Clerk for secure authentication
 - Vercel Speed Insights
 - Vercel Analytics
+
+## OpenAI Integration
+
+The application uses OpenAI's GPT models to generate personalized stories based on user input. The
+integration works as follows:
+
+1. User inputs (child name, interests, theme, etc.) are collected through the StoryWizard component
+2. The data is sent to the `/api/generateStory` endpoint
+3. The API route uses the OpenAI SDK to generate a unique story
+4. The generated story is returned to the client and displayed to the user
+
+For development and testing without incurring API costs:
+
+- The application includes a fallback mock story generator
+- Set `NEXT_PUBLIC_OPENAI_API_KEY=mock` to always use the mock generator
 
 ## Contributing
 
