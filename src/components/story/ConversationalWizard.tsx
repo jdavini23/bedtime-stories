@@ -197,13 +197,13 @@ export function ConversationalWizard({ onComplete, isLoading = false }: Conversa
                   <Button
                     key={theme.value}
                     variant="outline"
-                    className="flex items-center justify-start space-x-2 h-auto py-3 px-4 text-left"
+                    className="flex items-center justify-start space-x-2 h-auto py-3 px-4 text-left border-sky/20 hover:bg-sky/10 hover:border-sky/40 transition-colors text-cloud"
                     onClick={() => handleThemeSelect(theme.value as StoryTheme)}
                   >
                     <span className="text-xl">{theme.emoji}</span>
                     <div>
                       <div className="font-medium">{theme.label}</div>
-                      <div className="text-xs text-muted-foreground">{theme.description}</div>
+                      <div className="text-xs text-cloud/60">{theme.description}</div>
                     </div>
                   </Button>
                 ))}
@@ -286,7 +286,7 @@ export function ConversationalWizard({ onComplete, isLoading = false }: Conversa
                 <Button
                   key={gender.value}
                   variant="outline"
-                  className="flex-1 flex items-center justify-center space-x-2"
+                  className="flex-1 flex items-center justify-center space-x-2 border-sky/20 hover:bg-sky/10 hover:border-sky/40 transition-colors text-cloud"
                   onClick={() => handleGenderSelect(gender.value as StoryGender)}
                 >
                   <span className="text-xl">{gender.emoji}</span>
@@ -372,7 +372,7 @@ export function ConversationalWizard({ onComplete, isLoading = false }: Conversa
           {selectedInterests.map((interest) => (
             <span
               key={interest}
-              className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-primary/10 text-primary"
+              className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-golden/80 text-midnight"
             >
               {COMMON_INTERESTS.find((i) => i.value === interest)?.emoji || '✨'} {interest}
             </span>
@@ -440,7 +440,7 @@ export function ConversationalWizard({ onComplete, isLoading = false }: Conversa
           {selectedTraits.map((trait) => (
             <span
               key={trait}
-              className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-primary/10 text-primary"
+              className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-golden/80 text-midnight"
             >
               {trait}
             </span>
@@ -484,7 +484,7 @@ export function ConversationalWizard({ onComplete, isLoading = false }: Conversa
           <div className="space-y-4">
             <p>Perfect! Here's a summary of the story we're creating:</p>
 
-            <div className="bg-muted/50 p-4 rounded-lg space-y-2 text-sm">
+            <div className="bg-midnight-light/30 p-4 rounded-lg space-y-2 text-sm border border-sky/20">
               <p>
                 <span className="font-medium">Theme:</span>{' '}
                 {THEME_OPTIONS.find((t) => t.value === storyInput.theme)?.label}
@@ -511,8 +511,39 @@ export function ConversationalWizard({ onComplete, isLoading = false }: Conversa
 
             <p>Ready to generate your personalized story?</p>
 
-            <Button className="w-full" size="lg" onClick={handleGenerateStory} disabled={isLoading}>
-              {isLoading ? 'Creating your story...' : 'Create My Story!'}
+            <Button
+              className="w-full bg-gradient-to-r from-golden to-golden-light hover:from-golden/90 hover:to-golden-light/90 text-midnight font-medium shadow-dreamy"
+              size="lg"
+              onClick={handleGenerateStory}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <span className="flex items-center">
+                  <svg
+                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-midnight"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Creating your story...
+                </span>
+              ) : (
+                'Create My Story!'
+              )}
             </Button>
           </div>
         ),
@@ -556,22 +587,18 @@ export function ConversationalWizard({ onComplete, isLoading = false }: Conversa
 
   return (
     <div className="w-full max-w-2xl mx-auto">
-      <Card className="p-4 shadow-dreamy overflow-hidden border-2 border-primary/10 dark:border-primary/20">
-        <div className="flex items-center space-x-3 p-3 border-b border-primary/10 dark:border-primary/20 mb-4 bg-primary/5 dark:bg-primary/10 rounded-t-lg">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/80 to-primary/40 flex items-center justify-center shadow-md">
+      <Card className="p-4 shadow-dreamy overflow-hidden border-2 border-sky/20 bg-midnight/95 text-cloud">
+        <div className="flex items-center space-x-3 p-3 border-b border-sky/20 mb-4 bg-midnight/80 rounded-t-lg">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sky to-primary flex items-center justify-center shadow-md">
             <span className="text-xl text-white">✨</span>
           </div>
           <div>
-            <h2 className="font-medium text-lg text-primary dark:text-primary-foreground">
-              Story Assistant
-            </h2>
-            <p className="text-xs text-primary/70 dark:text-primary-foreground/70">
-              Creating magical stories just for you
-            </p>
+            <h2 className="font-medium text-lg text-cloud">Story Assistant</h2>
+            <p className="text-xs text-cloud/70">Creating magical stories just for you</p>
           </div>
         </div>
 
-        <div className="h-[400px] overflow-y-auto p-3 space-y-5 mb-4 bg-muted/30 dark:bg-muted/10 rounded-lg">
+        <div className="h-[400px] overflow-y-auto p-3 space-y-5 mb-4 bg-midnight/80 rounded-lg">
           <AnimatePresence>
             {messages.map((message) => (
               <motion.div
@@ -582,22 +609,22 @@ export function ConversationalWizard({ onComplete, isLoading = false }: Conversa
                 className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 {message.sender === 'system' && (
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/80 to-primary/40 flex items-center justify-center mr-2 mt-1 shadow-sm">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-sky to-primary flex items-center justify-center mr-2 mt-1 shadow-sm">
                     <span className="text-sm text-white">✨</span>
                   </div>
                 )}
                 <div
                   className={`max-w-[80%] p-3 rounded-lg shadow-sm ${
                     message.sender === 'user'
-                      ? 'bg-primary text-primary-foreground rounded-tr-none'
-                      : 'bg-muted dark:bg-muted/50 rounded-tl-none'
+                      ? 'bg-golden text-midnight rounded-tr-none'
+                      : 'bg-midnight-light/90 text-cloud rounded-tl-none'
                   }`}
                 >
                   {message.content}
                 </div>
                 {message.sender === 'user' && (
-                  <div className="w-8 h-8 rounded-full bg-primary/20 dark:bg-primary/30 flex items-center justify-center ml-2 mt-1 shadow-sm">
-                    <span className="text-sm">👤</span>
+                  <div className="w-8 h-8 rounded-full bg-golden flex items-center justify-center ml-2 mt-1 shadow-sm">
+                    <span className="text-sm text-midnight">👤</span>
                   </div>
                 )}
               </motion.div>
@@ -612,21 +639,21 @@ export function ConversationalWizard({ onComplete, isLoading = false }: Conversa
                 transition={{ duration: 0.3 }}
                 className="flex justify-start"
               >
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/80 to-primary/40 flex items-center justify-center mr-2 mt-1 shadow-sm">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-sky to-primary flex items-center justify-center mr-2 mt-1 shadow-sm">
                   <span className="text-sm text-white">✨</span>
                 </div>
-                <div className="bg-muted dark:bg-muted/50 p-3 rounded-lg rounded-tl-none shadow-sm">
+                <div className="bg-midnight-light/90 text-cloud p-3 rounded-lg rounded-tl-none shadow-sm">
                   <div className="flex space-x-1">
                     <div
-                      className="w-2 h-2 rounded-full bg-primary/60 animate-bounce"
+                      className="w-2 h-2 rounded-full bg-sky animate-bounce"
                       style={{ animationDelay: '0ms' }}
                     ></div>
                     <div
-                      className="w-2 h-2 rounded-full bg-primary/60 animate-bounce"
+                      className="w-2 h-2 rounded-full bg-sky animate-bounce"
                       style={{ animationDelay: '150ms' }}
                     ></div>
                     <div
-                      className="w-2 h-2 rounded-full bg-primary/60 animate-bounce"
+                      className="w-2 h-2 rounded-full bg-sky animate-bounce"
                       style={{ animationDelay: '300ms' }}
                     ></div>
                   </div>
@@ -644,18 +671,18 @@ export function ConversationalWizard({ onComplete, isLoading = false }: Conversa
             animate={{ opacity: 1, y: 0 }}
             className="relative mt-2"
           >
-            <div className="flex space-x-2 p-2 bg-muted/20 dark:bg-muted/5 rounded-lg border border-primary/10 dark:border-primary/20">
+            <div className="flex space-x-2 p-2 bg-midnight-light/50 rounded-lg border border-sky/20">
               <Input
                 value={nameInput}
                 onChange={(e) => setNameInput(e.target.value)}
                 placeholder="Enter character name"
-                className="flex-1 border-primary/20 focus-visible:ring-primary/30"
+                className="flex-1 border-sky/30 focus-visible:ring-sky/50 bg-midnight-light/80 text-cloud placeholder:text-cloud/50"
                 onKeyDown={(e) => e.key === 'Enter' && handleNameSubmit()}
               />
               <Button
                 onClick={handleNameSubmit}
                 disabled={!nameInput.trim()}
-                className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white shadow-sm"
+                className="bg-gradient-to-r from-sky to-primary hover:from-sky/90 hover:to-primary/90 text-white shadow-sm"
               >
                 <span className="mr-1">Send</span>
                 <svg
@@ -675,7 +702,7 @@ export function ConversationalWizard({ onComplete, isLoading = false }: Conversa
                 </svg>
               </Button>
             </div>
-            <div className="absolute bottom-full right-4 w-2 h-2 bg-muted/20 dark:bg-muted/5 transform rotate-45 border-r border-b border-primary/10 dark:border-primary/20"></div>
+            <div className="absolute bottom-full right-4 w-2 h-2 bg-midnight-light/50 transform rotate-45 border-r border-b border-sky/20"></div>
           </motion.div>
         )}
 
@@ -686,28 +713,28 @@ export function ConversationalWizard({ onComplete, isLoading = false }: Conversa
             animate={{ opacity: 1, y: 0 }}
             className="relative mt-2"
           >
-            <div className="p-2 bg-muted/20 dark:bg-muted/5 rounded-lg border border-primary/10 dark:border-primary/20">
+            <div className="p-2 bg-midnight-light/50 rounded-lg border border-sky/20">
               <div className="mb-2">
-                <p className="text-sm text-muted-foreground mb-2">Selected interests:</p>
+                <p className="text-sm text-cloud/90 mb-2">Selected interests:</p>
                 <div className="flex flex-wrap gap-1 mb-2">
                   {selectedInterests.length > 0 ? (
                     selectedInterests.map((interest) => (
                       <span
                         key={interest}
-                        className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-primary/10 text-primary"
+                        className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-golden/80 text-midnight"
                       >
                         {COMMON_INTERESTS.find((i) => i.value === interest)?.emoji || '✨'}{' '}
                         {interest}
                         <button
                           onClick={() => handleInterestToggle(interest)}
-                          className="ml-1 text-primary/70 hover:text-primary"
+                          className="ml-1 text-midnight/70 hover:text-midnight"
                         >
                           ×
                         </button>
                       </span>
                     ))
                   ) : (
-                    <span className="text-xs text-muted-foreground">No interests selected yet</span>
+                    <span className="text-xs text-cloud/60">No interests selected yet</span>
                   )}
                 </div>
               </div>
@@ -715,7 +742,7 @@ export function ConversationalWizard({ onComplete, isLoading = false }: Conversa
               <div className="flex space-x-2">
                 <Input
                   placeholder="Add a custom interest..."
-                  className="flex-1 border-primary/20 focus-visible:ring-primary/30"
+                  className="flex-1 border-sky/30 focus-visible:ring-sky/50 bg-midnight-light/80 text-cloud placeholder:text-cloud/50"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && e.currentTarget.value.trim()) {
                       handleInterestToggle(e.currentTarget.value.trim());
@@ -726,7 +753,7 @@ export function ConversationalWizard({ onComplete, isLoading = false }: Conversa
                 <Button
                   onClick={handleInterestsSubmit}
                   disabled={selectedInterests.length === 0}
-                  className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white shadow-sm"
+                  className="bg-gradient-to-r from-sky to-primary hover:from-sky/90 hover:to-primary/90 text-white shadow-sm"
                 >
                   <span className="mr-1">Next</span>
                   <svg
@@ -745,7 +772,7 @@ export function ConversationalWizard({ onComplete, isLoading = false }: Conversa
                 </Button>
               </div>
             </div>
-            <div className="absolute bottom-full right-4 w-2 h-2 bg-muted/20 dark:bg-muted/5 transform rotate-45 border-r border-b border-primary/10 dark:border-primary/20"></div>
+            <div className="absolute bottom-full right-4 w-2 h-2 bg-midnight-light/50 transform rotate-45 border-r border-b border-sky/20"></div>
           </motion.div>
         )}
 
@@ -756,29 +783,29 @@ export function ConversationalWizard({ onComplete, isLoading = false }: Conversa
             animate={{ opacity: 1, y: 0 }}
             className="relative mt-2"
           >
-            <div className="p-2 bg-muted/20 dark:bg-muted/5 rounded-lg border border-primary/10 dark:border-primary/20">
+            <div className="p-2 bg-midnight-light/50 rounded-lg border border-sky/20">
               <div className="mb-2">
-                <p className="text-sm text-muted-foreground mb-2">
-                  Selected traits: <span className="text-xs text-primary/70">(max 3)</span>
+                <p className="text-sm text-cloud/90 mb-2">
+                  Selected traits: <span className="text-xs text-sky/70">(max 3)</span>
                 </p>
                 <div className="flex flex-wrap gap-1 mb-2">
                   {selectedTraits.length > 0 ? (
                     selectedTraits.map((trait) => (
                       <span
                         key={trait}
-                        className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-primary/10 text-primary"
+                        className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-golden/80 text-midnight"
                       >
                         {trait}
                         <button
                           onClick={() => handleTraitToggle(trait)}
-                          className="ml-1 text-primary/70 hover:text-primary"
+                          className="ml-1 text-midnight/70 hover:text-midnight"
                         >
                           ×
                         </button>
                       </span>
                     ))
                   ) : (
-                    <span className="text-xs text-muted-foreground">No traits selected yet</span>
+                    <span className="text-xs text-cloud/60">No traits selected yet</span>
                   )}
                 </div>
               </div>
@@ -786,7 +813,7 @@ export function ConversationalWizard({ onComplete, isLoading = false }: Conversa
               <div className="flex space-x-2">
                 <Input
                   placeholder="Add a custom trait..."
-                  className="flex-1 border-primary/20 focus-visible:ring-primary/30"
+                  className="flex-1 border-sky/30 focus-visible:ring-sky/50 bg-midnight-light/80 text-cloud placeholder:text-cloud/50"
                   disabled={selectedTraits.length >= 3}
                   onKeyDown={(e) => {
                     if (
@@ -802,7 +829,7 @@ export function ConversationalWizard({ onComplete, isLoading = false }: Conversa
                 <Button
                   onClick={handleTraitsSubmit}
                   disabled={selectedTraits.length === 0}
-                  className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white shadow-sm"
+                  className="bg-gradient-to-r from-sky to-primary hover:from-sky/90 hover:to-primary/90 text-white shadow-sm"
                 >
                   <span className="mr-1">Next</span>
                   <svg
@@ -821,7 +848,7 @@ export function ConversationalWizard({ onComplete, isLoading = false }: Conversa
                 </Button>
               </div>
             </div>
-            <div className="absolute bottom-full right-4 w-2 h-2 bg-muted/20 dark:bg-muted/5 transform rotate-45 border-r border-b border-primary/10 dark:border-primary/20"></div>
+            <div className="absolute bottom-full right-4 w-2 h-2 bg-midnight-light/50 transform rotate-45 border-r border-b border-sky/20"></div>
           </motion.div>
         )}
 
@@ -832,24 +859,24 @@ export function ConversationalWizard({ onComplete, isLoading = false }: Conversa
             animate={{ opacity: 1, y: 0 }}
             className="relative mt-2"
           >
-            <div className="p-2 bg-muted/20 dark:bg-muted/5 rounded-lg border border-primary/10 dark:border-primary/20">
+            <div className="p-2 bg-midnight-light/50 rounded-lg border border-sky/20">
               <div className="space-y-2">
                 {READING_LEVEL_OPTIONS.map((level) => (
                   <Button
                     key={level.value}
                     variant="outline"
-                    className="w-full flex flex-col items-start justify-start p-3 h-auto text-left hover:bg-primary/5 hover:text-primary"
+                    className="w-full flex flex-col items-start justify-start p-3 h-auto text-left hover:bg-sky/10 hover:text-sky border-sky/20 text-cloud"
                     onClick={() =>
                       handleReadingLevelSelect(level.value as StoryMetadata['readingLevel'])
                     }
                   >
                     <span className="font-medium">{level.label}</span>
-                    <span className="text-xs text-muted-foreground">{level.description}</span>
+                    <span className="text-xs text-cloud/60">{level.description}</span>
                   </Button>
                 ))}
               </div>
             </div>
-            <div className="absolute bottom-full right-4 w-2 h-2 bg-muted/20 dark:bg-muted/5 transform rotate-45 border-r border-b border-primary/10 dark:border-primary/20"></div>
+            <div className="absolute bottom-full right-4 w-2 h-2 bg-midnight-light/50 transform rotate-45 border-r border-b border-sky/20"></div>
           </motion.div>
         )}
       </Card>
