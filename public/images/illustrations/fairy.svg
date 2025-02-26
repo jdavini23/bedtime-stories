@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fairy body -->
+  <path d="M50 30C45 30 40 35 40 40C40 45 45 50 50 50C55 50 60 45 60 40C60 35 55 30 50 30Z" fill="#F9A8D4" />
+  
+  <!-- Fairy dress -->
+  <path d="M40 40C40 40 35 60 40 70C40 70 45 65 50 65C55 65 60 70 60 70C65 60 60 40 60 40C60 40 55 50 50 50C45 50 40 40 40 40Z" fill="#F9A8D4" />
+  
+  <!-- Fairy head -->
+  <circle cx="50" cy="25" r="10" fill="#FECDD3" />
+  
+  <!-- Fairy hair -->
+  <path d="M40 20C40 20 45 15 50 15C55 15 60 20 60 20C60 20 55 10 50 10C45 10 40 20 40 20Z" fill="#FBBF24" />
+  <path d="M40 25C40 25 35 20 35 15C35 15 30 25 40 25Z" fill="#FBBF24" />
+  <path d="M60 25C60 25 65 20 65 15C65 15 70 25 60 25Z" fill="#FBBF24" />
+  
+  <!-- Fairy wings -->
+  <path d="M60 35C60 35 80 25 85 35C90 45 70 50 60 45C60 45 60 40 60 35Z" fill="#BFDBFE" opacity="0.7" />
+  <path d="M40 35C40 35 20 25 15 35C10 45 30 50 40 45C40 45 40 40 40 35Z" fill="#BFDBFE" opacity="0.7" />
+  <path d="M60 45C60 45 75 55 75 65C75 75 60 65 55 55C55 55 60 50 60 45Z" fill="#BFDBFE" opacity="0.7" />
+  <path d="M40 45C40 45 25 55 25 65C25 75 40 65 45 55C45 55 40 50 40 45Z" fill="#BFDBFE" opacity="0.7" />
+  
+  <!-- Fairy wand -->
+  <path d="M65 60L75 70" stroke="#F9A8D4" stroke-width="2" />
+  <circle cx="78" cy="73" r="3" fill="#FBBF24" />
+  
+  <!-- Sparkles -->
+  <circle cx="80" cy="75" r="1" fill="#FBBF24" />
+  <circle cx="83" cy="73" r="1" fill="#FBBF24" />
+  <circle cx="78" cy="78" r="1" fill="#FBBF24" />
+  <circle cx="75" cy="73" r="1" fill="#FBBF24" />
+</svg> 

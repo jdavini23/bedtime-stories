@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Flag pole -->
+  <rect x="20" y="10" width="5" height="80" fill="#92400E" />
+  
+  <!-- Flag -->
+  <path d="M25 15H75V55H25V15Z" fill="#1F2937" />
+  
+  <!-- Skull -->
+  <circle cx="50" cy="35" r="15" fill="#F9FAFB" />
+  
+  <!-- Skull eyes -->
+  <circle cx="43" cy="30" r="3" fill="#1F2937" />
+  <circle cx="57" cy="30" r="3" fill="#1F2937" />
+  
+  <!-- Skull nose -->
+  <path d="M48 38L50 40L52 38" stroke="#1F2937" stroke-width="2" />
+  
+  <!-- Skull teeth -->
+  <path d="M40 45C40 45 50 50 60 45" stroke="#1F2937" stroke-width="2" />
+  <path d="M40 45L45 45" stroke="#1F2937" stroke-width="2" />
+  <path d="M45 45L50 45" stroke="#1F2937" stroke-width="2" />
+  <path d="M50 45L55 45" stroke="#1F2937" stroke-width="2" />
+  <path d="M55 45L60 45" stroke="#1F2937" stroke-width="2" />
+  
+  <!-- Crossbones -->
+  <path d="M35 55L45 45" stroke="#F9FAFB" stroke-width="3" />
+  <path d="M35 45L45 55" stroke="#F9FAFB" stroke-width="3" />
+  <path d="M55 45L65 55" stroke="#F9FAFB" stroke-width="3" />
+  <path d="M55 55L65 45" stroke="#F9FAFB" stroke-width="3" />
+  
+  <!-- Waves -->
+  <path d="M10 90C15 85 20 95 25 90C30 85 35 95 40 90C45 85 50 95 55 90C60 85 65 95 70 90C75 85 80 95 85 90C90 85 95 95 100 90" stroke="#60A5FA" stroke-width="2" />
+  <path d="M10 95C15 90 20 100 25 95C30 90 35 100 40 95C45 90 50 100 55 95C60 90 65 100 70 95C75 90 80 100 85 95C90 90 95 100 100 95" stroke="#60A5FA" stroke-width="2" />
+</svg> 

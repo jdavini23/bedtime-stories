@@ -48,3 +48,5 @@ Thumbs.db
 # Clerk
 .clerk
 clerk.json
+browser-tools-mcp/
+perplexity-mcp/

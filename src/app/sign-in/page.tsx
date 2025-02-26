@@ -13,9 +13,7 @@ export default function SignInPage() {
         className="w-full max-w-md space-y-8"
       >
         <div className="text-center">
-          <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900">
-            Welcome Back!
-          </h2>
+          <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900">Welcome Back!</h2>
           <p className="mt-2 text-sm text-gray-600">
             Sign in to continue your storytelling journey
           </p>

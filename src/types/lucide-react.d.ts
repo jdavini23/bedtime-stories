@@ -12,4 +12,12 @@ declare module 'lucide-react' {
   export const Book: FC<IconProps>;
   export const Star: FC<IconProps>;
   export const Clock: FC<IconProps>;
+  export const ChevronLeft: FC<IconProps>;
+  export const ChevronRight: FC<IconProps>;
+  export const ArrowLeft: FC<IconProps>;
+  export const ArrowRight: FC<IconProps>;
+  export const Menu: FC<IconProps>;
+  export const X: FC<IconProps>;
+  export const Moon: FC<IconProps>;
+  export const Sun: FC<IconProps>;
 }

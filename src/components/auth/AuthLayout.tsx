@@ -10,7 +10,11 @@ interface AuthLayoutProps {
 
 export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, description }) => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-100 p-4" role="main" aria-labelledby="auth-title">
+    <div
+      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-100 p-4"
+      role="main"
+      aria-labelledby="auth-title"
+    >
       <motion.div
         className="w-full max-w-md bg-white shadow-2xl rounded-2xl overflow-hidden"
         initial={{ opacity: 0, scale: 0.9 }}
@@ -28,12 +32,16 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, descrip
               height={100}
               className="mx-auto mb-4"
             />
-            <h1 id="auth-title" className="text-3xl font-bold text-gray-800">{title}</h1>
-            {description && <p className="text-gray-600 mt-2" role="doc-subtitle">{description}</p>}
+            <h1 id="auth-title" className="text-3xl font-bold text-gray-800">
+              {title}
+            </h1>
+            {description && (
+              <p className="text-gray-600 mt-2" role="doc-subtitle">
+                {description}
+              </p>
+            )}
           </header>
-          <main role="main">
-            {children}
-          </main>
+          <main role="main">{children}</main>
         </div>
       </motion.div>
     </div>

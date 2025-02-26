@@ -1,3 +1,5 @@
+'use client';
+
 import React, { forwardRef } from 'react';
 import { cn } from '@/utils/cn';
 
@@ -19,6 +21,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         <input
           {...props}
           ref={ref}
+          suppressHydrationWarning
           className={cn(
             'w-full px-3 py-2 border rounded-md',
             'focus:outline-none focus:ring-2 focus:ring-blue-500',
