@@ -1,8 +1,8 @@
 'use client';
 
-import { ApiKeyTester } from '@/components/admin/ApiKeyTester';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function TestApiPage() {
   return (
@@ -24,7 +24,20 @@ export default function TestApiPage() {
           <p className="text-center mb-8 text-gray-600 dark:text-gray-300">
             Use this page to verify that your OpenAI API key is configured correctly.
           </p>
-          <ApiKeyTester />
+
+          <Card className="w-full max-w-md mx-auto">
+            <CardHeader>
+              <CardTitle>OpenAI API Key Tester</CardTitle>
+              <CardDescription>API Key testing feature is currently unavailable</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-gray-500 mb-4">
+                This feature has been temporarily removed. Please ensure you have added{' '}
+                <code className="bg-gray-100 px-1 py-0.5 rounded">OPENAI_API_KEY</code> to your
+                environment variables.
+              </p>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
