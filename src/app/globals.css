@@ -225,6 +225,39 @@ body {
   background: linear-gradient(to bottom, rgb(var(--magical-purple)), rgb(var(--dreamy-pink)));
 }
 
+/* Modern custom scrollbar for chat interface */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(var(--midnight-blue), 0.3);
+  border-radius: 10px;
+  margin: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, rgb(var(--sky-blue)), rgb(var(--magical-purple)));
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, rgb(var(--sky-blue)), rgb(var(--dreamy-pink)));
+}
+
+/* Dark mode custom scrollbar */
+.dark .custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(var(--midnight-blue), 0.5);
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, rgb(var(--sky-blue)), rgb(var(--golden-glow)));
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, rgb(var(--magical-purple)), rgb(var(--dreamy-pink)));
+}
+
 /* Story preview specific styling */
 .story-text .typing-animation {
   color: #353535 !important; /* Force darker text in light mode */

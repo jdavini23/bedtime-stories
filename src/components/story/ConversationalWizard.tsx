@@ -76,7 +76,6 @@ const THEME_OPTIONS = [
 const GENDER_OPTIONS = [
   { value: 'boy', emoji: '👦', label: 'Boy' },
   { value: 'girl', emoji: '👧', label: 'Girl' },
-  { value: 'neutral', emoji: '🌟', label: 'Other' },
 ];
 
 // Common interests with emojis
@@ -330,17 +329,17 @@ export function ConversationalWizard({ onComplete, isLoading = false }: Conversa
             <p>
               What are {nameInput}&apos;s interests? Select from the options below or add your own!
             </p>
-            <div className="flex flex-wrap gap-2">
+            <div className="grid grid-cols-2 gap-2">
               {COMMON_INTERESTS.map((interest) => (
                 <Button
                   key={interest.value}
                   variant={selectedInterests.includes(interest.value) ? 'primary' : 'outline'}
                   size="sm"
-                  className="flex items-center space-x-1"
+                  className="flex items-center justify-start space-x-2 h-auto py-2 px-3 text-left border-sky/20 hover:bg-sky/10 hover:border-sky/40 transition-colors text-cloud"
                   onClick={() => handleInterestToggle(interest.value)}
                 >
-                  <span>{interest.emoji}</span>
-                  <span>{interest.value}</span>
+                  <span className="text-xl">{interest.emoji}</span>
+                  <span className="font-medium">{interest.value}</span>
                 </Button>
               ))}
             </div>
@@ -394,15 +393,16 @@ export function ConversationalWizard({ onComplete, isLoading = false }: Conversa
         content: (
           <div className="space-y-3">
             <p>What personality traits does {nameInput} have? (Choose up to 3)</p>
-            <div className="flex flex-wrap gap-2">
+            <div className="grid grid-cols-2 gap-2">
               {CHARACTER_TRAITS.personality.slice(0, 12).map((trait) => (
                 <Button
                   key={trait}
                   variant={selectedTraits.includes(trait) ? 'primary' : 'outline'}
                   size="sm"
+                  className="flex items-center justify-start space-x-2 h-auto py-2 px-3 text-left border-sky/20 hover:bg-sky/10 hover:border-sky/40 transition-colors text-cloud"
                   onClick={() => handleTraitToggle(trait)}
                 >
-                  {trait}
+                  <span className="font-medium">{trait}</span>
                 </Button>
               ))}
             </div>
@@ -591,105 +591,180 @@ export function ConversationalWizard({ onComplete, isLoading = false }: Conversa
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
-      <Card className="p-4 shadow-dreamy overflow-hidden border-2 border-sky/20 bg-midnight/95 text-cloud">
-        <div className="flex items-center space-x-3 p-3 border-b border-sky/20 mb-4 bg-midnight/80 rounded-t-lg">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sky to-primary flex items-center justify-center shadow-md">
-            <span className="text-xl text-white">✨</span>
-          </div>
-          <div>
-            <h2 className="font-medium text-lg text-cloud">Story Assistant</h2>
-            <p className="text-xs text-cloud/70">Creating magical stories just for you</p>
-          </div>
+    <Card className="relative overflow-hidden bg-gradient-to-br from-midnight to-midnight-light/90 border-sky/20 shadow-xl rounded-xl w-full">
+      <div className="flex items-center p-3 border-b border-sky/20 bg-midnight-light/30">
+        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sky to-primary flex items-center justify-center mr-3 shadow-md">
+          <span className="text-lg text-white">✨</span>
         </div>
 
-        <div className="h-[400px] overflow-y-auto p-3 space-y-5 mb-4 bg-midnight/80 rounded-lg">
-          <AnimatePresence>
-            {messages.map((message) => (
-              <motion.div
-                key={message.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-                className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                {message.sender === 'system' && (
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-sky to-primary flex items-center justify-center mr-2 mt-1 shadow-sm">
-                    <span className="text-sm text-white">✨</span>
-                  </div>
-                )}
-                <div
-                  className={`max-w-[80%] p-3 rounded-lg shadow-sm ${
-                    message.sender === 'user'
-                      ? 'bg-golden text-midnight rounded-tr-none'
-                      : 'bg-midnight-light/90 text-cloud rounded-tl-none'
-                  }`}
-                >
-                  {message.content}
-                </div>
-                {message.sender === 'user' && (
-                  <div className="w-8 h-8 rounded-full bg-golden flex items-center justify-center ml-2 mt-1 shadow-sm">
-                    <span className="text-sm text-midnight">👤</span>
-                  </div>
-                )}
-              </motion.div>
-            ))}
+        <div>
+          <h2 className="font-medium text-lg text-cloud">Story Assistant</h2>
+          <p className="text-xs text-cloud/70">Creating magical stories just for you</p>
+        </div>
+      </div>
 
-            {/* Typing indicator */}
-            {isTyping && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                transition={{ duration: 0.3 }}
-                className="flex justify-start"
-              >
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-sky to-primary flex items-center justify-center mr-2 mt-1 shadow-sm">
+      <div
+        className="h-[400px] overflow-y-auto p-4 space-y-5 mb-4 bg-midnight/80 rounded-lg mx-2 mt-2 custom-scrollbar"
+        style={{
+          scrollbarWidth: 'thin',
+          scrollbarColor: 'var(--color-primary) rgba(var(--midnight-blue), 0.3)',
+        }}
+      >
+        <AnimatePresence>
+          {messages.map((message) => (
+            <motion.div
+              key={message.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'} mb-2`}
+            >
+              {message.sender === 'system' && (
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-sky to-primary flex items-center justify-center mr-2 mt-1 shadow-md">
                   <span className="text-sm text-white">✨</span>
                 </div>
-                <div className="bg-midnight-light/90 text-cloud p-3 rounded-lg rounded-tl-none shadow-sm">
-                  <div className="flex space-x-1">
-                    <div
-                      className="w-2 h-2 rounded-full bg-sky animate-bounce"
-                      style={{ animationDelay: '0ms' }}
-                    ></div>
-                    <div
-                      className="w-2 h-2 rounded-full bg-sky animate-bounce"
-                      style={{ animationDelay: '150ms' }}
-                    ></div>
-                    <div
-                      className="w-2 h-2 rounded-full bg-sky animate-bounce"
-                      style={{ animationDelay: '300ms' }}
-                    ></div>
-                  </div>
+              )}
+              <div
+                className={`max-w-[80%] p-3 rounded-2xl shadow-md ${
+                  message.sender === 'user'
+                    ? 'bg-golden text-midnight rounded-tr-none'
+                    : 'bg-midnight-light/90 text-cloud rounded-tl-none'
+                }`}
+              >
+                {message.content}
+              </div>
+              {message.sender === 'user' && (
+                <div className="w-8 h-8 rounded-full bg-golden flex items-center justify-center ml-2 mt-1 shadow-md">
+                  <span className="text-sm text-midnight">👤</span>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-          <div ref={messagesEndRef} />
-        </div>
+              )}
+            </motion.div>
+          ))}
 
-        {/* Input area - only show when waiting for text input */}
-        {currentQuestion === 'name-question' && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="relative mt-2"
-          >
-            <div className="flex space-x-2 p-2 bg-midnight-light/50 rounded-lg border border-sky/20">
+          {/* Typing indicator */}
+          {isTyping && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              transition={{ duration: 0.3 }}
+              className="flex justify-start mb-2"
+            >
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-sky to-primary flex items-center justify-center mr-2 mt-1 shadow-md">
+                <span className="text-sm text-white">✨</span>
+              </div>
+              <div className="bg-midnight-light/90 text-cloud p-3 rounded-2xl rounded-tl-none shadow-md">
+                <div className="flex space-x-1">
+                  <div
+                    className="w-2 h-2 rounded-full bg-sky animate-bounce"
+                    style={{ animationDelay: '0ms' }}
+                  ></div>
+                  <div
+                    className="w-2 h-2 rounded-full bg-sky animate-bounce"
+                    style={{ animationDelay: '150ms' }}
+                  ></div>
+                  <div
+                    className="w-2 h-2 rounded-full bg-sky animate-bounce"
+                    style={{ animationDelay: '300ms' }}
+                  ></div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Input area - only show when waiting for text input */}
+      {currentQuestion === 'name-question' && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative mx-2 mb-3"
+        >
+          <div className="flex space-x-2 p-3 bg-midnight-light/50 rounded-xl border border-sky/20 shadow-inner">
+            <Input
+              value={nameInput}
+              onChange={(e) => setNameInput(e.target.value)}
+              placeholder="Enter character name"
+              className="flex-1 border-sky/30 focus-visible:ring-sky/50 bg-midnight-light/80 text-cloud placeholder:text-cloud/50 rounded-lg"
+              onKeyDown={(e) => e.key === 'Enter' && handleNameSubmit()}
+            />
+            <Button
+              onClick={handleNameSubmit}
+              disabled={!nameInput.trim()}
+              className="bg-gradient-to-r from-sky to-primary hover:from-sky/90 hover:to-primary/90 text-white shadow-md rounded-lg transition-all duration-200"
+            >
+              <span className="mr-1">Send</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="lucide lucide-send-horizontal"
+              >
+                <path d="m3 3 3 9-3 9 19-9Z" />
+                <path d="M6 12h16" />
+              </svg>
+            </Button>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Custom interest input */}
+      {currentQuestion === 'interests-question' && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative mx-2 mb-3"
+        >
+          <div className="p-3 bg-midnight-light/50 rounded-xl border border-sky/20 shadow-inner">
+            <div className="mb-2">
+              <p className="text-sm text-cloud/90 mb-2">Selected interests:</p>
+              <div className="flex flex-wrap gap-1 mb-2">
+                {selectedInterests.length > 0 ? (
+                  selectedInterests.map((interest) => (
+                    <span
+                      key={interest}
+                      className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-golden/80 text-midnight shadow-sm"
+                    >
+                      {COMMON_INTERESTS.find((i) => i.value === interest)?.emoji || '✨'} {interest}
+                      <button
+                        onClick={() => handleInterestToggle(interest)}
+                        className="ml-1 text-midnight/70 hover:text-midnight"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-xs text-cloud/60">No interests selected yet</span>
+                )}
+              </div>
+            </div>
+
+            <div className="flex space-x-2">
               <Input
-                value={nameInput}
-                onChange={(e) => setNameInput(e.target.value)}
-                placeholder="Enter character name"
-                className="flex-1 border-sky/30 focus-visible:ring-sky/50 bg-midnight-light/80 text-cloud placeholder:text-cloud/50"
-                onKeyDown={(e) => e.key === 'Enter' && handleNameSubmit()}
+                placeholder="Add a custom interest..."
+                className="flex-1 border-sky/30 focus-visible:ring-sky/50 bg-midnight-light/80 text-cloud placeholder:text-cloud/50 rounded-lg"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                    handleInterestToggle(e.currentTarget.value.trim());
+                    e.currentTarget.value = '';
+                  }
+                }}
               />
               <Button
-                onClick={handleNameSubmit}
-                disabled={!nameInput.trim()}
-                className="bg-gradient-to-r from-sky to-primary hover:from-sky/90 hover:to-primary/90 text-white shadow-sm"
+                onClick={handleInterestsSubmit}
+                disabled={selectedInterests.length === 0}
+                className="bg-gradient-to-r from-sky to-primary hover:from-sky/90 hover:to-primary/90 text-white shadow-md rounded-lg transition-all duration-200"
               >
-                <span className="mr-1">Send</span>
+                <span className="mr-1">Next</span>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="16"
@@ -700,191 +775,116 @@ export function ConversationalWizard({ onComplete, isLoading = false }: Conversa
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className="lucide lucide-send-horizontal"
                 >
-                  <path d="m3 3 3 9-3 9 19-9Z" />
-                  <path d="M6 12h16" />
+                  <path d="m9 18 6-6-6-6" />
                 </svg>
               </Button>
             </div>
-            <div className="absolute bottom-full right-4 w-2 h-2 bg-midnight-light/50 transform rotate-45 border-r border-b border-sky/20"></div>
-          </motion.div>
-        )}
+          </div>
+        </motion.div>
+      )}
 
-        {/* Custom interest input */}
-        {currentQuestion === 'interests-question' && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="relative mt-2"
-          >
-            <div className="p-2 bg-midnight-light/50 rounded-lg border border-sky/20">
-              <div className="mb-2">
-                <p className="text-sm text-cloud/90 mb-2">Selected interests:</p>
-                <div className="flex flex-wrap gap-1 mb-2">
-                  {selectedInterests.length > 0 ? (
-                    selectedInterests.map((interest) => (
-                      <span
-                        key={interest}
-                        className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-golden/80 text-midnight"
+      {/* Traits input */}
+      {currentQuestion === 'traits-question' && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative mx-2 mb-3"
+        >
+          <div className="p-3 bg-midnight-light/50 rounded-xl border border-sky/20 shadow-inner">
+            <div className="mb-2">
+              <p className="text-sm text-cloud/90 mb-2">
+                Selected traits: <span className="text-xs text-sky/70">(max 3)</span>
+              </p>
+              <div className="flex flex-wrap gap-1 mb-2">
+                {selectedTraits.length > 0 ? (
+                  selectedTraits.map((trait) => (
+                    <span
+                      key={trait}
+                      className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-golden/80 text-midnight shadow-sm"
+                    >
+                      {trait}
+                      <button
+                        onClick={() => handleTraitToggle(trait)}
+                        className="ml-1 text-midnight/70 hover:text-midnight"
                       >
-                        {COMMON_INTERESTS.find((i) => i.value === interest)?.emoji || '✨'}{' '}
-                        {interest}
-                        <button
-                          onClick={() => handleInterestToggle(interest)}
-                          className="ml-1 text-midnight/70 hover:text-midnight"
-                        >
-                          ×
-                        </button>
-                      </span>
-                    ))
-                  ) : (
-                    <span className="text-xs text-cloud/60">No interests selected yet</span>
-                  )}
-                </div>
+                        ×
+                      </button>
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-xs text-cloud/60">No traits selected yet</span>
+                )}
               </div>
+            </div>
 
-              <div className="flex space-x-2">
-                <Input
-                  placeholder="Add a custom interest..."
-                  className="flex-1 border-sky/30 focus-visible:ring-sky/50 bg-midnight-light/80 text-cloud placeholder:text-cloud/50"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && e.currentTarget.value.trim()) {
-                      handleInterestToggle(e.currentTarget.value.trim());
-                      e.currentTarget.value = '';
-                    }
-                  }}
-                />
-                <Button
-                  onClick={handleInterestsSubmit}
-                  disabled={selectedInterests.length === 0}
-                  className="bg-gradient-to-r from-sky to-primary hover:from-sky/90 hover:to-primary/90 text-white shadow-sm"
+            <div className="flex space-x-2">
+              <Input
+                placeholder="Add a custom trait..."
+                className="flex-1 border-sky/30 focus-visible:ring-sky/50 bg-midnight-light/80 text-cloud placeholder:text-cloud/50 rounded-lg"
+                disabled={selectedTraits.length >= 3}
+                onKeyDown={(e) => {
+                  if (
+                    e.key === 'Enter' &&
+                    e.currentTarget.value.trim() &&
+                    selectedTraits.length < 3
+                  ) {
+                    handleTraitToggle(e.currentTarget.value.trim());
+                    e.currentTarget.value = '';
+                  }
+                }}
+              />
+              <Button
+                onClick={handleTraitsSubmit}
+                disabled={selectedTraits.length === 0}
+                className="bg-gradient-to-r from-sky to-primary hover:from-sky/90 hover:to-primary/90 text-white shadow-md rounded-lg transition-all duration-200"
+              >
+                <span className="mr-1">Next</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 >
-                  <span className="mr-1">Next</span>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="m9 18 6-6-6-6" />
-                  </svg>
-                </Button>
-              </div>
+                  <path d="m9 18 6-6-6-6" />
+                </svg>
+              </Button>
             </div>
-            <div className="absolute bottom-full right-4 w-2 h-2 bg-midnight-light/50 transform rotate-45 border-r border-b border-sky/20"></div>
-          </motion.div>
-        )}
+          </div>
+        </motion.div>
+      )}
 
-        {/* Traits input */}
-        {currentQuestion === 'traits-question' && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="relative mt-2"
-          >
-            <div className="p-2 bg-midnight-light/50 rounded-lg border border-sky/20">
-              <div className="mb-2">
-                <p className="text-sm text-cloud/90 mb-2">
-                  Selected traits: <span className="text-xs text-sky/70">(max 3)</span>
-                </p>
-                <div className="flex flex-wrap gap-1 mb-2">
-                  {selectedTraits.length > 0 ? (
-                    selectedTraits.map((trait) => (
-                      <span
-                        key={trait}
-                        className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-golden/80 text-midnight"
-                      >
-                        {trait}
-                        <button
-                          onClick={() => handleTraitToggle(trait)}
-                          className="ml-1 text-midnight/70 hover:text-midnight"
-                        >
-                          ×
-                        </button>
-                      </span>
-                    ))
-                  ) : (
-                    <span className="text-xs text-cloud/60">No traits selected yet</span>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex space-x-2">
-                <Input
-                  placeholder="Add a custom trait..."
-                  className="flex-1 border-sky/30 focus-visible:ring-sky/50 bg-midnight-light/80 text-cloud placeholder:text-cloud/50"
-                  disabled={selectedTraits.length >= 3}
-                  onKeyDown={(e) => {
-                    if (
-                      e.key === 'Enter' &&
-                      e.currentTarget.value.trim() &&
-                      selectedTraits.length < 3
-                    ) {
-                      handleTraitToggle(e.currentTarget.value.trim());
-                      e.currentTarget.value = '';
-                    }
-                  }}
-                />
+      {/* Reading level input */}
+      {currentQuestion === 'reading-level-question' && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative mx-2 mb-3"
+        >
+          <div className="p-3 bg-midnight-light/50 rounded-xl border border-sky/20 shadow-inner">
+            <div className="space-y-2">
+              {READING_LEVEL_OPTIONS.map((level) => (
                 <Button
-                  onClick={handleTraitsSubmit}
-                  disabled={selectedTraits.length === 0}
-                  className="bg-gradient-to-r from-sky to-primary hover:from-sky/90 hover:to-primary/90 text-white shadow-sm"
+                  key={level.value}
+                  variant="outline"
+                  className="w-full flex flex-col items-start justify-start p-3 h-auto text-left hover:bg-sky/10 hover:text-sky border-sky/20 text-cloud"
+                  onClick={() =>
+                    handleReadingLevelSelect(level.value as StoryMetadata['readingLevel'])
+                  }
                 >
-                  <span className="mr-1">Next</span>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="m9 18 6-6-6-6" />
-                  </svg>
+                  <span className="font-medium">{level.label}</span>
+                  <span className="text-xs text-cloud/60">{level.description}</span>
                 </Button>
-              </div>
+              ))}
             </div>
-            <div className="absolute bottom-full right-4 w-2 h-2 bg-midnight-light/50 transform rotate-45 border-r border-b border-sky/20"></div>
-          </motion.div>
-        )}
-
-        {/* Reading level input */}
-        {currentQuestion === 'reading-level-question' && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="relative mt-2"
-          >
-            <div className="p-2 bg-midnight-light/50 rounded-lg border border-sky/20">
-              <div className="space-y-2">
-                {READING_LEVEL_OPTIONS.map((level) => (
-                  <Button
-                    key={level.value}
-                    variant="outline"
-                    className="w-full flex flex-col items-start justify-start p-3 h-auto text-left hover:bg-sky/10 hover:text-sky border-sky/20 text-cloud"
-                    onClick={() =>
-                      handleReadingLevelSelect(level.value as StoryMetadata['readingLevel'])
-                    }
-                  >
-                    <span className="font-medium">{level.label}</span>
-                    <span className="text-xs text-cloud/60">{level.description}</span>
-                  </Button>
-                ))}
-              </div>
-            </div>
-            <div className="absolute bottom-full right-4 w-2 h-2 bg-midnight-light/50 transform rotate-45 border-r border-b border-sky/20"></div>
-          </motion.div>
-        )}
-      </Card>
-    </div>
+          </div>
+        </motion.div>
+      )}
+    </Card>
   );
 }

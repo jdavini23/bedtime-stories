@@ -29,7 +29,7 @@ const formatStoryParagraphs = (content: string): React.ReactNode[] => {
           duration: 0.5,
           delay: index * 0.2, // Stagger paragraph animations
         }}
-        className="mb-6 text-lg leading-relaxed text-gray-700 font-serif"
+        className="mb-6 text-lg leading-relaxed text-gray-700 dark:text-cloud/90 font-serif"
       >
         {paragraph.trim()}
       </motion.p>
@@ -77,31 +77,31 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
   // Return early if story is undefined
   if (!story || !story.input) {
     return (
-      <div className="w-full max-w-3xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl p-8 mt-8">
-          <p className="text-gray-700">Story not available</p>
+      <div className="w-full max-w-3xl mx-auto">
+        <div className="bg-white/80 dark:bg-midnight-light/30 backdrop-blur-sm rounded-xl shadow-xl">
+          <p className="text-gray-700 dark:text-cloud/90 p-8">Story not available</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="relative w-full max-w-3xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+    <div className="relative w-full max-w-3xl mx-auto">
       {story && story.input && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl p-8 mt-8"
+          className="rounded-xl overflow-hidden bg-white/80 dark:bg-midnight-light/30 backdrop-blur-sm shadow-xl"
         >
-          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
+          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-sky-500 via-primary to-golden" />
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6">
             <div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-pink-600">
+              <h2 className="text-2xl sm:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-sky to-primary">
                 {story.input.childName || 'Your'}&apos;s Bedtime Story
               </h2>
-              <div className="flex items-center gap-2 mt-2 text-sm text-gray-500">
+              <div className="flex items-center gap-2 mt-2 text-sm text-gray-500 dark:text-cloud/70">
                 <span className="text-lg">{getThemeEmoji(story.input.theme)}</span>
                 <span>•</span>
                 <time dateTime={story.createdAt}>
@@ -120,7 +120,7 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
               {story.input.interests.map((interest) => (
                 <span
                   key={interest}
-                  className="px-3 py-1 text-xs font-medium text-indigo-700 bg-indigo-100 rounded-full"
+                  className="px-3 py-1 text-xs font-medium text-sky-700 dark:text-sky-300 bg-sky-100 dark:bg-sky-900/30 rounded-full shadow-sm"
                 >
                   {interest}
                 </span>
@@ -128,48 +128,53 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
             </div>
           </div>
 
-          <div className="prose prose-lg max-w-none">{formatStoryParagraphs(story.content)}</div>
+          <div
+            className="prose prose-lg max-w-none h-[400px] overflow-y-auto px-6 pb-6 custom-scrollbar"
+            style={{
+              scrollbarWidth: 'thin',
+              scrollbarColor: 'var(--color-primary) rgba(var(--midnight-blue), 0.3)',
+            }}
+          >
+            {formatStoryParagraphs(story.content)}
+          </div>
 
           <TextToSpeech text={story.content} />
 
-          <motion.div
-            className="flex gap-4 mt-8"
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.6 }}
-          >
-            <Button
-              variant="outline"
-              onClick={handleCopy}
-              className="flex-1 transition-all duration-200 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0"
-            >
-              <motion.div>
+          <div className="px-6 pb-6">
+            <div className="grid grid-cols-2 gap-4">
+              <Button
+                variant="outline"
+                onClick={handleCopy}
+                className="transition-all duration-200 bg-gradient-to-r from-sky to-primary hover:from-sky/90 hover:to-primary/90 text-white border-0 shadow-md rounded-lg py-3"
+              >
+                <motion.div>
+                  <motion.span
+                    key={copySuccess ? 'copied' : 'copy'}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {copySuccess ? '✓ Copied!' : 'Copy Story'}
+                  </motion.span>
+                </motion.div>
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleShare}
+                className="transition-all duration-200 bg-gradient-to-r from-sky to-primary hover:from-sky/90 hover:to-primary/90 text-white border-0 shadow-md rounded-lg py-3"
+                disabled={isSharing}
+              >
                 <motion.span
-                  key={copySuccess ? 'copied' : 'copy'}
+                  key={isSharing ? 'sharing' : 'share'}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.2 }}
                 >
-                  {copySuccess ? '✓ Copied!' : 'Copy Story'}
+                  {isSharing ? 'Opening Email...' : 'Share via Email'}
                 </motion.span>
-              </motion.div>
-            </Button>
-            <Button
-              variant="outline"
-              onClick={handleShare}
-              className="flex-1 transition-all duration-200 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0"
-              disabled={isSharing}
-            >
-              <motion.span
-                key={isSharing ? 'sharing' : 'share'}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.2 }}
-              >
-                {isSharing ? 'Opening Email...' : 'Share via Email'}
-              </motion.span>
-            </Button>
-          </motion.div>
+              </Button>
+            </div>
+          </div>
         </motion.div>
       )}
     </div>

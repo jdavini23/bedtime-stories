@@ -27,10 +27,12 @@ const ReadingTime: React.FC<ReadingTimeProps> = ({ text, className = '' }) => {
   };
 
   return (
-    <div className={`flex items-center text-sm text-gray-500 ${className}`}>
+    <div
+      className={`flex items-center text-sm font-medium text-gray-700 dark:text-cloud ${className}`}
+    >
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        className="h-4 w-4 mr-1"
+        className="h-4 w-4 mr-1 text-primary-600 dark:text-primary-400"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -42,7 +44,12 @@ const ReadingTime: React.FC<ReadingTimeProps> = ({ text, className = '' }) => {
           d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
         />
       </svg>
-      <span>{getFormattedTime()} reading time</span>
+      <span>
+        <span className="font-semibold text-primary-600 dark:text-primary-400">
+          {getFormattedTime()}
+        </span>{' '}
+        reading time
+      </span>
     </div>
   );
 };

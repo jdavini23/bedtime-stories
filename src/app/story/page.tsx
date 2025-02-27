@@ -81,12 +81,27 @@ export default function StoryPage() {
   */
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-cloud to-lavender/20 dark:from-midnight dark:to-primary/20 p-4">
-      <div className="container mx-auto py-8">
+    <div className="min-h-screen bg-gradient-to-b from-cloud to-lavender/20 dark:from-midnight dark:to-primary/20 p-4 flex flex-col">
+      <div className="container mx-auto py-6 flex flex-col flex-grow">
         <div className="flex justify-between items-center mb-8">
           <Link href="/">
-            <Button variant="ghost" size="sm">
-              ← Back to Home
+            <Button variant="ghost" size="sm" className="hover:bg-white/10 transition-colors">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mr-1"
+              >
+                <path d="m12 19-7-7 7-7" />
+                <path d="M19 12H5" />
+              </svg>
+              Home
             </Button>
           </Link>
           <h1 className="text-3xl font-bold text-center text-midnight dark:text-text-primary">
@@ -95,7 +110,12 @@ export default function StoryPage() {
           </h1>
           <div className="w-24">
             {!generatedStory && (
-              <Button variant="outline" size="sm" onClick={toggleWizardStyle}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={toggleWizardStyle}
+                className="hover:bg-white/10 transition-colors"
+              >
                 {useConversationalUI ? 'Classic UI' : 'Chat UI'}
               </Button>
             )}
@@ -103,7 +123,7 @@ export default function StoryPage() {
         </div>
 
         {error && (
-          <div className="max-w-3xl mx-auto mb-6 p-4 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 rounded-lg">
+          <div className="max-w-3xl mx-auto mb-6 p-4 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 rounded-lg shadow-md">
             <p className="font-medium">Error: {error}</p>
             <p className="text-sm mt-2">
               Please try again or use different story parameters.
@@ -122,20 +142,25 @@ export default function StoryPage() {
         )}
 
         {generatedStory ? (
-          <div className="max-w-3xl mx-auto">
+          <div className="max-w-3xl mx-auto flex-grow flex items-center flex-col">
             <StoryDisplay story={generatedStory} />
-            <div className="flex justify-center mt-8">
-              <Button onClick={handleCreateNewStory} className="px-6 py-2">
+            <div className="mt-6 mb-4">
+              <Button
+                onClick={handleCreateNewStory}
+                className="px-8 py-3 bg-gradient-to-r from-golden to-golden-light hover:from-golden/90 hover:to-golden-light/90 text-midnight font-medium shadow-dreamy rounded-full transition-all duration-200"
+              >
                 Create Another Story
               </Button>
             </div>
           </div>
         ) : (
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-2xl mx-auto my-auto flex-grow flex items-center">
             {useConversationalUI ? (
               <ConversationalWizard onComplete={handleStoryGeneration} isLoading={isGenerating} />
             ) : (
-              <StoryWizard onComplete={handleStoryGeneration} isLoading={isGenerating} />
+              <div className="bg-white/80 dark:bg-midnight-light/30 rounded-xl shadow-xl p-6 backdrop-blur-sm w-full">
+                <StoryWizard onComplete={handleStoryGeneration} isLoading={isGenerating} />
+              </div>
             )}
           </div>
         )}
