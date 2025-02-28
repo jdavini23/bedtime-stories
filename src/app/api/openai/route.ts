@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs';
 import OpenAI from 'openai';
 import { logger } from '@/utils/logger';
 
@@ -10,6 +11,17 @@ const openai = new OpenAI({
 
 export async function POST(request: NextRequest) {
   try {
+    // Get user ID from Clerk authentication
+    const { userId } = await auth();
+
+    // Check if user is authenticated
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Unauthorized', message: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
     const { operation, params } = await request.json();
 
     // Validate the request
@@ -20,9 +32,9 @@ export async function POST(request: NextRequest) {
     // Handle different OpenAI operations
     switch (operation) {
       case 'generateStory':
-        return await handleGenerateStory(params);
+        return await handleGenerateStory(params, userId);
       case 'chatCompletion':
-        return await handleChatCompletion(params);
+        return await handleChatCompletion(params, userId);
       default:
         return NextResponse.json({ error: `Unsupported operation: ${operation}` }, { status: 400 });
     }
@@ -35,7 +47,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function handleGenerateStory(params: any) {
+async function handleGenerateStory(params: any, userId: string) {
   try {
     const {
       childName,
@@ -98,6 +110,9 @@ async function handleGenerateStory(params: any) {
       max_tokens: 1000,
     });
 
+    // Log the request with user ID
+    logger.info('Story generation request', { userId, childName, theme });
+
     return NextResponse.json({
       content: response.choices[0]?.message?.content || 'Once upon a time...',
       model: response.model,
@@ -109,7 +124,7 @@ async function handleGenerateStory(params: any) {
   }
 }
 
-async function handleChatCompletion(params: any) {
+async function handleChatCompletion(params: any, userId: string) {
   try {
     const { messages, model = 'gpt-3.5-turbo', temperature = 0.7, max_tokens = 500 } = params;
 
@@ -117,6 +132,9 @@ async function handleChatCompletion(params: any) {
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return NextResponse.json({ error: 'Missing or invalid messages parameter' }, { status: 400 });
     }
+
+    // Log the request with user ID
+    logger.info('Chat completion request', { userId, model });
 
     const response = await openai.chat.completions.create({
       model,

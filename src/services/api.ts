@@ -50,7 +50,7 @@ const handleApiError = (error: AxiosError): never => {
       // We're allowing unauthenticated story generation
       /*
       if (typeof window !== 'undefined') {
-        window.location.href = `/auth/signin?redirect_url=${encodeURIComponent(window.location.href)}`;
+        window.location.href = `/sign-in?redirect_url=${encodeURIComponent(window.location.href)}`;
         // Never reached, but TypeScript needs this
         throw new ApiError('Authentication required', 401);
       }

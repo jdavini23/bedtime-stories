@@ -26,7 +26,7 @@ export default function OnboardingPage() {
 
   // Redirect if not authenticated
   if (!isAuthenticated) {
-    redirect('/auth/signin');
+    redirect('/sign-in');
   }
 
   const interestOptions = [

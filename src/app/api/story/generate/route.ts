@@ -33,10 +33,20 @@ export async function POST(req: NextRequest) {
   logger.info('Environment:', { environment: env.NODE_ENV });
 
   try {
-    // TEMPORARY: Skip authentication entirely for now
-    // We'll use a fixed user ID for all requests to simplify debugging
-    const userId = 'anonymous-user';
-    logger.info('Using anonymous user for story generation');
+    // Get user ID from Clerk authentication
+    // If authentication fails, use anonymous user
+    let userId = 'anonymous-user';
+    try {
+      const { userId: authenticatedUserId } = await auth();
+      if (authenticatedUserId) {
+        userId = authenticatedUserId;
+        logger.info('Authenticated user for story generation', { userId });
+      } else {
+        logger.info('Using anonymous user for story generation');
+      }
+    } catch (authError) {
+      logger.warn('Authentication error, using anonymous user', { error: authError });
+    }
 
     let input: StoryInput;
     try {

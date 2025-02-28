@@ -26,6 +26,7 @@ export interface StoryInput {
   language?: string;
   readingLevel?: ReadingLevel;
   themes?: StoryTheme[];
+  userId?: string;
 }
 
 export interface Story {

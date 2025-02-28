@@ -1,10 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs';
 import { userPersonalizationEngine } from '@/services/personalizationEngine';
 import { StoryInput } from '@/types/story';
 import { logger } from '@/utils/logger';
 
 export async function POST(request: NextRequest) {
   try {
+    // Get user ID from Clerk authentication
+    const { userId } = await auth();
+
+    // Check if user is authenticated
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Unauthorized', message: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
     const input: StoryInput = await request.json();
 
     // Validate required fields
@@ -12,11 +24,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Generate story using personalization engine
-    const story = await userPersonalizationEngine.generatePersonalizedStory(input);
+    // Generate story using personalization engine with user ID
+    const story = await userPersonalizationEngine.generatePersonalizedStory({
+      ...input,
+      userId,
+    });
 
     // Log successful story generation
     logger.info('Story generated successfully', {
+      userId,
       childName: input.childName,
       theme: input.theme,
       storyId: story.id,

@@ -13,6 +13,9 @@ import StorybookSvg from '@/components/StorybookSvg';
 import dynamic from 'next/dynamic';
 import ThemeToggleWrapper from '@/components/ThemeToggleWrapper';
 import { TypedText } from '@/components/TypedText';
+import { SignInButton } from '@/components/auth/SignInButton';
+import { SignOutButton } from '@/components/auth/SignOutButton';
+import { useAuth } from '@clerk/nextjs';
 
 // Dynamically import components that are below the fold
 const StoryFeatureGrid = dynamic(
@@ -139,6 +142,7 @@ export default function Home() {
   const [isCarouselPaused, setIsCarouselPaused] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState('fantasy'); // Default theme
   const carouselRef = useRef<HTMLDivElement>(null);
+  const { isLoaded, isSignedIn } = useAuth();
 
   // Handle scroll events for sticky header and progress bar
   useEffect(() => {
@@ -369,18 +373,33 @@ export default function Home() {
                 Pricing
               </a>
               <ThemeToggleWrapper />
+              {isLoaded ? (
+                isSignedIn ? (
+                  <SignOutButton variant="outline" size="sm" className="mr-2">
+                    Sign Out
+                  </SignOutButton>
+                ) : (
+                  <SignInButton redirectUrl="/sign-in" variant="outline" size="sm" className="mr-2">
+                    Sign In
+                  </SignInButton>
+                )
+              ) : (
+                <SignInButton redirectUrl="/sign-in" variant="outline" size="sm" className="mr-2">
+                  Sign In
+                </SignInButton>
+              )}
               <Link href="/story">
-                <Button size="sm" className="ml-4">
+                <Button size="sm" className="ml-2">
                   Start Your Story
                 </Button>
               </Link>
             </div>
 
-            {/* Mobile menu button */}
-            <div className="flex items-center">
+            {/* Mobile menu button - only visible on small screens */}
+            <div className="md:hidden flex items-center">
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className={`md:hidden p-2 rounded-md ${isScrolled ? 'text-primary' : 'text-midnight dark:text-text-primary'}`}
+                className={`p-2 rounded-md ${isScrolled ? 'text-primary' : 'text-midnight dark:text-text-primary'}`}
                 aria-label="Open main menu"
               >
                 <Menu className="h-6 w-6" />
@@ -454,7 +473,27 @@ export default function Home() {
                 <div className="flex justify-center my-2">
                   <ThemeToggleWrapper />
                 </div>
-                <Link href="/story" className="mt-4" onClick={() => setMobileMenuOpen(false)}>
+                {isLoaded ? (
+                  isSignedIn ? (
+                    <SignOutButton variant="outline" fullWidth className="mb-2">
+                      Sign Out
+                    </SignOutButton>
+                  ) : (
+                    <SignInButton
+                      redirectUrl="/sign-in"
+                      variant="outline"
+                      fullWidth
+                      className="mb-2"
+                    >
+                      Sign In
+                    </SignInButton>
+                  )
+                ) : (
+                  <SignInButton redirectUrl="/sign-in" variant="outline" fullWidth className="mb-2">
+                    Sign In
+                  </SignInButton>
+                )}
+                <Link href="/story" className="mt-2" onClick={() => setMobileMenuOpen(false)}>
                   <Button fullWidth>Start Your Story</Button>
                 </Link>
               </nav>

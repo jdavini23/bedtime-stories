@@ -115,7 +115,7 @@ export function ScriptOptimizer({
         </>
       )}
       <div ref={analyticsRef} id="analytics-scripts" data-loaded="false">
-        {loadAnalytics && (
+        {loadAnalytics && process.env.NEXT_PUBLIC_GA_ID && (
           <>
             <Script
               id="google-analytics"

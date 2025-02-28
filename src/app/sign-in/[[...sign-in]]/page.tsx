@@ -33,9 +33,9 @@ export default function SignInPage() {
                 footerActionLink: 'text-blue-600 hover:text-blue-700',
               },
             }}
-            redirectUrl="/dashboard"
             routing="path"
             path="/sign-in"
+            redirectUrl="/dashboard"
           />
         </div>
       </motion.div>

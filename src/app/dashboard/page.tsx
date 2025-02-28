@@ -1,83 +1,51 @@
-'use client';
-
-import React, { Suspense } from 'react';
-import { useAuth } from '@clerk/nextjs';
+import { Suspense } from 'react';
+import { currentUser } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { Book, Wand, Settings } from 'lucide-react';
+import DashboardCards from '@/components/dashboard/DashboardCards';
 
-import DashboardStatisticsSkeleton from '@/components/dashboard/DashboardStatisticsSkeleton';
-import DashboardStatistics from '@/components/dashboard/DashboardStatistics';
+export default async function DashboardPage() {
+  try {
+    console.log('Dashboard: Starting authentication check');
 
-// Client-side authentication check
-export default function DashboardPage() {
-  const { userId } = useAuth();
+    // Get the current user using Clerk's currentUser function
+    // This doesn't require middleware detection like auth() does
+    const user = await currentUser();
 
-  if (!userId) {
-    redirect('/auth/signin');
-  }
+    console.log(
+      'Dashboard: User authentication result:',
+      user ? `Authenticated as ${user.id}` : 'Not authenticated'
+    );
 
-  return <DashboardClientContent userId={userId} />;
-}
+    // If no user is found, redirect to sign-in page
+    if (!user) {
+      console.log('Dashboard: No user found, redirecting to sign-in');
+      redirect('/sign-in');
+    }
 
-// Client-side rendering of dashboard
-function DashboardClientContent({ userId }: { userId: string | null }) {
-  const dashboardCards = [
-    {
-      title: 'Create Story',
-      description: 'Start a new magical adventure',
-      icon: <Wand className="w-8 h-8 text-purple-600" />,
-      link: '/story/create',
-      color: 'bg-purple-50',
-    },
-    {
-      title: 'Story History',
-      description: 'View your generated stories',
-      icon: <Book className="w-8 h-8 text-blue-600" />,
-      link: '/stories',
-      color: 'bg-blue-50',
-    },
-    {
-      title: 'Preferences',
-      description: 'Customize your experience',
-      icon: <Settings className="w-8 h-8 text-green-600" />,
-      link: '/preferences',
-      color: 'bg-green-50',
-    },
-  ];
+    console.log('Dashboard: User authenticated, rendering dashboard');
 
-  return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
-
-      <Suspense fallback={<DashboardStatisticsSkeleton />}>
-        <DashboardStatistics userId={userId} />
-      </Suspense>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-        {dashboardCards.map((card, index) => (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.2 }}
-            className={`${card.color} p-6 rounded-lg shadow-md hover:shadow-lg transition-all`}
-          >
-            <div className="flex items-center mb-4">
-              {card.icon}
-              <h3 className="ml-4 text-lg font-semibold">{card.title}</h3>
-            </div>
-            <p className="text-gray-600">{card.description}</p>
-            <motion.a
-              href={card.link}
-              whileHover={{ scale: 1.05 }}
-              className="block mt-4 text-blue-600 hover:text-blue-800 font-medium"
-            >
-              Explore
-            </motion.a>
-          </motion.div>
-        ))}
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
+        <Suspense fallback={<div>Loading dashboard...</div>}>
+          <DashboardCards />
+        </Suspense>
       </div>
-    </div>
-  );
+    );
+  } catch (error) {
+    console.error('Dashboard authentication error:', error);
+
+    // Log detailed error information
+    if (error instanceof Error) {
+      console.error('Error name:', error.name);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+    } else {
+      console.error('Unknown error type:', typeof error);
+    }
+
+    // Redirect to sign-in page if there's an authentication error
+    console.log('Dashboard: Redirecting to sign-in with error parameter');
+    redirect('/sign-in?error=auth_error');
+  }
 }

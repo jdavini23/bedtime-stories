@@ -1,8 +1,9 @@
 import React from 'react';
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
-import { SpeedInsights } from '@vercel/speed-insights/react';
-import { Analytics } from '@vercel/analytics/react';
+// Import these after installing the packages
+// import { SpeedInsights } from '@vercel/speed-insights/react';
+// import { Analytics } from '@vercel/analytics/react';
 import './globals.css';
 import { Providers } from '@/providers/Providers';
 import { ClerkProvider } from '@clerk/nextjs';
@@ -19,10 +20,15 @@ const inter = Inter({
 export const dynamic = 'force-static';
 
 export const metadata: Metadata = {
-  title: 'Step Into Story Time',
-  description: 'Personalized, AI-powered bedtime stories for your child—crafted in seconds.',
+  title: {
+    default: 'Step Into Story Time',
+    template: '%s | Step Into Story Time',
+  },
+  description: 'Interactive AI-powered bedtime stories for children',
   icons: {
-    icon: '/favicon.svg',
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/apple-icon.png',
   },
   manifest: '/manifest.json',
 };
@@ -49,7 +55,14 @@ export default function RootLayout({ children }: RootLayoutProps): React.JSX.Ele
         <PreloadResources />
       </head>
       <body className={inter.className}>
-        <ClerkProvider>
+        <ClerkProvider
+          publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+          appearance={{
+            baseTheme: undefined,
+          }}
+          signInUrl="/sign-in"
+          signUpUrl="/sign-up"
+        >
           <Providers>
             <ErrorBoundary
               fallback={
@@ -57,8 +70,8 @@ export default function RootLayout({ children }: RootLayoutProps): React.JSX.Ele
               }
             >
               {children}
-              <SpeedInsights />
-              <Analytics />
+              {/* <SpeedInsights />
+              <Analytics /> */}
               <ScriptOptimizer />
             </ErrorBoundary>
           </Providers>
