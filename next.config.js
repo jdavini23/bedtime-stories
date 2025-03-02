@@ -3,6 +3,7 @@ const { withSentryConfig } = require('@sentry/nextjs');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  productionBrowserSourceMaps: true,
   reactStrictMode: true,
   // Add assetPrefix to ensure static assets are loaded from the correct port
   assetPrefix: process.env.NODE_ENV === 'development' ? '' : undefined,
@@ -37,6 +38,10 @@ const nextConfig = {
       'class-variance-authority',
       'tailwind-merge',
     ],
+  },
+  typescript: {
+    // Ignore type errors during build (we'll handle them separately)
+    ignoreBuildErrors: false,
   },
   webpack: (config, { dev, isServer }) => {
     // Resolve module not found issues
@@ -97,6 +102,13 @@ const nextConfig = {
       );
     }
 
+    config.performance = {
+      hints: false,
+    };
+
+    // Improve source map generation
+    config.devtool = 'source-map';
+
     return config;
   },
   images: {
@@ -112,10 +124,6 @@ const nextConfig = {
     // Enable image optimization
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 60,
-  },
-  typescript: {
-    // Ignore type errors during build (we'll handle them separately)
-    ignoreBuildErrors: true,
   },
   // Add compression for responses
   compress: true,

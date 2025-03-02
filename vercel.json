@@ -1,7 +1,7 @@
 {
   "version": 2,
   "buildCommand": "npm run build",
-  "installCommand": "npm install",
+  "installCommand": "npm ci",
   "devCommand": "npm run dev",
   "framework": "nextjs",
   "env": {
@@ -62,5 +62,6 @@
     "src/app/api/story/generate/route.ts": {
       "maxDuration": 30
     }
-  }
+  },
+  "outputDirectory": ".next"
 }
