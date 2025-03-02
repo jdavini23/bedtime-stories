@@ -67,6 +67,13 @@ function generateBatchCommands(envVars) {
   return commands.join('\n');
 }
 
+// Mask sensitive values for display
+function maskSensitiveValue(value) {
+  if (!value) return '';
+  if (value.length <= 8) return '********';
+  return value.substring(0, 4) + '****' + value.substring(value.length - 4);
+}
+
 // Main function
 function setupLocalEnv() {
   console.log(`${colors.cyan}${colors.bold}Local Environment Setup${colors.reset}\n`);
@@ -128,29 +135,26 @@ function setupLocalEnv() {
     `${colors.yellow}Run these commands in your terminal to set the environment variables:${colors.reset}\n`
   );
 
-  console.log(`${colors.cyan}PowerShell:${colors.reset}`);
-  console.log('```powershell');
-  console.log(generatePowerShellCommands(localEnv));
-  console.log('```');
+  // Display masked values for sensitive environment variables
+  console.log(`${colors.cyan}Environment Variables (masked for security):${colors.reset}`);
+  Object.entries(localEnv).forEach(([key, value]) => {
+    console.log(`  ${key}: ${maskSensitiveValue(value)}`);
+  });
+
+  console.log(`\n${colors.cyan}PowerShell:${colors.reset}`);
+  console.log('Run the following command to generate a PowerShell script:');
+  console.log(`${colors.green}npm run generate:env-script -- --type=powershell${colors.reset}`);
 
   console.log(`\n${colors.cyan}Command Prompt (CMD):${colors.reset}`);
-  console.log('```batch');
-  console.log(generateBatchCommands(localEnv));
-  console.log('```');
-
-  // Create a temporary script file
-  const tempScriptPath = path.join(process.cwd(), 'temp-env-setup.ps1');
-  fs.writeFileSync(tempScriptPath, generatePowerShellCommands(localEnv));
+  console.log('Run the following command to generate a CMD script:');
+  console.log(`${colors.green}npm run generate:env-script -- --type=cmd${colors.reset}`);
 
   console.log(`\n${colors.cyan}${colors.bold}Next Steps${colors.reset}`);
-  console.log(`1. A temporary PowerShell script has been created at ${tempScriptPath}`);
-  console.log(`2. Run the script in your terminal to set the environment variables:`);
-  console.log(`   ${colors.green}. ./temp-env-setup.ps1${colors.reset}`);
   console.log(
-    `3. Run ${colors.green}npm run verify:deployment${colors.reset} again to verify your deployment`
+    `1. Run ${colors.green}npm run verify:deployment${colors.reset} to verify your deployment`
   );
   console.log(
-    `\n${colors.yellow}Note: The environment variables will only be set for the current terminal session.${colors.reset}`
+    `\n${colors.yellow}Note: The environment variables will only be set for the current process.${colors.reset}`
   );
 }
 

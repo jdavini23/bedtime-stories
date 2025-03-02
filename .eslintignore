@@ -1,0 +1,21 @@
+# Ignore node_modules
+node_modules/
+
+# Ignore build output
+.next/
+out/
+build/
+
+# Ignore browser-tools-mcp
+browser-tools-mcp/
+
+# Ignore API routes for now
+src/app/api/
+
+# Ignore auth pages for now
+src/app/auth/
+src/app/auth-test/
+
+# Ignore environment setup scripts
+env-setup*
+temp-env-setup* 

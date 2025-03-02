@@ -43,7 +43,8 @@
     "restore:sentry": "node scripts/restore-sentry.js",
     "setup:local": "node scripts/setup-local-env.js",
     "fix:verify": "node scripts/fix-verify-env.js",
-    "fix:deployment": "node scripts/fix-deployment.js"
+    "fix:deployment": "node scripts/fix-deployment.js",
+    "generate:env-script": "node scripts/generate-env-script.js"
   },
   "dependencies": {
     "@agentdeskai/browser-tools-mcp": "^1.0.11",
@@ -119,10 +120,7 @@
     "webpack-bundle-analyzer": "^4.10.2"
   },
   "lint-staged": {
-    "**/*": [
-      "prettier --write --ignore-unknown",
-      "eslint --fix"
-    ]
+    "**/*": ["prettier --write --ignore-unknown", "eslint --fix"]
   },
   "engines": {
     "node": "22.x",

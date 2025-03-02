@@ -50,3 +50,10 @@ Thumbs.db
 clerk.json
 browser-tools-mcp/
 perplexity-mcp/
+
+# Environment setup scripts
+temp-env-setup*
+env-setup*
+*.ps1
+*.bat
+*.sh
