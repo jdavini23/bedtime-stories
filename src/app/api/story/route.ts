@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs';
+import { getAuth } from '@clerk/nextjs/server';
 import { userPersonalizationEngine } from '@/services/personalizationEngine';
 import { StoryInput } from '@/types/story';
 import { logger } from '@/utils/logger';
@@ -7,7 +7,8 @@ import { logger } from '@/utils/logger';
 export async function POST(request: NextRequest) {
   try {
     // Get user ID from Clerk authentication
-    const { userId } = await auth();
+    const auth = getAuth();
+    const { userId } = auth;
 
     // Check if user is authenticated
     if (!userId) {

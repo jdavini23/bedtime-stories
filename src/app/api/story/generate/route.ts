@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { serverUserPersonalizationEngine } from '@/services/serverPersonalizationEngine';
 import { StoryInput } from '@/types/story';
-import { auth } from '@clerk/nextjs';
+import { getAuth } from '@clerk/nextjs/server';
 import { generateStory } from '@/lib/storyGenerator';
 import { logger } from '@/utils/logger';
 import { env } from '@/lib/env';
@@ -37,7 +37,8 @@ export async function POST(req: NextRequest) {
     // If authentication fails, use anonymous user
     let userId = 'anonymous-user';
     try {
-      const { userId: authenticatedUserId } = await auth();
+      const auth = getAuth();
+      const { userId: authenticatedUserId } = auth;
       if (authenticatedUserId) {
         userId = authenticatedUserId;
         logger.info('Authenticated user for story generation', { userId });
@@ -47,7 +48,6 @@ export async function POST(req: NextRequest) {
     } catch (authError) {
       logger.warn('Authentication error, using anonymous user', { error: authError });
     }
-
     let input: StoryInput;
     try {
       const jsonData = await req.json();

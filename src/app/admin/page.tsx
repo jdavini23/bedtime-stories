@@ -1,4 +1,5 @@
-import { auth, currentUser } from '@clerk/nextjs';
+import { currentUser } from '@clerk/nextjs/server';
+import { getAuth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { isAdmin } from '@/utils/auth';
@@ -6,7 +7,8 @@ import { isAdmin } from '@/utils/auth';
 export default async function AdminDashboardPage() {
   try {
     // Get authentication data
-    const { userId } = await auth();
+    const auth = getAuth();
+    const { userId } = auth;
 
     // Redirect if not authenticated
     if (!userId) {

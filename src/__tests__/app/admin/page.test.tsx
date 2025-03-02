@@ -1,12 +1,15 @@
 import { render, screen } from '@testing-library/react';
 import AdminDashboardPage from '@/app/admin/page';
-import { auth, currentUser } from '@clerk/nextjs';
+import { auth, getAuth } from '@clerk/nextjs/server';
+import { currentUser } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import { isAdmin } from '@/utils/auth';
 
 // Mock the Clerk auth and Next.js navigation
-jest.mock('@clerk/nextjs', () => ({
-  auth: jest.fn(),
+jest.mock('@clerk/nextjs/server', () => ({
+  getAuth: jest.fn(() => ({
+    userId: 'test-user-id'
+  })),
   currentUser: jest.fn(),
 }));
 
@@ -24,7 +27,7 @@ describe('AdminDashboardPage', () => {
   });
 
   it('redirects to sign-in if not authenticated', async () => {
-    (auth as jest.Mock).mockReturnValue({ userId: null });
+    (getAuth as jest.Mock).mockReturnValue({ userId: null });
 
     await AdminDashboardPage();
 
@@ -32,7 +35,7 @@ describe('AdminDashboardPage', () => {
   });
 
   it('shows access denied for non-admin users', async () => {
-    (auth as jest.Mock).mockReturnValue({ userId: 'user_123' });
+    (getAuth as jest.Mock).mockReturnValue({ userId: 'user_123' });
     (currentUser as jest.Mock).mockResolvedValue({
       id: 'user_123',
       firstName: 'John',
@@ -50,7 +53,7 @@ describe('AdminDashboardPage', () => {
   });
 
   it('renders admin dashboard for admin users', async () => {
-    (auth as jest.Mock).mockReturnValue({ userId: 'user_123' });
+    (getAuth as jest.Mock).mockReturnValue({ userId: 'user_123' });
     (currentUser as jest.Mock).mockResolvedValue({
       id: 'user_123',
       firstName: 'John',

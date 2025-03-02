@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs';
+import { getAuth } from '@clerk/nextjs/server';
 import OpenAI from 'openai';
 import { logger } from '@/utils/logger';
 
@@ -12,7 +12,8 @@ const openai = new OpenAI({
 export async function POST(request: NextRequest) {
   try {
     // Get user ID from Clerk authentication
-    const { userId } = await auth();
+    const auth = getAuth();
+    const { userId } = auth;
 
     // Check if user is authenticated
     if (!userId) {
