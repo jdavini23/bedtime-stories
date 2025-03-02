@@ -8,7 +8,7 @@ import { isAdmin } from '@/utils/auth';
 // Mock the Clerk auth and Next.js navigation
 jest.mock('@clerk/nextjs/server', () => ({
   getAuth: jest.fn(() => ({
-    userId: 'test-user-id'
+    userId: 'test-user-id',
   })),
   currentUser: jest.fn(),
 }));

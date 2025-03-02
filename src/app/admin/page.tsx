@@ -7,7 +7,7 @@ import { isAdmin } from '@/utils/auth';
 export default async function AdminDashboardPage() {
   try {
     // Get authentication data
-    const auth = getAuth();
+    const auth = getAuth({ request: null });
     const { userId } = auth;
 
     // Redirect if not authenticated

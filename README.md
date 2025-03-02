@@ -20,13 +20,17 @@ A Next.js application that generates personalized bedtime stories for children u
 - **AI**: OpenAI GPT-3.5 Turbo
 - **Deployment**: Vercel
 - **Testing**: Vitest
+- **Monitoring**: Sentry
+- **Analytics**: Vercel Analytics & Speed Insights
+- **Security**: TruffleHog, npm audit
 
 ## Project Structure
 
-- Node.js 20+
+- Node.js 22+
 - npm 10+
 - Clerk Account
 - OpenAI API Key (required for AI story generation)
+- Sentry Account (for error tracking and monitoring)
 
 ## Environment Variables
 
@@ -47,6 +51,9 @@ ENABLE_CACHING=true
 # Performance
 STORY_CACHE_TTL_SECONDS=86400
 API_TIMEOUT_MS=25000
+
+# Sentry
+NEXT_PUBLIC_SENTRY_DSN=your_sentry_dsn
 ```
 
 ## Getting Started
@@ -99,6 +106,9 @@ Generates a personalized bedtime story.
 - `npm run lint`: Run ESLint
 - `npm run type:check`: Run TypeScript type checking
 - `npm run validate`: Run comprehensive project validation
+- `npm run verify:deployment`: Verify deployment configuration
+- `npm run deploy:prepare`: Prepare for deployment (clean, build, verify)
+- `npm run test:sentry`: Test Sentry integration
 
 ## Testing
 
@@ -113,6 +123,7 @@ Generates a personalized bedtime story.
 - Clerk for secure authentication
 - Vercel Speed Insights
 - Vercel Analytics
+- Sentry for error tracking and performance monitoring
 
 ## OpenAI Integration
 
@@ -128,6 +139,114 @@ For development and testing without incurring API costs:
 
 - The application includes a fallback mock story generator
 - Set `NEXT_PUBLIC_OPENAI_API_KEY=mock` to always use the mock generator
+
+## Deployment
+
+### Deployment Checklist
+
+Before deploying, run the deployment checklist to ensure everything is properly configured:
+
+```bash
+# View the complete deployment checklist
+cat DEPLOYMENT.md
+```
+
+### Security Check
+
+Run the security check to scan for vulnerabilities and potential security issues:
+
+```bash
+npm run security:check
+```
+
+This will:
+
+- Check for sensitive information in environment files
+- Run npm audit to find vulnerable dependencies
+- Check for outdated dependencies
+- Scan for potential hardcoded secrets in code
+
+### Environment Verification
+
+Verify that all required environment variables are set:
+
+```bash
+npm run verify:env
+```
+
+This will check both development (.env.local) and production (.env.production) environment variables
+and ensure they are properly configured.
+
+### Deployment Steps
+
+#### Option 1: One-step Deployment
+
+Use the all-in-one deployment script:
+
+```bash
+npm run deploy
+```
+
+This script will:
+
+1. Verify deployment readiness
+2. Clean the build directory
+3. Build the application with Sentry source maps
+4. Deploy to Vercel
+
+#### Option 2: Step-by-step Deployment
+
+If you prefer to run the deployment steps individually:
+
+1. **Verify deployment configuration**:
+
+   ```bash
+   npm run verify:deployment
+   ```
+
+2. **Prepare for deployment**:
+
+   ```bash
+   npm run deploy:prepare
+   ```
+
+3. **Deploy to Vercel**:
+   ```bash
+   npm run deploy:vercel
+   ```
+
+### Environment Variables for Production
+
+Create a `.env.production` file with the following variables:
+
+```
+# Sentry DSN (use environment variable in production)
+NEXT_PUBLIC_SENTRY_DSN=${SENTRY_DSN}
+
+# App Configuration
+NEXT_PUBLIC_APP_URL=${VERCEL_URL}
+
+# Disable source maps in production (they'll be uploaded to Sentry)
+GENERATE_SOURCEMAP=false
+
+# Enable Sentry tracing in production
+NEXT_PUBLIC_SENTRY_TRACE_SAMPLE_RATE=0.1
+```
+
+### Sentry Integration
+
+The application uses Sentry for error tracking and performance monitoring. To set up Sentry:
+
+1. Create a Sentry account at [Sentry.io](https://sentry.io)
+2. Create a new project for JavaScript Next.js
+3. Copy the DSN into your environment variables
+4. Configure Sentry in your Vercel project settings:
+   - Add the `SENTRY_AUTH_TOKEN` to your Vercel environment variables
+   - Add the `SENTRY_ORG` and `SENTRY_PROJECT` to your Vercel environment variables
+5. Test the Sentry integration:
+   ```bash
+   npm run test:sentry
+   ```
 
 ## Contributing
 

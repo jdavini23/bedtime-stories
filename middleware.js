@@ -1,4 +1,4 @@
-// Middleware for Clerk authentication
+// Root middleware for Clerk authentication
 import { clerkMiddleware } from '@clerk/nextjs/server';
 
 // Export the middleware function

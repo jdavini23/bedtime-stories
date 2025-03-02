@@ -5,7 +5,9 @@
   "devCommand": "npm run dev",
   "framework": "nextjs",
   "env": {
-    "NODE_OPTIONS": "--max_old_space_size=4096"
+    "NODE_OPTIONS": "--max_old_space_size=4096",
+    "GENERATE_SOURCEMAP": "false",
+    "NEXT_TELEMETRY_DISABLED": "1"
   },
   "regions": ["iad1"],
   "headers": [
@@ -55,6 +57,24 @@
           "value": "86400"
         }
       ]
+    },
+    {
+      "source": "/_next/data/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, stale-while-revalidate=86400"
+        }
+      ]
+    },
+    {
+      "source": "/monitoring/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        }
+      ]
     }
   ],
   "crons": [],
@@ -63,5 +83,13 @@
       "maxDuration": 30
     }
   },
-  "outputDirectory": ".next"
+  "outputDirectory": ".next",
+  "build": {
+    "env": {
+      "NEXT_PUBLIC_SENTRY_DSN": "SENTRY_DSN_PLACEHOLDER",
+      "SENTRY_AUTH_TOKEN": "SENTRY_AUTH_TOKEN_PLACEHOLDER",
+      "SENTRY_ORG": "davini",
+      "SENTRY_PROJECT": "javascript-nextjs"
+    }
+  }
 }

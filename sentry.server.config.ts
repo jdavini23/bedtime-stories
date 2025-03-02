@@ -5,11 +5,26 @@
 import * as Sentry from '@sentry/nextjs';
 
 Sentry.init({
-  dsn: 'https://6be9bad91dcc5fc439c21c9509b8a906@o4508639001313280.ingest.us.sentry.io/4508881880875008',
+  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
 
-  // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
+  // Adjust this value in production, or use tracesSampler for greater control
   tracesSampleRate: 1,
 
   // Setting this option to true will print useful information to the console while you're setting up Sentry.
   debug: false,
+
+  // Ensure source maps work correctly
+  attachStacktrace: true,
+  normalizeDepth: 10,
+  autoSessionTracking: true,
+
+  // Prevent source map issues
+  ignoreErrors: [
+    // Common errors
+    'top.GLOBALS',
+    'chrome-extension',
+    /^ResizeObserver loop/,
+    /^Network request failed/,
+    'Non-Error promise rejection captured',
+  ],
 });

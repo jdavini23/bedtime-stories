@@ -1,0 +1,22 @@
+[defaults]
+org=davini
+project=javascript-nextjs
+
+[auth]
+; Get this from your Sentry account settings
+token=${SENTRY_AUTH_TOKEN}
+
+[upload]
+wait=true
+upload_sources=true
+source_maps=true
+rewrite=true
+validate=true
+url_prefix=~/_next
+include_sources=true
+strip_common_prefix=true
+debug=false
+
+[sourcemaps]
+assets=.next/**/*.map
+filesToDeleteAfterUpload=.next/**/*.map

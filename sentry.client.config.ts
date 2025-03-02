@@ -5,11 +5,41 @@
 import * as Sentry from '@sentry/nextjs';
 
 Sentry.init({
-  dsn: 'https://6be9bad91dcc5fc439c21c9509b8a906@o4508639001313280.ingest.us.sentry.io/4508881880875008',
+  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
 
-  // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
+  // Adjust this value in production, or use tracesSampler for greater control
   tracesSampleRate: 1,
 
   // Setting this option to true will print useful information to the console while you're setting up Sentry.
   debug: false,
+
+  replaysOnErrorSampleRate: 1.0,
+
+  // This sets the sample rate to be 10%. You may want this to be 100% while
+  // in development and sample at a lower rate in production
+  replaysSessionSampleRate: 0.1,
+
+  // You can remove this option if you're not planning to use the Sentry Session Replay feature:
+  integrations: [
+    new Sentry.Replay({
+      // Additional Replay configuration goes here, for example:
+      maskAllText: true,
+      blockAllMedia: true,
+    }),
+  ],
+
+  // Ensure source maps work correctly
+  attachStacktrace: true,
+  normalizeDepth: 10,
+  autoSessionTracking: true,
+
+  // Prevent source map issues
+  ignoreErrors: [
+    // Common browser extension errors
+    'top.GLOBALS',
+    'chrome-extension',
+    /^ResizeObserver loop/,
+    /^Network request failed/,
+    'Non-Error promise rejection captured',
+  ],
 });
