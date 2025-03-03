@@ -32,7 +32,7 @@ creation wizard, personalize preferences, and retrieve saved stories from their 
 
 - **Frontend:** Next.js 14 (App Router), Tailwind CSS, Framer Motion
 - **Backend:** Next.js API Routes (Serverless), Vercel Edge Functions
-- **Database:** PostgreSQL (Prisma ORM)
+- **Database:** PostgreSQL (Prisma ORM) or Supabase
 - **Authentication:** Clerk
 - **State Management:** React Query, Zustand/Context API
 - **Hosting & Deployment:** Vercel

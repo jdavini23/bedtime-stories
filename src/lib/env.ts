@@ -15,7 +15,6 @@ interface EnvSchema {
 
   // API keys and external services
   OPENAI_API_KEY: string;
-  NEXT_PUBLIC_OPENAI_API_KEY: string;
 
   // Vercel KV (Redis) configuration
   KV_REST_API_URL: string;
@@ -77,7 +76,7 @@ export const env: EnvSchema = {
 
   // API keys and external services
   OPENAI_API_KEY: getEnvVar('OPENAI_API_KEY', ''),
-  NEXT_PUBLIC_OPENAI_API_KEY: getEnvVar('NEXT_PUBLIC_OPENAI_API_KEY', ''),
+  // Removed NEXT_PUBLIC_OPENAI_API_KEY as it's not in EnvSchema interface
 
   // Vercel KV (Redis) configuration
   KV_REST_API_URL: getEnvVar('KV_REST_API_URL', ''),
