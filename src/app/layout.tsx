@@ -16,6 +16,7 @@ import { ScriptOptimizer } from '@/components/ScriptOptimizer';
 const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
+  variable: '--font-inter',
 });
 
 export const dynamic = 'force-static';
@@ -44,30 +45,28 @@ interface RootLayoutProps {
 
 export default function RootLayout({ children }: RootLayoutProps): React.JSX.Element {
   return (
-    <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <CriticalCSS />
-        <PreloadResources />
-        <Script id="critical-script" strategy="beforeInteractive" src="/scripts/critical.js" />
-      </head>
-      <body className={inter.className}>
-        <ClerkProvider>
-          <Providers>
-            <ErrorBoundary
-              fallback={
-                <div className="p-4 text-red-500">Something went wrong. Please try again.</div>
-              }
-            >
+    <ClerkProvider>
+      <html lang="en" suppressHydrationWarning className={inter.variable}>
+        <head>
+          <PreloadResources />
+          <CriticalCSS />
+          <Script id="critical-script" strategy="beforeInteractive" src="/scripts/critical.js" />
+        </head>
+        <body className={inter.className}>
+          <ErrorBoundary
+            fallback={
+              <div className="p-4 text-red-500">Something went wrong. Please try again.</div>
+            }
+          >
+            <Providers>
               {children}
               {/* <SpeedInsights />
               <Analytics /> */}
               <ScriptOptimizer />
-            </ErrorBoundary>
-          </Providers>
-        </ClerkProvider>
-      </body>
-    </html>
+            </Providers>
+          </ErrorBoundary>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

@@ -1,9 +1,18 @@
-import React from 'react';
+'use client';
+import React, { useEffect, useState } from 'react';
 
 export function CriticalCSS() {
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
   return (
     <>
       <style
+        type="text/css"
+        data-hydrated={isHydrated}
         dangerouslySetInnerHTML={{
           __html: `
         /* Critical CSS for above-the-fold content */
@@ -29,9 +38,10 @@ export function CriticalCSS() {
         body {
           margin: 0;
           padding: 0;
-          font-family: 'Quicksand', sans-serif;
+          font-family: var(--font-inter), 'Quicksand', sans-serif;
           background: var(--color-background);
           color: var(--color-text);
+          opacity: 1 !important;
         }
         
         /* Critical layout styles */
@@ -62,6 +72,7 @@ export function CriticalCSS() {
           line-height: 2.5rem;
           font-weight: 700;
           margin-top: 0;
+          opacity: 1 !important;
         }
         
         @media (min-width: 768px) {
@@ -105,6 +116,13 @@ export function CriticalCSS() {
           100% {
             background-position: 200% 0;
           }
+        }
+
+        /* Prevent FOUC during hydration */
+        [data-hydrated="false"] * {
+          animation: none !important;
+          opacity: 0 !important;
+          transition: none !important;
         }
       `,
         }}

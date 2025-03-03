@@ -63,7 +63,7 @@ export default {
         foreground: 'var(--foreground)',
       },
       fontFamily: {
-        sans: ['Quicksand', 'Poppins', 'sans-serif'],
+        sans: ['Inter', 'Quicksand', 'Poppins', 'sans-serif'],
         dyslexic: ['OpenDyslexic', 'Quicksand', 'sans-serif'],
       },
       fontSize: {
@@ -98,6 +98,9 @@ export default {
           '0%': { transform: 'rotateY(0deg)', transformOrigin: 'left' },
           '100%': { transform: 'rotateY(-180deg)', transformOrigin: 'left' },
         },
+      },
+      backgroundImage: {
+        'hero-pattern': "url('/images/hero-bg.webp')",
       },
     },
   },

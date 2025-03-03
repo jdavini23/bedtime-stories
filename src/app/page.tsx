@@ -384,7 +384,7 @@ export default function Home() {
             </div>
 
             {/* Mobile menu button - only visible on small screens */}
-            <div className="md:hidden flex items-center">
+            <div className="flex md:hidden items-center">
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className={`p-2 rounded-md ${isScrolled ? 'text-primary' : 'text-midnight dark:text-text-primary'}`}
@@ -508,8 +508,18 @@ export default function Home() {
       </div>
 
       {/* Hero Section */}
-      <section className="relative py-20 px-8 overflow-hidden">
+      <section className="relative py-20 px-8 overflow-hidden bg-hero-pattern">
         <div className="absolute inset-0 z-0 opacity-10">
+          {/* Add hero background image */}
+          <Image
+            src="/images/hero-bg.webp"
+            alt="Background pattern"
+            fill
+            priority
+            className="object-cover opacity-20"
+            sizes="100vw"
+            quality={60}
+          />
           <div className="absolute top-10 left-10 w-20 h-20 rounded-full bg-dreamy animate-float"></div>
           <div className="absolute top-40 right-20 w-16 h-16 rounded-full bg-golden animate-float delay-150"></div>
           <div className="absolute bottom-20 left-1/4 w-24 h-24 rounded-full bg-primary animate-float delay-300"></div>
