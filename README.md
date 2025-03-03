@@ -266,3 +266,54 @@ GitHub: [@jdavini23](https://github.com/jdavini23)
 
 Project Link:
 [https://github.com/jdavini23/bedtime-stories](https://github.com/jdavini23/bedtime-stories)
+
+## Row Level Security (RLS) Policies
+
+This project uses Supabase's Row Level Security (RLS) to protect data access. RLS ensures that users
+can only access their own data, and unauthenticated users cannot access any data.
+
+### RLS Status
+
+The current RLS configuration provides the following security:
+
+1. **Unauthenticated users:**
+
+   - Cannot insert, update, or delete data in any table
+   - Cannot view data in any table (empty results are returned)
+
+2. **Authenticated users:**
+
+   - Can only view, insert, update, and delete their own data
+   - Cannot access other users' data
+
+3. **Service role (admin):**
+   - Has full access to all tables for administrative operations
+
+### Testing RLS Policies
+
+To test the RLS policies, run:
+
+```bash
+node simple-rls-test.js
+```
+
+This script will check if unauthenticated users can access or modify data in the database.
+
+### Applying RLS Policies
+
+If the RLS policies need to be updated, follow these steps:
+
+1. Go to the Supabase dashboard at https://supabase.com/dashboard
+2. Select your project
+3. Navigate to the SQL Editor
+4. Create a new query
+5. Copy and paste the contents of the `deny-all-access.sql` file
+6. Run the SQL script
+
+### RLS Policy Best Practices
+
+1. Always enable RLS on all tables in public schemas
+2. Create policies that restrict access based on authentication status
+3. Use `auth.uid()` to match the authenticated user with the appropriate records
+4. Test your policies with both authenticated and unauthenticated users
+5. Consider adding service role policies for admin operations
