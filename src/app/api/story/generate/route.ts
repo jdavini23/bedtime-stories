@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { serverUserPersonalizationEngine } from '@/services/serverPersonalizationEngine';
 import { StoryInput } from '@/types/story';
-import { getAuth } from '@clerk/nextjs/server';
 import { generateStory } from '@/lib/storyGenerator';
 import { logger } from '@/utils/logger';
 import { env } from '@/lib/env';
 import { devAuthMiddleware } from '@/middleware/devAuth';
+import { createSupabaseClient } from '@/lib/supabase';
 
 // Add CORS headers to all responses
 function addCorsHeaders(response: NextResponse): NextResponse {
@@ -33,21 +33,10 @@ export async function POST(req: NextRequest) {
   logger.info('Environment:', { environment: env.NODE_ENV });
 
   try {
-    // Get user ID from Clerk authentication
-    // If authentication fails, use anonymous user
-    let userId = 'anonymous-user';
-    try {
-      const auth = getAuth();
-      const { userId: authenticatedUserId } = auth;
-      if (authenticatedUserId) {
-        userId = authenticatedUserId;
-        logger.info('Authenticated user for story generation', { userId });
-      } else {
-        logger.info('Using anonymous user for story generation');
-      }
-    } catch (authError) {
-      logger.warn('Authentication error, using anonymous user', { error: authError });
-    }
+    // Get user ID from request headers (set by middleware)
+    let userId = req.headers.get('x-clerk-auth-user-id') || 'anonymous-user';
+    logger.info('User ID for story generation', { userId });
+
     let input: StoryInput;
     try {
       const jsonData = await req.json();
@@ -131,6 +120,37 @@ export async function POST(req: NextRequest) {
           { status: 500 }
         )
       );
+    }
+
+    // Store the generated story temporarily in Supabase
+    try {
+      if (userId !== 'anonymous-user') {
+        const supabase = createSupabaseClient();
+
+        // Check if user exists in our database
+        const { data: userData } = await supabase
+          .from('users')
+          .select('id')
+          .eq('auth_id', userId)
+          .single();
+
+        if (userData) {
+          // Store the story with temporary flag
+          await supabase.from('stories').insert({
+            title: story.title || 'Untitled Story',
+            content: JSON.stringify(story),
+            user_id: userData.id,
+            // Add any additional metadata as needed
+          });
+
+          logger.info('Story stored in Supabase', { userId });
+        } else {
+          logger.warn('User not found in database, skipping story storage', { userId });
+        }
+      }
+    } catch (storageError) {
+      // Don't fail the request if storage fails
+      logger.error('Error storing story in Supabase:', { error: storageError });
     }
 
     return addCorsHeaders(NextResponse.json(story));

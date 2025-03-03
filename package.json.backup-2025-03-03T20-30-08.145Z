@@ -46,9 +46,8 @@
     "setup:local": "node scripts/setup-local-env.js",
     "fix:verify": "node scripts/fix-verify-env.js",
     "fix:deployment": "node scripts/fix-deployment.js",
-    "postinstall": "node scripts/handle-postinstall.js",
-    "prepare": "node scripts/handle-prepare.js",
-    "prepare:vercel": "node scripts/prepare-for-vercel.js"
+    "postinstall": "if [ \"$VERCEL\" != \"1\" ]; then husky install; fi || true",
+    "prepare": "if [ \"$VERCEL\" != \"1\" ]; then husky install; fi || true"
   },
   "dependencies": {
     "@agentdeskai/browser-tools-mcp": "^1.0.11",

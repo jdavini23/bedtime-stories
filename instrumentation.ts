@@ -2,17 +2,23 @@ import * as Sentry from '@sentry/nextjs';
 
 export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
-    const { NodeSDK } = await import('@opentelemetry/sdk-node');
-    const { Resource } = await import('@opentelemetry/resources');
-    const { SemanticResourceAttributes } = await import('@opentelemetry/semantic-conventions');
+    try {
+      const { NodeSDK } = await import('@opentelemetry/sdk-node');
+      const { Resource } = await import('@opentelemetry/resources');
+      const { SemanticResourceAttributes } = await import('@opentelemetry/semantic-conventions');
+      const { ConsoleSpanExporter } = await import('@opentelemetry/sdk-trace-base');
 
-    const sdk = new NodeSDK({
-      resource: new Resource({
-        [SemanticResourceAttributes.SERVICE_NAME]: 'bedtime-stories',
-      }),
-    });
+      const sdk = new NodeSDK({
+        resource: new Resource({
+          [SemanticResourceAttributes.SERVICE_NAME]: 'bedtime-stories',
+        }),
+        traceExporter: new ConsoleSpanExporter(),
+      });
 
-    sdk.start();
+      await sdk.start();
+    } catch (error) {
+      console.error('Failed to initialize OpenTelemetry:', error);
+    }
     await import('./sentry.server.config');
   }
 

@@ -5,11 +5,9 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
 import Image from 'next/image';
-import React, { useState, useEffect, useRef, useMemo, useCallback, Suspense } from 'react';
-import { ChevronLeft, ChevronRight, Menu, X, Moon, Sun } from 'lucide-react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { Menu, X, ChevronLeft, ChevronRight, Moon, Sun } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import StoryBookIcon from '@/components/StoryBookIcon';
-import StorybookSvg from '@/components/StorybookSvg';
 import dynamic from 'next/dynamic';
 import ThemeToggleWrapper from '@/components/ThemeToggleWrapper';
 import { TypedText } from '@/components/TypedText';
@@ -33,16 +31,6 @@ const StoryFeatureGrid = dynamic(
 );
 
 // Dynamically import the FAQ section
-const FaqSection = dynamic(() => import('../components/FaqSection'), {
-  loading: () => (
-    <div className="space-y-4 animate-pulse">
-      {[1, 2, 3, 4].map((i) => (
-        <div key={i} className="bg-lavender/20 dark:bg-lavender/10 h-20 rounded-lg"></div>
-      ))}
-    </div>
-  ),
-  ssr: false,
-});
 
 // Dynamically import the footer
 const Footer = dynamic(() => import('../components/Footer'), {

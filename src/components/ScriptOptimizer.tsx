@@ -110,7 +110,6 @@ export function ScriptOptimizer({
       {/* These are placeholder scripts that will be replaced in production */}
       {shouldLoadProductionScripts() && (
         <>
-          <Script id="critical-script" strategy="beforeInteractive" src={CRITICAL_SCRIPT_PATH} />
           <Script id="theme-script" strategy="afterInteractive" src={THEME_SCRIPT_PATH} />
         </>
       )}
