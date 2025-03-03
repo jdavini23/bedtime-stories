@@ -248,6 +248,63 @@ The application uses Sentry for error tracking and performance monitoring. To se
    npm run test:sentry
    ```
 
+## Troubleshooting
+
+### Vercel Deployment Dependency Conflicts
+
+If you encounter dependency conflicts during Vercel deployment (particularly with OpenTelemetry packages), you can use one of these solutions:
+
+#### Solution 1: Use the Deployment Helper Script
+
+Run the deployment helper script which automatically fixes common dependency issues:
+
+```bash
+npm run deploy:fix
+```
+
+Or run it directly:
+
+```bash
+node scripts/deploy-to-vercel.js
+```
+
+This interactive script will:
+1. Fix OpenTelemetry API version conflicts
+2. Update Vercel configuration to use `--legacy-peer-deps`
+3. Guide you through the commit, push, and deployment process
+
+#### Solution 2: Manual Fix
+
+1. Update `@opentelemetry/api` version in package.json:
+   ```json
+   "@opentelemetry/api": "1.8.0"
+   ```
+
+2. Modify the `installCommand` in vercel.json:
+   ```json
+   "installCommand": "npm ci --legacy-peer-deps"
+   ```
+
+3. Commit and push these changes, then deploy to Vercel
+
+#### Solution 3: Quick Fix Script
+
+Run the dependency conflict resolution script:
+
+```bash
+npm run fix:dependencies
+```
+
+Or run it directly:
+
+```bash
+node scripts/fix-dependency-conflict.js
+```
+
+This will automatically update your package.json and reinstall dependencies.
+
+### Other Common Issues
+
 ## Contributing
 
 1. Fork the repository
