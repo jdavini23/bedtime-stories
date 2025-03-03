@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import StorybookSvg from '@/components/StorybookSvg';
 
 export default function TestSvgPage() {
@@ -19,9 +20,11 @@ export default function TestSvgPage() {
         <div className="flex flex-col items-center p-6 bg-white rounded-lg shadow-md">
           <h2 className="text-xl font-semibold mb-4">Direct SVG from public folder</h2>
           <div className="w-64 h-64 flex items-center justify-center">
-            <img
+            <Image
               src="/images/illustrations/storybook.svg"
               alt="Storybook SVG"
+              width={256}
+              height={256}
               className="w-full h-full object-contain"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
@@ -72,9 +75,11 @@ export default function TestSvgPage() {
         <div className="flex flex-col items-center p-6 bg-white rounded-lg shadow-md">
           <h2 className="text-xl font-semibold mb-4">Test SVG</h2>
           <div className="w-64 h-64 flex items-center justify-center">
-            <img
+            <Image
               src="/images/illustrations/test-storybook.svg"
               alt="Test Storybook SVG"
+              width={256}
+              height={256}
               className="w-full h-full object-contain"
             />
           </div>

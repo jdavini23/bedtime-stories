@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { currentUser } from '@clerk/nextjs/server';
+import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import DashboardCards from '@/components/dashboard/DashboardCards';
 
@@ -9,18 +9,20 @@ export default async function DashboardPage() {
 
     // Get the current user using Clerk's currentUser function
     // This doesn't require middleware detection like auth() does
-    const user = await currentUser();
+    const authResult = await auth();
+    const { userId } = authResult;
 
     console.log(
       'Dashboard: User authentication result:',
-      user ? `Authenticated as ${user.id}` : 'Not authenticated'
+      userId ? `Authenticated as ${userId}` : 'Not authenticated'
     );
 
     // If no user is found, redirect to sign-in page
-    if (!user) {
+    if (!userId) {
       console.log('Dashboard: No user found, redirecting to sign-in');
       redirect('/sign-in');
     }
+
 
     console.log('Dashboard: User authenticated, rendering dashboard');
 

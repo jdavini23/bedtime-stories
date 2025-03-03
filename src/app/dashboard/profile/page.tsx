@@ -1,16 +1,20 @@
-import { currentUser } from '@clerk/nextjs/server';
+import { auth, currentUser } from '@clerk/nextjs/server';
+import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 
 export default async function ProfilePage() {
   try {
     // Get the current user data using Clerk's server-side function
-    const user = await currentUser();
+    const authResult = await auth();
+    const { userId } = authResult;
 
     // Redirect if not authenticated
-    if (!user) {
+    if (!userId) {
       redirect('/sign-in?redirect_url=/dashboard/profile');
     }
+
+    const user = await currentUser();
 
     return (
       <div className="p-4 max-w-4xl mx-auto">
@@ -18,26 +22,28 @@ export default async function ProfilePage() {
 
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
           <div className="flex items-center mb-6">
-            {user.imageUrl ? (
-              <img
+            {user?.imageUrl ? (
+              <Image
                 src={user.imageUrl}
-                alt={`${user.firstName}'s profile`}
-                className="w-20 h-20 rounded-full mr-4"
+                alt={`${user?.firstName}'s profile`}
+                width={80}
+                height={80}
+                className="rounded-full mr-4"
               />
             ) : (
               <div className="w-20 h-20 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center mr-4">
                 <span className="text-2xl font-bold text-purple-600 dark:text-purple-300">
-                  {user.firstName?.[0] || user.lastName?.[0] || 'U'}
+                  {user?.firstName?.[0] || user?.lastName?.[0] || 'U'}
                 </span>
               </div>
             )}
 
             <div>
               <h2 className="text-xl font-semibold">
-                {user.firstName} {user.lastName}
+                {user?.firstName} {user?.lastName}
               </h2>
               <p className="text-gray-600 dark:text-gray-300">
-                {user.emailAddresses?.[0]?.emailAddress}
+                {user?.emailAddresses?.[0]?.emailAddress}
               </p>
             </div>
           </div>
@@ -47,15 +53,15 @@ export default async function ProfilePage() {
               <h3 className="font-medium mb-2">Account Information</h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 <span className="block">
-                  <strong>User ID:</strong> {user.id}
+                  <strong>User ID:</strong> {user?.id}
                 </span>
                 <span className="block mt-1">
                   <strong>Created:</strong>{' '}
-                  {new Date(user.createdAt || Date.now()).toLocaleDateString()}
+                  {new Date(user?.createdAt || Date.now()).toLocaleDateString()}
                 </span>
                 <span className="block mt-1">
                   <strong>Last Sign In:</strong>{' '}
-                  {new Date(user.lastSignInAt || Date.now()).toLocaleDateString()}
+                  {new Date(user?.lastSignInAt || Date.now()).toLocaleDateString()}
                 </span>
               </p>
             </div>
