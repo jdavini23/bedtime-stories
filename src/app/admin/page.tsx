@@ -1,14 +1,11 @@
-import { currentUser } from '@clerk/nextjs/server';
-import { getAuth } from '@clerk/nextjs/server';
+import { auth, currentUser } from '@clerk/nextjs';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { isAdmin } from '@/utils/auth';
 
 export default async function AdminDashboardPage() {
   try {
-    // Get authentication data
-    const auth = getAuth({ request: null });
-    const { userId } = auth;
+    const { userId } = auth();
 
     // Redirect if not authenticated
     if (!userId) {
@@ -133,7 +130,6 @@ export default async function AdminDashboardPage() {
       </div>
     );
   } catch (error) {
-    // Handle auth errors
     console.error('Admin page auth error:', error);
     return (
       <div className="p-8 max-w-4xl mx-auto">

@@ -49,6 +49,15 @@ const nextConfig = {
       dns: false,
     };
 
+    // Handle OpenTelemetry instrumentation
+    config.module = config.module || {};
+    config.module.rules = config.module.rules || [];
+    config.module.rules.push({
+      test: /instrumentation\.js$/,
+      include: /node_modules\/@opentelemetry/,
+      type: 'javascript/auto',
+    });
+
     // Optimize source maps for production
     if (!dev) {
       config.devtool = 'source-map';
