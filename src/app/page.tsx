@@ -420,7 +420,7 @@ export default function Home() {
               onClick={() => setMobileMenuOpen(false)}
             ></div>
             <motion.div
-              className="fixed top-0 right-0 bottom-0 w-64 bg-white dark:bg-midnight p-6 shadow-xl"
+              className="fixed top-0 right-0 bottom-0 w-64 bg-white dark:bg-midnight p-6 shadow-xl md:hidden"
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
@@ -482,7 +482,7 @@ export default function Home() {
                   </SignInButton>
                 )}
                 <Link href="/story" className="mt-2" onClick={() => setMobileMenuOpen(false)}>
-                  <Button fullWidth>Start Your Story</Button>
+                  <Button className="w-full">Start Your Story</Button>
                 </Link>
               </nav>
             </motion.div>
