@@ -73,29 +73,29 @@ try {
   log.header('\nStep 2: Fixing package.json');
   if (fs.existsSync(packageJsonPath)) {
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-    
+
     // Fix OpenTelemetry API version
     if (packageJson.dependencies['@opentelemetry/api']) {
       const currentVersion = packageJson.dependencies['@opentelemetry/api'];
       log.info(`Current @opentelemetry/api version: ${currentVersion}`);
-      
+
       packageJson.dependencies['@opentelemetry/api'] = '1.8.0';
       log.success('Updated @opentelemetry/api to version 1.8.0');
     } else {
       log.warning('@opentelemetry/api not found in dependencies');
     }
-    
+
     // Add scripts if they don't exist
     if (!packageJson.scripts['fix:dependencies']) {
       packageJson.scripts['fix:dependencies'] = 'node scripts/fix-dependency-conflict.js';
       log.success('Added fix:dependencies script');
     }
-    
+
     if (!packageJson.scripts['prepare:vercel']) {
       packageJson.scripts['prepare:vercel'] = 'node scripts/prepare-for-vercel.js';
       log.success('Added prepare:vercel script');
     }
-    
+
     // Write updated package.json
     fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
     log.success('Updated package.json');
@@ -107,52 +107,52 @@ try {
   // Step 3: Fix or create vercel.json
   log.header('\nStep 3: Fixing vercel.json');
   let vercelJson;
-  
+
   if (fs.existsSync(vercelJsonPath)) {
     vercelJson = JSON.parse(fs.readFileSync(vercelJsonPath, 'utf8'));
     log.info('Found existing vercel.json');
   } else {
     log.warning('vercel.json not found, creating it');
     vercelJson = {
-      "version": 2,
-      "framework": "nextjs"
+      version: 2,
+      framework: 'nextjs',
     };
   }
-  
+
   // Update vercel.json settings
   vercelJson.installCommand = 'npm ci --legacy-peer-deps';
   vercelJson.buildCommand = 'npm run build';
-  
+
   // Write updated vercel.json
   fs.writeFileSync(vercelJsonPath, JSON.stringify(vercelJson, null, 2));
   log.success('Updated vercel.json with correct configuration');
 
   // Step 4: Clean build artifacts and node_modules
   log.header('\nStep 4: Cleaning build artifacts');
-  
+
   // Clean .next directory
   if (fs.existsSync(path.join(process.cwd(), '.next'))) {
     runCommand('rimraf .next', 'Cleaning .next directory');
   } else {
     log.info('.next directory not found, skipping cleanup');
   }
-  
+
   // Step 5: Clean npm cache and reinstall dependencies
   log.header('\nStep 5: Cleaning npm cache and reinstalling dependencies');
-  
+
   // Ask user if they want to clean node_modules
   console.log('\nWould you like to clean node_modules and reinstall dependencies?');
   console.log('This is recommended but will take some time.');
   console.log('Enter "y" to proceed or any other key to skip: ');
-  
+
   // Since we can't get direct input in this script without readline,
   // we'll provide instructions for manual steps
-  
+
   log.info('To clean node_modules and reinstall dependencies, run these commands:');
   console.log('\n  npm cache clean --force');
   console.log('  rimraf node_modules');
   console.log('  npm install --legacy-peer-deps\n');
-  
+
   // Step 6: Provide deployment instructions
   log.header('\nStep 6: Deployment instructions');
   log.success('Fixes have been applied!');
@@ -164,7 +164,6 @@ try {
   console.log('\n2. Deploy with Vercel:');
   console.log('   npx vercel --prod');
   console.log('\nIf you encounter issues, try deploying from the Vercel dashboard.');
-  
 } catch (error) {
   log.error(`Error fixing Vercel deployment: ${error.message}`);
   console.error(error);
