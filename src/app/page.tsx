@@ -409,18 +409,18 @@ export default function Home() {
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
-            className="fixed inset-0 z-50 md:hidden"
+            className="fixed inset-0 z-50 md:!hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
           >
             <div
-              className="fixed inset-0 bg-black/25 backdrop-blur-sm"
+              className="fixed inset-0 bg-black/25 backdrop-blur-sm md:!hidden"
               onClick={() => setMobileMenuOpen(false)}
             ></div>
             <motion.div
-              className="fixed top-0 right-0 bottom-0 w-64 bg-white dark:bg-midnight p-6 shadow-xl md:hidden"
+              className="fixed top-0 right-0 bottom-0 w-64 bg-white dark:bg-midnight p-6 shadow-xl md:!hidden"
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
@@ -436,7 +436,7 @@ export default function Home() {
                   <X className="h-6 w-6" />
                 </button>
               </div>
-              <nav className="flex flex-col space-y-4">
+              <nav className="flex flex-col space-y-4 md:!hidden">
                 <a
                   href="#how-it-works"
                   className="px-3 py-2 rounded-md text-base font-medium text-text-secondary dark:text-text-primary/70 hover:text-primary dark:hover:text-primary"
