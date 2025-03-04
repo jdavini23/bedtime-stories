@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@clerk/nextjs';
 
 interface SignInButtonProps {
-  redirectUrl?: string;
+  fallbackRedirectUrl?: string;
+  forceRedirectUrl?: string;
   className?: string;
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'link';
   size?: 'sm' | 'md' | 'lg' | 'icon';
@@ -14,7 +15,8 @@ interface SignInButtonProps {
 }
 
 export function SignInButton({
-  redirectUrl = '/sign-in',
+  fallbackRedirectUrl = '/dashboard',
+  forceRedirectUrl,
   className = '',
   variant = 'primary',
   size = 'md',
@@ -30,7 +32,9 @@ export function SignInButton({
   }
 
   const handleSignIn = () => {
-    router.push(redirectUrl);
+    // Use forceRedirectUrl if provided, otherwise fallback to fallbackRedirectUrl
+    const redirectUrl = forceRedirectUrl || fallbackRedirectUrl;
+    router.push(`/sign-in?redirect_url=${encodeURIComponent(redirectUrl)}`);
   };
 
   return (

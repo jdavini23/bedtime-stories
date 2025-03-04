@@ -8,6 +8,8 @@ declare module 'framer-motion' {
     transition?: Record<string, unknown>;
     whileHover?: Record<string, unknown>;
     whileTap?: Record<string, unknown>;
+    whileInView?: Record<string, unknown>;
+    viewport?: Record<string, unknown>;
   }
 
   type HTMLMotionComponents = {

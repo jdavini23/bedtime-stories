@@ -252,7 +252,8 @@ The application uses Sentry for error tracking and performance monitoring. To se
 
 ### Vercel Deployment Dependency Conflicts
 
-If you encounter dependency conflicts during Vercel deployment (particularly with OpenTelemetry packages), you can use one of these solutions:
+If you encounter dependency conflicts during Vercel deployment (particularly with OpenTelemetry
+packages), you can use one of these solutions:
 
 #### Solution 1: Use the Deployment Helper Script
 
@@ -269,6 +270,7 @@ node scripts/deploy-to-vercel.js
 ```
 
 This interactive script will:
+
 1. Fix OpenTelemetry API version conflicts
 2. Update Vercel configuration to use `--legacy-peer-deps`
 3. Guide you through the commit, push, and deployment process
@@ -276,11 +278,13 @@ This interactive script will:
 #### Solution 2: Manual Fix
 
 1. Update `@opentelemetry/api` version in package.json:
+
    ```json
    "@opentelemetry/api": "1.8.0"
    ```
 
 2. Modify the `installCommand` in vercel.json:
+
    ```json
    "installCommand": "npm ci --legacy-peer-deps"
    ```
