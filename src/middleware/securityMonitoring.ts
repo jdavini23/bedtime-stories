@@ -8,13 +8,25 @@ interface SecurityLog {
   details: Record<string, unknown>;
 }
 
+interface RequestData {
+  count: number;
+  timestamp: number;
+}
+
+interface SecurityConfig {
+  rateLimitWindow: number;
+  maxRequestsPerWindow: number;
+  suspiciousPatterns: RegExp[];
+  requiredHeaders: string[];
+}
+
 const securityLogs: SecurityLog[] = [];
 
 function logSecurityEvent(
   type: SecurityLog['type'],
   message: string,
   details: Record<string, unknown>
-) {
+): void {
   const log: SecurityLog = {
     timestamp: new Date().toISOString(),
     type,
@@ -26,24 +38,36 @@ function logSecurityEvent(
   console.log(`[Security ${type}]`, message, details);
 }
 
-// Rate limiting configuration
-const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
-const MAX_REQUESTS_PER_WINDOW = 100;
-const requestCounts = new Map<string, { count: number; timestamp: number }>();
+// Security configuration
+const securityConfig: SecurityConfig = {
+  rateLimitWindow: 60 * 1000, // 1 minute
+  maxRequestsPerWindow: 100,
+  suspiciousPatterns: [
+    /\.\.[\/\\]/,  // Directory traversal
+    /[;|&`']/,     // Command injection
+    /<script>/i,   // XSS attempt
+  ],
+  requiredHeaders: ['x-clerk-auth-token'],
+};
+
+// Rate limiting storage
+const requestCounts = new Map<string, RequestData>();
 
 // Security monitoring middleware to detect and log potential security issues
-export async function securityMonitoring(request: NextRequest) {
-  const ip = request.ip || 'unknown';
-  const userAgent = request.headers.get('user-agent') || 'unknown';
-  const path = request.nextUrl.pathname;
+export async function securityMonitoring(
+  request: NextRequest
+): Promise<NextResponse> {
+  const ip: string = request.ip || 'unknown';
+  const userAgent: string = request.headers.get('user-agent') || 'unknown';
+  const path: string = request.nextUrl.pathname;
 
   // Rate limiting check
   const now = Date.now();
   const requestData = requestCounts.get(ip);
 
-  if (requestData && now - requestData.timestamp < RATE_LIMIT_WINDOW) {
+  if (requestData && now - requestData.timestamp < securityConfig.rateLimitWindow) {
     requestData.count++;
-    if (requestData.count > MAX_REQUESTS_PER_WINDOW) {
+    if (requestData.count > securityConfig.maxRequestsPerWindow) {
       logSecurityEvent('warning', 'Rate limit exceeded', { ip, path });
       return new NextResponse('Too Many Requests', { status: 429 });
     }
@@ -52,14 +76,10 @@ export async function securityMonitoring(request: NextRequest) {
   }
 
   // Check for suspicious patterns
-  const suspiciousPatterns = [
-    /\.\.[\/\\]/,  // Directory traversal
-    /[;|&`']/,     // Command injection
-    /<script>/i,   // XSS attempt
-  ];
-
   const urlString = request.url;
-  const hasSuspiciousPattern = suspiciousPatterns.some(pattern => pattern.test(urlString));
+  const hasSuspiciousPattern = securityConfig.suspiciousPatterns.some(
+    pattern => pattern.test(urlString)
+  );
 
   if (hasSuspiciousPattern) {
     logSecurityEvent('warning', 'Suspicious request pattern detected', {
@@ -72,8 +92,9 @@ export async function securityMonitoring(request: NextRequest) {
   }
 
   // Check for required security headers
-  const requiredHeaders = ['x-clerk-auth-token'];
-  const missingHeaders = requiredHeaders.filter(header => !request.headers.get(header));
+  const missingHeaders = securityConfig.requiredHeaders.filter(
+    header => !request.headers.get(header)
+  );
 
   if (missingHeaders.length > 0 && !path.startsWith('/api/public')) {
     logSecurityEvent('warning', 'Missing required security headers', {
@@ -95,16 +116,16 @@ export async function securityMonitoring(request: NextRequest) {
 }
 
 // Export security logs for monitoring
-export function getSecurityLogs() {
-  return securityLogs;
+export function getSecurityLogs(): SecurityLog[] {
+  return [...securityLogs];
 }
 
 // Clear old request counts periodically
 setInterval(() => {
   const now = Date.now();
   for (const [ip, data] of requestCounts.entries()) {
-    if (now - data.timestamp >= RATE_LIMIT_WINDOW) {
+    if (now - data.timestamp >= securityConfig.rateLimitWindow) {
       requestCounts.delete(ip);
     }
   }
-}, RATE_LIMIT_WINDOW);
+}, securityConfig.rateLimitWindow);

@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
 
@@ -11,6 +11,7 @@ interface SecurityEvent {
 export function useSecurityMonitor() {
   const router = useRouter();
   const { user, isLoaded, isSignedIn } = useUser();
+  const lastSignInRef = useRef<Date | null>(null);
 
   const logSecurityEvent = useCallback(async (event: SecurityEvent) => {
     try {
@@ -30,28 +31,27 @@ export function useSecurityMonitor() {
     }
   }, [user]);
 
-  // Monitor for suspicious activity
+  // Monitor for authentication state changes
   useEffect(() => {
-    if (!isLoaded) return;
+    if (!isLoaded || !user) return;
 
-    // Monitor authentication state changes
-    const unsubscribe = user?.subscribe((newUser) => {
-      if (newUser?.lastSignInAt !== user?.lastSignInAt) {
-        logSecurityEvent({
-          type: 'info',
-          message: 'User signed in',
-          details: {
-            userId: newUser?.id,
-            lastSignInAt: newUser?.lastSignInAt,
-          },
-        });
-      }
-    });
+    const currentSignInTime = user.lastSignInAt;
+    const lastSignInTime = lastSignInRef.current;
 
-    return () => {
-      unsubscribe?.();
-    };
-  }, [isLoaded, user, logSecurityEvent]);
+    // Check if there's a new sign-in
+    if (currentSignInTime && (!lastSignInTime || currentSignInTime > lastSignInTime)) {
+      lastSignInRef.current = currentSignInTime;
+      logSecurityEvent({
+        type: 'info',
+        message: 'User authentication state changed',
+        details: {
+          userId: user.id,
+          lastSignInAt: currentSignInTime.toISOString(),
+          isSignedIn,
+        },
+      });
+    }
+  }, [isLoaded, user, isSignedIn, logSecurityEvent]);
 
   // Monitor for session expiration
   useEffect(() => {

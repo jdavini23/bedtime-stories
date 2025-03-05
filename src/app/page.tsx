@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import Link from 'next/link';
 import Image from 'next/image';
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { Menu, X, ChevronLeft, ChevronRight, Moon, Sun } from 'lucide-react';
+import { Menu, X, ChevronRight, Moon, Sun } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import ThemeToggleWrapper from '@/components/ThemeToggleWrapper';
