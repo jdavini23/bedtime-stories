@@ -12,6 +12,7 @@ import { ErrorBoundary } from '@/components/error-boundaries/ErrorBoundary';
 import { CriticalCSS } from '@/components/CriticalCSS';
 import { PreloadResources } from '@/components/PreloadResources';
 import { ScriptOptimizer } from '@/components/ScriptOptimizer';
+import { ReactQueryProvider } from '@/lib/react-query-client';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -58,12 +59,14 @@ export default function RootLayout({ children }: RootLayoutProps): React.JSX.Ele
               <div className="p-4 text-red-500">Something went wrong. Please try again.</div>
             }
           >
-            <Providers>
-              {children}
-              {/* <SpeedInsights />
-              <Analytics /> */}
-              <ScriptOptimizer />
-            </Providers>
+            <ReactQueryProvider>
+              <Providers>
+                {children}
+                {/* <SpeedInsights />
+                <Analytics /> */}
+                <ScriptOptimizer />
+              </Providers>
+            </ReactQueryProvider>
           </ErrorBoundary>
         </body>
       </html>
