@@ -1,6 +1,4 @@
-// This is a temporary configuration file without Sentry integration
-// The original file is backed up at next.config.js.backup
-
+// This file sets up the Next.js configuration with Sentry integration
 const { withSentryConfig } = require('@sentry/nextjs');
 
 /** @type {import('next').NextConfig} */
@@ -41,15 +39,9 @@ const nextConfig = {
       'tailwind-merge',
     ],
   },
-  // Temporarily disable TypeScript type checking during build
   typescript: {
-    ignoreBuildErrors: true,
-    tsconfigPath: './tsconfig.json'
-  },
-  eslint: {
-    // Temporarily disable ESLint during build troubleshooting
-    ignoreDuringBuilds: true,
-    dirs: ['src', 'app', 'lib', 'components']
+    // Ignore type errors during build (we'll handle them separately)
+    ignoreBuildErrors: false,
   },
   webpack: (config, { dev, isServer }) => {
     // Resolve module not found issues
@@ -63,14 +55,14 @@ const nextConfig = {
     // Optimize source maps for production
     if (!dev) {
       config.devtool = 'source-map';
-
+      
       // Optimize source maps
       if (config.optimization) {
         // Ensure we have the optimization object
         if (!config.optimization.minimizer) {
           config.optimization.minimizer = [];
         }
-
+        
         // Configure source map generation for production
         config.optimization.minimize = true;
       }
@@ -125,7 +117,8 @@ const nextConfig = {
           },
           {
             key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
+            value:
+              'camera=(), microphone=(), geolocation=(), interest-cohort=()',
           },
         ],
       },
@@ -167,16 +160,51 @@ const nextConfig = {
   },
 };
 
-// Configure Sentry options
+// For all available options, see:
+// https://github.com/getsentry/sentry-webpack-plugin#options
 const sentryWebpackPluginOptions = {
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
-  silent: true,
-  authToken: process.env.SENTRY_AUTH_TOKEN,
-  hideSourceMaps: false,
-  disableServerWebpackPlugin: false,
-  disableClientWebpackPlugin: false,
+  // Additional config options for the Sentry webpack plugin. Keep in mind that
+  // the following options are set automatically, and overriding them is not
+  // recommended:
+  //   release, url, authToken, configFile, stripPrefix,
+  //   urlPrefix, include, ignore
+
+  // Sentry organization and project
+  org: 'davini',
+  project: 'javascript-nextjs',
+
+  // Only print logs for uploading source maps in CI
+  silent: !process.env.CI,
+
+  // Upload a larger set of source maps for prettier stack traces (increases build time)
+  widenClientFileUpload: true,
+
+  // Automatically annotate React components to show their full name in breadcrumbs and session replay
+  reactComponentAnnotation: {
+    enabled: true,
+  },
+
+  // Route browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers.
+  tunnelRoute: '/monitoring',
+
+  // Automatically tree-shake Sentry logger statements to reduce bundle size
+  disableLogger: true,
+
+  // Enables automatic instrumentation of Vercel Cron Monitors
+  automaticVercelMonitors: true,
+  
+  // Enhanced source map handling
+  sourcemaps: {
+    assets: './**/*.map',
+    filesToDeleteAfterUpload: './**/*.map',
+  },
+  
+  // Set to true to validate the upload of source maps
+  validate: true,
+  
+  // Set to true to enable debug mode
+  debug: false,
 };
 
-// Export with Sentry configuration
+// Make sure adding Sentry options is the last code to run before exporting
 module.exports = withSentryConfig(nextConfig, sentryWebpackPluginOptions);
