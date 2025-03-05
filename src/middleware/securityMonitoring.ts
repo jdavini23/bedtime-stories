@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { headers } from 'next/headers';
 
 interface SecurityLog {
   timestamp: string;
@@ -43,7 +42,7 @@ const securityConfig: SecurityConfig = {
   rateLimitWindow: 60 * 1000, // 1 minute
   maxRequestsPerWindow: 100,
   suspiciousPatterns: [
-    /\.\.[\/\\]/,  // Directory traversal
+    /\.\.[/\\]/,  // Directory traversal - fixed unnecessary escape character
     /[;|&`']/,     // Command injection
     /<script>/i,   // XSS attempt
   ],
@@ -57,7 +56,7 @@ const requestCounts = new Map<string, RequestData>();
 export async function securityMonitoring(
   request: NextRequest
 ): Promise<NextResponse> {
-  const ip: string = request.ip || 'unknown';
+  const ip: string = request.headers.get('x-forwarded-for') || 'unknown';
   const userAgent: string = request.headers.get('user-agent') || 'unknown';
   const path: string = request.nextUrl.pathname;
 
