@@ -1,13 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import * as Sentry from '@sentry/nextjs';
 import { useEffect } from 'react';
 
 export default function NotFound() {
   useEffect(() => {
-    // Log the 404 error to Sentry
-    Sentry.captureMessage('404 - Page Not Found', 'error');
+    // Log the 404 error to console instead of Sentry
+    console.error('404 - Page Not Found');
   }, []);
 
   return (

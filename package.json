@@ -23,14 +23,9 @@
     "build-storybook": "",
     "analyze": "node scripts/analyze-bundle.js",
     "monitor": "node scripts/performance-monitor.js",
-    "sentry:sourcemaps": "sentry-cli sourcemaps inject .next && sentry-cli sourcemaps upload .next",
-    "build:sentry": "npm run disable:sentry && next build --no-lint && npm run restore:sentry",
-    "build:with-sentry": "next build && npm run sentry:sourcemaps",
-    "sentry:test": "sentry-cli test",
     "verify:deployment": "node scripts/verify-deployment.js",
     "verify:env": "node scripts/verify-env.js",
-    "test:sentry": "node scripts/test-sentry.js",
-    "deploy:prepare": "npm run build:clean && npm run build:sentry && npm run verify:deployment",
+    "deploy:prepare": "npm run build:clean && npm run build && npm run verify:deployment",
     "deploy:verify-only": "npm run verify:deployment",
     "deploy:vercel": "vercel --prod",
     "deploy:fix": "node scripts/deploy-to-vercel.js",
@@ -40,9 +35,6 @@
     "security:check": "node scripts/security-check.js",
     "deploy": "node scripts/deploy.js",
     "setup:vercel": "node scripts/setup-vercel-env.js",
-    "setup:sentry": "node scripts/setup-sentry.js",
-    "disable:sentry": "node scripts/disable-sentry.js",
-    "restore:sentry": "node scripts/restore-sentry.js",
     "setup:local": "node scripts/setup-local-env.js",
     "fix:verify": "node scripts/fix-verify-env.js",
     "fix:deployment": "node scripts/fix-deployment.js",
@@ -59,7 +51,6 @@
     "@opentelemetry/resources": "^1.30.1",
     "@opentelemetry/sdk-node": "^0.49.1",
     "@opentelemetry/semantic-conventions": "^1.30.0",
-    "@sentry/nextjs": "^9.2.0",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.49.1",
     "@types/uuid": "^10.0.0",
@@ -131,10 +122,7 @@
     "webpack-bundle-analyzer": "^4.10.2"
   },
   "lint-staged": {
-    "**/*": [
-      "prettier --write --ignore-unknown",
-      "eslint --fix"
-    ]
+    "**/*": ["prettier --write --ignore-unknown", "eslint --fix"]
   },
   "engines": {
     "node": "22.x",

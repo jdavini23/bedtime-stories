@@ -9,9 +9,7 @@
     "GENERATE_SOURCEMAP": "false",
     "NEXT_TELEMETRY_DISABLED": "1"
   },
-  "regions": [
-    "iad1"
-  ],
+  "regions": ["iad1"],
   "headers": [
     {
       "source": "/(.*)",
@@ -36,6 +34,28 @@
         {
           "key": "Cache-Control",
           "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/fonts/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        },
+        {
+          "key": "Content-Type",
+          "value": "font/woff2"
+        }
+      ]
+    },
+    {
+      "source": "/images/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, stale-while-revalidate=86400"
         }
       ]
     },
@@ -85,13 +105,5 @@
       "maxDuration": 30
     }
   },
-  "outputDirectory": ".next",
-  "build": {
-    "env": {
-      "NEXT_PUBLIC_SENTRY_DSN": "SENTRY_DSN_PLACEHOLDER",
-      "SENTRY_AUTH_TOKEN": "SENTRY_AUTH_TOKEN_PLACEHOLDER",
-      "SENTRY_ORG": "davini",
-      "SENTRY_PROJECT": "javascript-nextjs"
-    }
-  }
+  "outputDirectory": ".next"
 }
