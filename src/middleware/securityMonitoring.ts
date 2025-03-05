@@ -1,57 +1,130 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { env } from '@/lib/env';
-import { logger } from '@/utils/logger';
 
-/**
- * Security monitoring middleware to detect and log potential security issues
- */
-export function securityMonitoring(request: NextRequest) {
-  const response = NextResponse.next();
-  const url = request.nextUrl.toString();
-  const method = request.method;
-  const userAgent = request.headers.get('user-agent') || 'unknown';
-  const clientIp = request.headers.get('x-forwarded-for') || 'unknown';
-
-  // Check for suspicious query parameters
-  const suspiciousParams = ['script', 'eval', 'exec', 'select', 'union', 'insert', 'drop', 'alert'];
-  const queryParams = Object.fromEntries(request.nextUrl.searchParams.entries());
-  const hasSuspiciousParams = Object.values(queryParams).some((value) =>
-    suspiciousParams.some((param) => value.toLowerCase().includes(param))
-  );
-
-  // Check for suspicious paths
-  const suspiciousPaths = ['/admin', '/wp-login', '/wp-admin', '/.env', '/config', '/backup'];
-  const hasSuspiciousPath = suspiciousPaths.some((path) => request.nextUrl.pathname.includes(path));
-
-  // Check for API key pattern in URL
-  const apiKeyPattern = /sk-[a-zA-Z0-9]{20,}/;
-  const hasApiKeyInUrl = apiKeyPattern.test(url);
-
-  // Log security events
-  if (hasSuspiciousParams || hasSuspiciousPath || hasApiKeyInUrl) {
-    logger.warn('Security alert detected', {
-      url: request.nextUrl.pathname,
-      method,
-      userAgent,
-      clientIp,
-      hasSuspiciousParams,
-      hasSuspiciousPath,
-      hasApiKeyInUrl,
-      environment: env.NODE_ENV,
-    });
-
-    // In production, you might want to block these requests
-    if (env.NODE_ENV === 'production' && (hasSuspiciousPath || hasApiKeyInUrl)) {
-      return new NextResponse(JSON.stringify({ error: 'Forbidden', message: 'Access denied' }), {
-        status: 403,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-    }
-  }
-
-  return response;
+interface SecurityLog {
+  timestamp: string;
+  type: 'warning' | 'error' | 'info';
+  message: string;
+  details: Record<string, unknown>;
 }
 
-export default securityMonitoring;
+interface RequestData {
+  count: number;
+  timestamp: number;
+}
+
+interface SecurityConfig {
+  rateLimitWindow: number;
+  maxRequestsPerWindow: number;
+  suspiciousPatterns: RegExp[];
+  requiredHeaders: string[];
+}
+
+const securityLogs: SecurityLog[] = [];
+
+function logSecurityEvent(
+  type: SecurityLog['type'],
+  message: string,
+  details: Record<string, unknown>
+): void {
+  const log: SecurityLog = {
+    timestamp: new Date().toISOString(),
+    type,
+    message,
+    details,
+  };
+  
+  securityLogs.push(log);
+  console.log(`[Security ${type}]`, message, details);
+}
+
+// Security configuration
+const securityConfig: SecurityConfig = {
+  rateLimitWindow: 60 * 1000, // 1 minute
+  maxRequestsPerWindow: 100,
+  suspiciousPatterns: [
+    /\.\.[/\\]/,  // Directory traversal - fixed unnecessary escape character
+    /[;|&`']/,     // Command injection
+    /<script>/i,   // XSS attempt
+  ],
+  requiredHeaders: ['x-clerk-auth-token'],
+};
+
+// Rate limiting storage
+const requestCounts = new Map<string, RequestData>();
+
+// Security monitoring middleware to detect and log potential security issues
+export async function securityMonitoring(
+  request: NextRequest
+): Promise<NextResponse> {
+  const ip: string = request.headers.get('x-forwarded-for') || 'unknown';
+  const userAgent: string = request.headers.get('user-agent') || 'unknown';
+  const path: string = request.nextUrl.pathname;
+
+  // Rate limiting check
+  const now = Date.now();
+  const requestData = requestCounts.get(ip);
+
+  if (requestData && now - requestData.timestamp < securityConfig.rateLimitWindow) {
+    requestData.count++;
+    if (requestData.count > securityConfig.maxRequestsPerWindow) {
+      logSecurityEvent('warning', 'Rate limit exceeded', { ip, path });
+      return new NextResponse('Too Many Requests', { status: 429 });
+    }
+  } else {
+    requestCounts.set(ip, { count: 1, timestamp: now });
+  }
+
+  // Check for suspicious patterns
+  const urlString = request.url;
+  const hasSuspiciousPattern = securityConfig.suspiciousPatterns.some(
+    pattern => pattern.test(urlString)
+  );
+
+  if (hasSuspiciousPattern) {
+    logSecurityEvent('warning', 'Suspicious request pattern detected', {
+      ip,
+      path,
+      userAgent,
+      pattern: 'Potential security threat',
+    });
+    return new NextResponse('Bad Request', { status: 400 });
+  }
+
+  // Check for required security headers
+  const missingHeaders = securityConfig.requiredHeaders.filter(
+    header => !request.headers.get(header)
+  );
+
+  if (missingHeaders.length > 0 && !path.startsWith('/api/public')) {
+    logSecurityEvent('warning', 'Missing required security headers', {
+      ip,
+      path,
+      missingHeaders,
+    });
+  }
+
+  // Log successful requests for monitoring
+  logSecurityEvent('info', 'Request processed', {
+    ip,
+    path,
+    userAgent,
+    method: request.method,
+  });
+
+  return NextResponse.next();
+}
+
+// Export security logs for monitoring
+export function getSecurityLogs(): SecurityLog[] {
+  return [...securityLogs];
+}
+
+// Clear old request counts periodically
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, data] of requestCounts.entries()) {
+    if (now - data.timestamp >= securityConfig.rateLimitWindow) {
+      requestCounts.delete(ip);
+    }
+  }
+}, securityConfig.rateLimitWindow);

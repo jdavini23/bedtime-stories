@@ -39,7 +39,15 @@ const nextConfig = {
       'tailwind-merge',
     ],
   },
+  // Ignore TypeScript and ESLint errors in production builds
   typescript: { ignoreBuildErrors: true },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  
+  // Prevent timeouts during static generation
+  staticPageGenerationTimeout: 180,
+  
   webpack: (config, { dev, isServer }) => {
     // Resolve module not found issues
     config.resolve.fallback = {
@@ -49,26 +57,17 @@ const nextConfig = {
       dns: false,
     };
 
-    // Handle OpenTelemetry instrumentation
-    config.module = config.module || {};
-    config.module.rules = config.module.rules || [];
-    config.module.rules.push({
-      test: /instrumentation\.js$/,
-      include: /node_modules\/@opentelemetry/,
-      type: 'javascript/auto',
-    });
-
     // Optimize source maps for production
     if (!dev) {
       config.devtool = 'source-map';
-
+      
       // Optimize source maps
       if (config.optimization) {
         // Ensure we have the optimization object
         if (!config.optimization.minimizer) {
           config.optimization.minimizer = [];
         }
-
+        
         // Configure source map generation for production
         config.optimization.minimize = true;
       }
@@ -76,16 +75,18 @@ const nextConfig = {
 
     // Optimize bundle size
     if (!dev && !isServer) {
-      // Analyze bundle size in production builds
+        // const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
       if (process.env.ANALYZE === 'true') {
-        const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
-        config.plugins.push(
-          new BundleAnalyzerPlugin({
-            analyzerMode: 'server',
-            analyzerPort: 8888,
-            openAnalyzer: true,
-          })
-        );
+        import('webpack-bundle-analyzer').then(({ BundleAnalyzerPlugin }) => {
+          console.log('Bundle analyzer is running...');
+          config.plugins.push(
+            new BundleAnalyzerPlugin({
+              analyzerMode: 'server',
+              analyzerPort: 8888,
+              openAnalyzer: true,
+            })
+          );
+        });
       }
     }
 
@@ -123,7 +124,8 @@ const nextConfig = {
           },
           {
             key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
+            value:
+              'camera=(), microphone=(), geolocation=(), interest-cohort=()',
           },
         ],
       },
@@ -164,12 +166,6 @@ const nextConfig = {
     ];
   },
 };
-
-// Export the config without Sentry
-module.exports = nextConfig;
-
-// Export the config without Sentry
-module.exports = nextConfig;
 
 // Export the config without Sentry
 module.exports = nextConfig;

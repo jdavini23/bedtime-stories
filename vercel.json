@@ -9,9 +9,7 @@
     "GENERATE_SOURCEMAP": "false",
     "NEXT_TELEMETRY_DISABLED": "1"
   },
-  "regions": [
-    "iad1"
-  ],
+  "regions": ["iad1"],
   "headers": [
     {
       "source": "/(.*)",
@@ -85,13 +83,5 @@
       "maxDuration": 30
     }
   },
-  "outputDirectory": ".next",
-  "build": {
-    "env": {
-      "NEXT_PUBLIC_SENTRY_DSN": "SENTRY_DSN_PLACEHOLDER",
-      "SENTRY_AUTH_TOKEN": "SENTRY_AUTH_TOKEN_PLACEHOLDER",
-      "SENTRY_ORG": "davini",
-      "SENTRY_PROJECT": "javascript-nextjs"
-    }
-  }
+  "outputDirectory": ".next"
 }

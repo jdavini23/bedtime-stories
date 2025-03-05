@@ -1,11 +1,9 @@
-import * as Sentry from '@sentry/nextjs';
+
 import { useEffect } from 'react';
 import Link from 'next/link';
 
 export default function Custom404() {
   useEffect(() => {
-    // Log the 404 error to Sentry
-    Sentry.captureMessage('404 - Page Not Found', 'error');
   }, []);
 
   return (

@@ -16,7 +16,7 @@ export enum LogLevel {
 export interface LogEntry {
   level: LogLevel;
   message: string;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
   timestamp: number;
 }
 
@@ -84,16 +84,12 @@ class Logger {
       this.consoleLog(logEntry);
     }
 
-    // Remote logging (placeholder for future implementation)
-    if (this.config.enableRemoteLogging) {
-      this.remoteLog(logEntry);
-    }
   }
 
   /**
    * Convert unknown value to a safe record
    */
-  private convertToRecord(value: unknown): Record<string, any> {
+  private convertToRecord(value: unknown): Record<string, unknown> {
     if (value === null) return { value: null };
     if (value === undefined) return { value: undefined };
 
@@ -103,7 +99,7 @@ class Logger {
           acc[key] = val;
           return acc;
         },
-        {} as Record<string, any>
+        {} as Record<string, unknown>
       );
     }
 
@@ -220,46 +216,22 @@ class Logger {
   /**
    * Remote logging implementation (placeholder)
    */
-  private remoteLog(entry: LogEntry): void {
-    if (!env.SENTRY_DSN) return;
-
-    try {
-      // Log to console in development for debugging
-      if (env.NODE_ENV === 'development') {
-        console.debug('[Remote Log]', {
-          level: entry.level,
-          message: entry.message,
-          context: entry.context,
-          timestamp: entry.timestamp,
-        });
-      }
-
-      // TODO: Implement actual remote logging integration
-      // Example: Sentry.captureMessage(entry.message, {...})
-    } catch (error) {
-      // Fail silently in production, log in development
-      if (env.NODE_ENV === 'development') {
-        console.error('[Remote Logging Error]', error);
-      }
-    }
-  }
-
   /**
    * Public logging methods
    */
-  public error(message: string, context?: Record<string, any>): void {
+  public error(message: string, context?: Record<string, unknown>): void {
     this.log(LogLevel.ERROR, message, context);
   }
 
-  public warn(message: string, context?: Record<string, any>): void {
+  public warn(message: string, context?: Record<string, unknown>): void {
     this.log(LogLevel.WARN, message, context);
   }
 
-  public info(message: string, context?: Record<string, any>): void {
+  public info(message: string, context?: Record<string, unknown>): void {
     this.log(LogLevel.INFO, message, context);
   }
 
-  public debug(message: string, context?: Record<string, any>): void {
+  public debug(message: string, context?: Record<string, unknown>): void {
     this.log(LogLevel.DEBUG, message, context);
   }
 
