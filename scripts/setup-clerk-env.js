@@ -25,7 +25,7 @@ const envFilePath = path.join(process.cwd(), '.env.local');
 const mockClerkEnv = `
 # These are placeholder values for build time only
 # They won't be used in production runtime
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_Y2xlcmstYnVpbGQtdGltZS1tb2NrLWtleQ
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_Y2xlcmsuc3RlcGludG9zdG9yeXRpbWUuY29tJA
 CLERK_SECRET_KEY=sk_test_Y2xlcmstYnVpbGQtdGltZS1tb2NrLWtleQ
 NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
 NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
