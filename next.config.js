@@ -1,7 +1,6 @@
 // This is a temporary configuration file without Sentry integration
 // The original file is backed up at next.config.js.backup
 
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   productionBrowserSourceMaps: true,
@@ -45,6 +44,10 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  
+  // Prevent timeouts during static generation
+  staticPageGenerationTimeout: 180,
+  
   webpack: (config, { dev, isServer }) => {
     // Resolve module not found issues
     config.resolve.fallback = {
