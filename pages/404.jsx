@@ -4,8 +4,6 @@ import Link from 'next/link';
 
 export default function Custom404() {
   useEffect(() => {
-    // Log the 404 error to Sentry
-    
   }, []);
 
   return (
