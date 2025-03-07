@@ -17,6 +17,9 @@ const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-inter',
+  preload: true,
+  adjustFontFallback: true,
+  fallback: ['system-ui', 'sans-serif'],
 });
 
 export const dynamic = 'force-static';
@@ -45,7 +48,11 @@ interface RootLayoutProps {
 
 export default function RootLayout({ children }: RootLayoutProps): React.JSX.Element {
   return (
-    <ClerkProvider>
+    <ClerkProvider
+      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+      domain="stepintostorytime.com"
+      isSatellite={false}
+    >
       <html lang="en" suppressHydrationWarning className={inter.variable}>
         <head>
           <PreloadResources />

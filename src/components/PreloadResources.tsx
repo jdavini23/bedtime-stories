@@ -14,14 +14,14 @@ export function PreloadResources() {
       {/* Preload critical fonts */}
       <link
         rel="preload"
-        href="/fonts/inter-var-latin.woff2"
+        href="/fonts/inter-var.woff2"
         as="font"
         type="font/woff2"
         crossOrigin="anonymous"
       />
 
       {/* Preload critical images */}
-      <link rel="preload" href="/images/hero-bg.webp" as="image" />
+      <link rel="preload" href="/images/logo.svg" as="image" type="image/svg+xml" />
 
       {/* Preload critical CSS */}
       <link rel="preload" href="/styles/critical.css" as="style" />
@@ -32,10 +32,14 @@ export function PreloadResources() {
       {/* DNS prefetch for external resources */}
       <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
       <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+      <link rel="dns-prefetch" href="https://clerk.stepintostorytime.com" />
+      <link rel="dns-prefetch" href="https://zwnnxqvfavkzupmucbhk.supabase.co" />
 
       {/* Preconnect to critical domains */}
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      <link rel="preconnect" href="https://clerk.stepintostorytime.com" />
+      <link rel="preconnect" href="https://zwnnxqvfavkzupmucbhk.supabase.co" />
 
       {/* Load fonts with display swap to prevent FOUC */}
       <style

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { CircuitBreaker } from '@/utils/error-handlers';
+import { CircuitBreaker } from '@/lib/circuit-breaker/CircuitBreaker';
 import { logger } from '@/utils/logger';
 
 /**

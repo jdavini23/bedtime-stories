@@ -1,42 +1,28 @@
-// Simple logger for development
-const formatValue = (value: any): string => {
-  if (value === null) return 'null';
-  if (value === undefined) return 'undefined';
-  if (typeof value === 'string') return value;
+import pino from 'pino';
 
-  try {
-    return JSON.stringify(value, null, 2);
-  } catch (e) {
-    return String(value);
-  }
+const sensitiveKeys = [
+  'api_key',
+  'apikey',
+  'key',
+  'token',
+  'secret',
+  'password',
+  'auth',
+  'credentials',
+];
+
+const redactConfig = {
+  paths: sensitiveKeys,
+  remove: true,
 };
 
-const formatArgs = (args: any[]): string => {
-  return args
-    .map((arg) => {
-      if (typeof arg === 'object' && arg !== null) {
-        return formatValue(arg);
-      }
-      return String(arg);
-    })
-    .join(' ');
-};
-
-export const logger = {
-  info: (...args: any[]) => {
-    const message = formatArgs(args);
-    console.log('[INFO]', message);
+export const logger = pino({
+  level: process.env.LOG_LEVEL || 'info',
+  redact: redactConfig,
+  formatters: {
+    level: (label) => {
+      return { level: label.toUpperCase() };
+    },
   },
-  warn: (...args: any[]) => {
-    const message = formatArgs(args);
-    console.warn('[WARN]', message);
-  },
-  error: (...args: any[]) => {
-    const message = formatArgs(args);
-    console.error('[ERROR]', message);
-  },
-  debug: (...args: any[]) => {
-    const message = formatArgs(args);
-    console.debug('[DEBUG]', message);
-  },
-};
+  timestamp: () => `,"time":"${new Date().toISOString()}"`,
+});
