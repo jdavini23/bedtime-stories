@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { TypedText } from '@/components/TypedText';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from '@/components/common/Button';
+import { Input } from '@/components/common/Input';
 import Link from 'next/link';
 
 interface StoryPreviewProps {

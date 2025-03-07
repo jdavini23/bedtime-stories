@@ -1,10 +1,8 @@
-
 import { useEffect } from 'react';
 import Link from 'next/link';
 
 export default function Custom404() {
-  useEffect(() => {
-  }, []);
+  useEffect(() => {}, []);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50 px-4 py-12 sm:px-6 lg:px-8">

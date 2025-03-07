@@ -1,4 +1,10 @@
-import { STORY_THEMES, STORY_MOODS, GENDER_OPTIONS, READING_LEVELS, AGE_GROUPS } from '@/constants';
+import {
+  STORY_THEMES,
+  STORY_MOODS,
+  GENDER_OPTIONS,
+  READING_LEVELS,
+  AGE_GROUPS,
+} from '../constants';
 
 export type StoryTheme = (typeof STORY_THEMES)[number];
 export type StoryMood = (typeof STORY_MOODS)[number];
@@ -42,6 +48,8 @@ export interface Story {
     generatedAt: string;
     wordCount?: number;
     readingTime?: number;
+    fallback?: boolean;
+    error?: string;
   };
   userId?: string;
   pronouns: string;

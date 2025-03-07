@@ -1,121 +1,91 @@
+import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { SignInButton } from '@/components/auth/SignInButton';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
 
-// Mock the useRouter hook
-const mockPush = jest.fn();
+// Mock next/navigation
 jest.mock('next/navigation', () => ({
-  useRouter: () => ({
-    push: mockPush,
-  }),
+  useRouter: jest.fn(),
 }));
 
-// Mock the useAuth hook
+// Mock @clerk/nextjs
 jest.mock('@clerk/nextjs', () => ({
   useAuth: jest.fn(),
 }));
 
 describe('SignInButton', () => {
+  const mockPush = jest.fn();
+  const mockIsSignedIn = false;
+
   beforeEach(() => {
-    mockPush.mockClear();
+    // Reset mocks
+    jest.clearAllMocks();
+
+    // Setup router mock
+    (useRouter as jest.Mock).mockReturnValue({
+      push: mockPush,
+    });
+
+    // Setup auth mock
     (useAuth as jest.Mock).mockReturnValue({
-      isSignedIn: false,
+      isSignedIn: mockIsSignedIn,
     });
   });
 
-  it('should render with default props', () => {
-    // Mock user is not signed in
-    (useAuth as jest.Mock).mockReturnValue({ isSignedIn: false });
-
+  it('renders with default props', () => {
     render(<SignInButton />);
-
-    // Check that the button is rendered with default text
+    expect(screen.getByRole('button')).toBeInTheDocument();
     expect(screen.getByText('Sign In')).toBeInTheDocument();
-
-    // Click the button
-    fireEvent.click(screen.getByText('Sign In'));
-
-    // Check that router.push was called with the default redirect URL
-    expect(mockPush).toHaveBeenCalledWith('/sign-in');
   });
 
-  it('should render with custom props', () => {
-    // Mock user is not signed in
-    (useAuth as jest.Mock).mockReturnValue({ isSignedIn: false });
-
-    render(
-      <SignInButton
-        redirectUrl="/custom-signin"
-        className="custom-class"
-        variant="secondary"
-        size="sm"
-        fullWidth={true}
-      >
-        Custom Sign In
-      </SignInButton>
-    );
-
-    // Check that the button is rendered with custom text
-    expect(screen.getByText('Custom Sign In')).toBeInTheDocument();
-
-    // Check that the button has the custom class
-    expect(screen.getByText('Custom Sign In').closest('button')).toHaveClass('custom-class');
-
-    // Click the button
-    fireEvent.click(screen.getByText('Custom Sign In'));
-
-    // Check that router.push was called with the custom redirect URL
-    expect(mockPush).toHaveBeenCalledWith('/custom-signin');
-  });
-
-  it('renders with custom text', () => {
-    render(<SignInButton>Login</SignInButton>);
-
-    const button = screen.getByTestId('sign-in-button');
-    expect(button).toHaveTextContent('Login');
-  });
-
-  it('navigates to sign-in page when clicked', () => {
-    render(<SignInButton />);
-
-    const button = screen.getByTestId('sign-in-button');
-    fireEvent.click(button);
-
-    expect(mockPush).toHaveBeenCalledWith('/sign-in');
-  });
-
-  it('navigates to custom URL when redirectUrl is provided', () => {
-    render(<SignInButton redirectUrl="/custom-signin" />);
-
-    const button = screen.getByTestId('sign-in-button');
-    fireEvent.click(button);
-
-    expect(mockPush).toHaveBeenCalledWith('/custom-signin');
+  it('renders with custom children', () => {
+    render(<SignInButton>Custom Text</SignInButton>);
+    expect(screen.getByText('Custom Text')).toBeInTheDocument();
   });
 
   it('applies custom className', () => {
     render(<SignInButton className="custom-class" />);
-
-    const button = screen.getByTestId('sign-in-button');
-    expect(button).toHaveClass('custom-class');
+    expect(screen.getByRole('button')).toHaveClass('custom-class');
   });
 
-  it('applies custom variant and size', () => {
-    render(<SignInButton variant="outline" size="sm" />);
+  it('handles click event and redirects', () => {
+    render(
+      <SignInButton
+        redirectUrl="/custom-redirect"
+        variant="primary"
+        size="sm"
+        fullwidth={true}
+        className="test-class"
+      />
+    );
 
-    // The actual classes are applied by the Button component,
-    // so we're just checking that the props are passed correctly
-    const button = screen.getByTestId('sign-in-button');
-    expect(button).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button'));
+    expect(mockPush).toHaveBeenCalledWith('/custom-redirect');
   });
 
-  it('applies fullWidth prop when specified', () => {
-    render(<SignInButton fullWidth />);
+  it('uses default redirectUrl when not provided', () => {
+    render(<SignInButton />);
+    fireEvent.click(screen.getByRole('button'));
+    expect(mockPush).toHaveBeenCalledWith('/sign-in');
+  });
 
-    // The actual classes are applied by the Button component,
-    // so we're just checking that the button renders
-    const button = screen.getByTestId('sign-in-button');
-    expect(button).toBeInTheDocument();
+  it('applies variant prop correctly', () => {
+    render(<SignInButton variant="outline" />);
+    // Note: Actual style testing would depend on your styling implementation
+    expect(screen.getByRole('button')).toBeInTheDocument();
+  });
+
+  it('applies size prop correctly', () => {
+    render(<SignInButton size="sm" />);
+    // Note: Actual style testing would depend on your styling implementation
+    expect(screen.getByRole('button')).toBeInTheDocument();
+  });
+
+  it('applies fullwidth prop when specified', () => {
+    render(<SignInButton fullwidth />);
+    // Note: Actual style testing would depend on your styling implementation
+    expect(screen.getByRole('button')).toBeInTheDocument();
   });
 
   it('does not render when user is signed in', () => {

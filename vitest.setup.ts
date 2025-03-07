@@ -1,6 +1,14 @@
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 
+// Define mockUser for use in tests
+let mockUser = {
+  id: 'mock-user-id',
+  publicMetadata: {
+    preferences: {},
+  },
+};
+
 // Mock Clerk dependencies
 vi.mock('@clerk/nextjs/server', () => ({
   clerkClient: {
@@ -22,6 +30,7 @@ vi.mock('@clerk/nextjs/server', () => ({
       }),
     },
   },
+  getAuth: vi.fn().mockReturnValue({ userId: 'mock-user-id' }),
 }));
 
 // Mock OpenAI to prevent actual API calls during testing
@@ -37,6 +46,8 @@ vi.mock('openai', () => ({
               },
             },
           ],
+          model: 'gpt-3.5-turbo',
+          usage: { total_tokens: 100 },
         }),
       },
     },

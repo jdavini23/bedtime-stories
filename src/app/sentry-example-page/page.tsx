@@ -46,14 +46,12 @@ export default function Page() {
             fontSize: '14px',
             margin: '18px',
           }}
-          >
+        >
           Throw error!
         </button>
 
-        <p>
-        </p>
-        <p style={{ marginTop: '24px' }}>
-        </p>
+        <p></p>
+        <p style={{ marginTop: '24px' }}></p>
       </main>
     </div>
   );

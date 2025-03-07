@@ -1,14 +1,18 @@
-import { Story, StoryInput, StoryTheme } from '@/types/story';
-import { logger } from '@/utils/logger';
+import { logger } from '../utils/logger';
 import { v4 as uuidv4 } from 'uuid';
 import { kv } from '@vercel/kv';
+import { StoryInput, UserPreferences, StoryTheme } from '../types/story';
+import { generateFallbackStory } from '../utils/fallback-generator';
+import { geminiCircuitBreaker, serializeError } from '../utils/error-handlers';
+import CircuitBreaker = require('opossum'); // Updated import statement
 
 // Define interface for user preferences
-export interface UserPreferences {
+export interface UserPreferencesLocal {
   id?: string;
   userId: string | null;
   preferredThemes: string[];
   generatedStoryCount: number;
+  generatedStories?: number;
   lastStoryGeneratedAt?: Date;
   learningInterests: string[];
   ageGroup: '3-5' | '6-8' | '9-12';
@@ -19,11 +23,18 @@ export interface UserPreferences {
     push: boolean;
     frequency: 'daily' | 'weekly' | 'monthly';
   };
+  storyPreferences?: {
+    maxLength: number;
+    educationalFocus: boolean;
+    moralEmphasis: boolean;
+    readingLevel: string;
+  };
+  mostLikedCharacterTypes?: string[];
   createdAt?: Date;
   updatedAt?: Date;
 }
 
-const DEFAULT_PREFERENCES: UserPreferences = {
+const DEFAULT_PREFERENCES: UserPreferencesLocal = {
   userId: null,
   preferredThemes: ['adventure', 'educational'],
   generatedStoryCount: 0,
@@ -196,13 +207,35 @@ export interface EnhancedStoryInput extends StoryInput {
   supportingCharacters?: StoryCharacter[];
 }
 
+export interface Story {
+  id: string;
+  title: string;
+  content: string;
+  theme: string;
+  createdAt: string;
+  input: StoryInput;
+  metadata: {
+    pronouns: string;
+    possessivePronouns: string;
+    generatedAt: string;
+    wordCount?: number;
+    readingTime?: number;
+    fallback?: boolean;
+    error?: string;
+  };
+  userId?: string;
+  pronouns: string;
+  possessivePronouns: string;
+  generatedAt: string;
+}
+
 export class UserPersonalizationEngine {
   protected userId: string | undefined = undefined;
   private isServerSide: boolean = typeof window === 'undefined';
 
-  private isValidPreferences(preferences: unknown): preferences is UserPreferences {
+  private isValidPreferences(preferences: unknown): preferences is UserPreferencesLocal {
     if (!preferences || typeof preferences !== 'object') return false;
-    const p = preferences as UserPreferences;
+    const p = preferences as UserPreferencesLocal;
     return (
       Array.isArray(p.preferredThemes) &&
       typeof p.generatedStoryCount === 'number' &&
@@ -225,7 +258,7 @@ export class UserPersonalizationEngine {
     return this.userId;
   }
 
-  async getUserPreferences(): Promise<UserPreferences> {
+  async getUserPreferences(): Promise<UserPreferencesLocal> {
     if (!this.userId) return DEFAULT_PREFERENCES;
 
     try {
@@ -235,7 +268,7 @@ export class UserPersonalizationEngine {
           const kvKey = `user:preferences:${this.userId}`;
           const storedPreferences = await kv.get(kvKey);
 
-          if (storedPreferences) {
+          if (storedPreferences && typeof storedPreferences === 'object') {
             logger.info('Retrieved user preferences from KV store', { userId: this.userId });
             return {
               ...DEFAULT_PREFERENCES,
@@ -272,7 +305,7 @@ export class UserPersonalizationEngine {
     }
   }
 
-  async updateUserPreferences(newPreferences: Partial<UserPreferences>): Promise<boolean> {
+  async updateUserPreferences(newPreferences: Partial<UserPreferencesLocal>): Promise<boolean> {
     if (!this.userId) return false;
 
     try {
@@ -309,304 +342,585 @@ export class UserPersonalizationEngine {
     }
   }
 
-  async incrementGeneratedStories() {
-    const currentPreferences = await this.getUserPreferences();
-    if (currentPreferences) {
-      const updatedPreferences = {
-        ...currentPreferences,
-        generatedStoryCount: currentPreferences.generatedStoryCount + 1,
-      };
-      await this.updateUserPreferences(updatedPreferences);
-    }
-  }
-
-  // Generate personalized story using OpenAI API endpoint
-  async generatePersonalizedStory(input: StoryInput, userPrefs?: UserPreferences): Promise<Story> {
-    logger.info('Starting personalized story generation', {
-      input,
-      hasPreferences: !!userPrefs,
-    });
-
-    const pronouns = input.gender === 'boy' ? 'he' : input.gender === 'girl' ? 'she' : 'they';
-    const possessivePronouns =
-      input.gender === 'boy' ? 'his' : input.gender === 'girl' ? 'her' : 'their';
+  async incrementStoryCount(): Promise<boolean> {
+    if (!this.userId || this.userId === 'default-user') return false;
 
     try {
-      let storyContent = '';
+      // Get current user data
+      const userData = await kv.hgetall(`user:${this.userId}`);
 
-      try {
-        // Call the server-side API endpoint instead of using OpenAI directly
-        storyContent = await this.callOpenAIEndpoint(input, userPrefs);
-        logger.info('OpenAI story generation completed', {
-          storyContentLength: storyContent.length,
+      if (!userData) {
+        logger.warn('No user data found when incrementing story count', {
+          userId: this.userId,
         });
-      } catch (openaiError) {
-        logger.warn('OpenAI story generation failed, using fallback', {
-          error: openaiError,
-          input,
-        });
-        storyContent = this.generateFallbackStory(input, pronouns, possessivePronouns);
+        return false;
       }
 
-      const story: Story = {
-        id: this.generateUniqueId(),
-        title: `A Special Story for ${input.childName}`,
-        content: storyContent,
-        theme: input.theme,
-        createdAt: new Date().toISOString(),
-        input,
-        metadata: {
-          pronouns,
-          possessivePronouns,
-          generatedAt: new Date().toISOString(),
-        },
-        userId: this.userId,
-        pronouns,
-        possessivePronouns,
-        generatedAt: new Date().toISOString(),
-      };
+      // Calculate new story count
+      const currentStoryCount = parseInt((userData.storiesGenerated as string) || '0', 10);
+      const newStoryCount = currentStoryCount + 1;
 
-      await this.incrementGeneratedStories();
-
-      // Save the story to user history
-      await this.saveStoryToHistory(story);
-
-      logger.info('Personalized story generation successful', {
-        storyId: story.id,
-        childName: input.childName,
+      // Update story count in database
+      await kv.hset(`user:${this.userId}`, {
+        storiesGenerated: newStoryCount,
+        lastStoryGeneratedAt: new Date().toISOString(),
       });
 
-      return story;
+      logger.info('Successfully incremented story count', {
+        userId: this.userId,
+        previousCount: currentStoryCount,
+        newCount: newStoryCount,
+      });
+
+      return true;
     } catch (error) {
-      logger.error('Comprehensive error in story generation', { error });
-      const fallbackStory = this.generateFallbackStory(input, pronouns, possessivePronouns);
+      logger.error('Error incrementing story count', serializeError(error));
+      return false;
+    }
+  }
+
+  /**
+   * Generate a unique ID for a story
+   *
+   * This method generates a unique identifier for each story using UUID v4.
+   * It's marked as deprecated since uuidv4() should be used directly instead.
+   *
+   * @returns Unique ID string
+   * @deprecated Use uuidv4() directly instead
+   */
+  private generateUniqueId(): string {
+    return uuidv4();
+  }
+
+  /**
+   * Generate a cache key for a story
+   *
+   * This method creates a deterministic cache key based on the story input parameters.
+   * The key format is: story:{childName}:{sortedInterests}:{theme}:{gender}
+   *
+   * @param input Story generation input parameters
+   * @returns Cache key string
+   */
+  private generateCacheKey(input: StoryInput): string {
+    const { childName, interests = [], theme, gender } = input;
+
+    // Sort interests for consistent cache keys regardless of order
+    const sortedInterests = [...interests].sort().join(',');
+
+    // Create a deterministic cache key
+    return `story:${childName}:${sortedInterests}:${theme}:${gender}`;
+  }
+
+  /**
+   * Generate a story using the Gemini API
+   *
+   * This method generates a story using the Gemini API, with caching and fallback mechanisms.
+   * It includes comprehensive error handling, circuit breaking, and detailed logging.
+   *
+   * @param input Story generation input parameters
+   * @returns Generated story content
+   */
+  async generateStory(input: StoryInput): Promise<string> {
+    logger.info('Starting story generation', {
+      childName: input.childName,
+      theme: input.theme,
+      gender: input.gender,
+      interestsCount: input.interests?.length || 0,
+    });
+
+    // Create cache key
+    const cacheKey = this.generateCacheKey(input);
+
+    // Check cache
+    try {
+      const cachedStory = await kv.get<string>(cacheKey);
+
+      if (cachedStory) {
+        logger.info('Using cached story', {
+          cacheKey,
+          userId: this.userId,
+          contentLength: cachedStory.length,
+        });
+        return cachedStory;
+      }
+
+      logger.info('No cached story found, generating new story', {
+        cacheKey,
+        userId: this.userId,
+      });
+    } catch (cacheError) {
+      logger.warn('Error checking story cache', serializeError(cacheError));
+      // Continue with story generation even if cache check fails
+    }
+
+    // Define the API call function to be passed to the circuit breaker
+    const apiCallFunction = async () => {
+      try {
+        // Call the Gemini API endpoint
+        const storyContent = await this.callGeminiEndpoint(input);
+
+        // Cache the generated story
+        try {
+          const cacheTTL = 60 * 60 * 24; // 24 hours
+          await kv.set(cacheKey, storyContent, { ex: cacheTTL });
+
+          logger.info('Successfully cached story', {
+            cacheKey,
+            userId: this.userId,
+            contentLength: storyContent.length,
+            cacheTTL,
+          });
+        } catch (cacheError) {
+          logger.warn('Error caching story', serializeError(cacheError));
+          // Continue even if caching fails
+        }
+
+        // Increment the user's story count
+        await this.incrementStoryCount();
+
+        return storyContent;
+      } catch (error) {
+        logger.error('Error generating story with Gemini API', serializeError(error));
+        throw error;
+      }
+    };
+
+    // Define the fallback function to be used when the API call fails
+    const fallbackFunction = () => {
+      logger.warn('Using fallback story generation due to API failure', {
+        circuitState: geminiCircuitBreaker.status.stats,
+        metrics: geminiCircuitBreaker.stats,
+      });
+
+      return generateFallbackStory(input);
+    };
+
+    try {
+      // Use the circuit breaker to make the API call
+      return await geminiCircuitBreaker.fire(apiCallFunction);
+    } catch (error) {
+      // This catch block handles any errors that might occur in the circuit breaker itself
+      logger.error('Circuit breaker caught error', serializeError(error));
+      return fallbackFunction();
+    }
+  }
+
+  /**
+   * Generate personalized story using Gemini API endpoint
+   *
+   * This method generates a story using the Gemini API, with caching and fallback mechanisms.
+   * It includes comprehensive error handling, circuit breaking, and detailed logging.
+   *
+   * @param input Story generation input parameters
+   * @returns Generated story content
+   */
+  async generatePersonalizedStory(
+    input: StoryInput,
+    userPrefs?: UserPreferencesLocal
+  ): Promise<Story> {
+    logger.info('Starting personalized story generation', {
+      input,
+      userPrefs: userPrefs
+        ? { ...userPrefs, userId: userPrefs.userId ? 'REDACTED' : null }
+        : undefined,
+    });
+
+    // Create a unique ID for this story
+    const storyId = this.generateUniqueId();
+
+    // Determine pronouns based on gender
+    const pronouns =
+      input.gender === 'female' || input.gender === 'girl'
+        ? 'she/her'
+        : input.gender === 'boy' || input.gender === 'male'
+          ? 'he/him'
+          : 'they/them';
+    const [pronoun, possessivePronoun] = pronouns.split('/');
+
+    // Create a cache key based on the input parameters
+    const cacheKey = this.generateCacheKey(input);
+
+    try {
+      // Check if we have a cached story for these parameters
+      const cachedStory = await kv.get<string>(cacheKey);
+
+      if (cachedStory) {
+        logger.info('Using cached story', {
+          cacheKey,
+          userId: this.userId,
+          contentLength: cachedStory.length,
+        });
+
+        // Parse the cached story to extract title and content
+        const titleMatch = cachedStory.match(/^#\s*(.+?)(?:\n|$)/m);
+        const title = titleMatch ? titleMatch[1].trim() : 'Untitled Story';
+        const content = cachedStory.replace(/^#\s*(.+?)(?:\n|$)/m, '').trim();
+
+        return {
+          id: storyId,
+          title,
+          content,
+          theme: input.theme,
+          createdAt: new Date().toISOString(),
+          input,
+          metadata: {
+            pronouns: pronoun,
+            possessivePronouns: possessivePronoun,
+            generatedAt: new Date().toISOString(),
+            wordCount: content.split(/\s+/).length,
+            readingTime: Math.ceil(content.split(/\s+/).length / 200), // Approx. 200 words per minute
+          },
+          userId: this.userId,
+          pronouns: pronoun,
+          possessivePronouns: possessivePronoun,
+          generatedAt: new Date().toISOString(),
+        };
+      }
+
+      // No cached story found, generate a new one
+      logger.info('No cached story found, generating new story', {
+        cacheKey,
+        userId: this.userId,
+      });
+
+      // Define the API call function to be passed to the circuit breaker
+      const apiCallFunction = async () => {
+        try {
+          // Prepare the API request
+          const themeDescription = THEME_DESCRIPTIONS[input.theme as StoryTheme] || input.theme;
+          const themeElements = THEME_ELEMENTS[input.theme as StoryTheme];
+
+          // Get user preferences for enhanced personalization
+          const prefs = userPrefs || (await this.getUserPreferences());
+
+          // Construct a detailed prompt for the story
+          const prompt = `
+            Create a bedtime story for a child named ${input.childName} who uses ${pronouns} pronouns.
+
+            The story should be about ${themeDescription}.
+
+            ${input.interests?.length ? `Include these interests: ${input.interests.join(', ')}.` : ''}
+            ${prefs.learningInterests?.length ? `The child is also interested in learning about: ${prefs.learningInterests.join(', ')}.` : ''}
+
+            ${
+              themeElements
+                ? `
+            You can use these settings: ${themeElements.settings.join(', ')}.
+            You can include these character types: ${themeElements.characters.join(', ')}.
+            You can incorporate these challenges: ${themeElements.challenges.join(', ')}.
+            `
+                : ''
+            }
+            
+            ${input.favoriteCharacters?.length ? `Try to include references to these favorite characters: ${input.favoriteCharacters.join(', ')}.` : ''}
+            ${input.mostLikedCharacterTypes?.length ? `The child enjoys characters that are: ${input.mostLikedCharacterTypes.join(', ')}.` : ''}
+            
+            Make the story age-appropriate for a ${prefs.ageGroup || '6-8'} year old child.
+            The story should be engaging, with a positive message.
+
+            Format the story with a title at the beginning using a single # markdown heading.
+            Keep the story under 500 words.
+          `;
+
+          // Make the API request to Gemini
+          const response = await fetch('/api/gemini', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              type: 'story',
+              childName: input.childName,
+              gender: input.gender,
+              theme: input.theme,
+              interests: input.interests,
+              prompt: prompt,
+            }),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`Gemini API error: ${errorData.error || response.statusText}`);
+          }
+
+          const data = await response.json();
+          const storyContent = data.content;
+
+          // Parse the story to extract title and content
+          const titleMatch = storyContent.match(/^#\s*(.+?)(?:\n|$)/m);
+          const title = titleMatch ? titleMatch[1].trim() : 'Untitled Story';
+          const content = storyContent.replace(/^#\s*(.+?)(?:\n|$)/m, '').trim();
+
+          // Cache the generated story
+          const cacheTTL = 60 * 60 * 24; // 24 hours
+          await kv.set(cacheKey, storyContent, { ex: cacheTTL });
+
+          logger.info('Successfully generated and cached story', {
+            userId: this.userId,
+            title,
+            contentLength: content.length,
+            cacheTTL,
+          });
+
+          // Increment the user's story count
+          await this.incrementStoryCount();
+
+          // Create and return the story object
+          return {
+            id: storyId,
+            title,
+            content,
+            theme: input.theme,
+            createdAt: new Date().toISOString(),
+            input,
+            metadata: {
+              pronouns: pronoun,
+              possessivePronouns: possessivePronoun,
+              generatedAt: new Date().toISOString(),
+              wordCount: content.split(/\s+/).length,
+              readingTime: Math.ceil(content.split(/\s+/).length / 200), // Approx. 200 words per minute
+            },
+            userId: this.userId,
+            pronouns: pronoun,
+            possessivePronouns: possessivePronoun,
+            generatedAt: new Date().toISOString(),
+          };
+        } catch (error) {
+          logger.error('Error generating story with Gemini API', serializeError(error));
+          throw error;
+        }
+      };
+
+      // Define the fallback function to be used when the API call fails
+      const fallbackFunction = () => {
+        logger.warn('Using fallback story generation due to API failure', {
+          circuitState: geminiCircuitBreaker.status.stats,
+          metrics: geminiCircuitBreaker.stats,
+        });
+
+        const fallbackContent = generateFallbackStory(input);
+
+        // Parse the fallback story
+        const titleMatch = fallbackContent.match(/^#\s*(.+?)(?:\n|$)/m);
+        const title = titleMatch
+          ? titleMatch[1].trim()
+          : `${input.theme.charAt(0).toUpperCase() + input.theme.slice(1)} Adventure`;
+        const content = titleMatch
+          ? fallbackContent.replace(/^#\s*(.+?)(?:\n|$)/m, '').trim()
+          : fallbackContent;
+
+        return {
+          id: storyId,
+          title,
+          content,
+          theme: input.theme,
+          createdAt: new Date().toISOString(),
+          input,
+          metadata: {
+            pronouns: pronoun,
+            possessivePronouns: possessivePronoun,
+            generatedAt: new Date().toISOString(),
+            wordCount: content.split(/\s+/).length,
+            readingTime: Math.ceil(content.split(/\s+/).length / 200),
+            fallback: true,
+          },
+          userId: this.userId,
+          pronouns: pronoun,
+          possessivePronouns: possessivePronoun,
+          generatedAt: new Date().toISOString(),
+        };
+      };
+
+      try {
+        // Use the Opossum circuit breaker to make the API call
+        return await geminiCircuitBreaker.fire(apiCallFunction);
+      } catch (error) {
+        // This catch block handles any errors that might occur in the circuit breaker itself
+        logger.error('Circuit breaker caught error', serializeError(error));
+        return fallbackFunction();
+      }
+    } catch (error) {
+      // This catch block handles any errors in the overall story generation process
+      logger.error('Error in generatePersonalizedStory', serializeError(error));
+
+      const fallbackContent = generateFallbackStory(input);
 
       return {
-        id: this.generateUniqueId(),
-        title: `A Story for ${input.childName}`,
-        content: fallbackStory,
+        id: storyId,
+        title: `${input.theme.charAt(0).toUpperCase() + input.theme.slice(1)} Adventure`,
+        content: fallbackContent,
         theme: input.theme,
         createdAt: new Date().toISOString(),
         input,
         metadata: {
-          pronouns,
-          possessivePronouns,
+          pronouns: pronoun,
+          possessivePronouns: possessivePronoun,
           generatedAt: new Date().toISOString(),
+          wordCount: fallbackContent.split(/\s+/).length,
+          readingTime: Math.ceil(fallbackContent.split(/\s+/).length / 200),
+          fallback: true,
+          error: (error as Error).message,
         },
         userId: this.userId,
-        pronouns,
-        possessivePronouns,
+        pronouns: pronoun,
+        possessivePronouns: possessivePronoun,
         generatedAt: new Date().toISOString(),
       };
     }
   }
 
-  // New method to call the server-side OpenAI API endpoint
-  private async callOpenAIEndpoint(
-    input: StoryInput,
-    userPrefs?: UserPreferences
-  ): Promise<string> {
+  /**
+   * Call the Gemini API endpoint to generate a story
+   *
+   * This method makes a request to the Gemini API endpoint with the story input parameters.
+   * It includes error handling and detailed logging.
+   *
+   * @param input Story generation input parameters
+   * @returns Generated story content
+   */
+  private async callGeminiEndpoint(input: StoryInput): Promise<string> {
     try {
-      // Get reading level based on age group from user preferences
-      const ageGroup = userPrefs?.ageGroup || '6-8';
-      const readingLevel = this.getReadingLevelForAgeGroup(ageGroup);
+      logger.info('Calling Gemini API endpoint for story generation', {
+        childName: input.childName,
+        theme: input.theme,
+        gender: input.gender,
+        interestsCount: input.interests?.length || 0,
+      });
 
-      // Get theme-specific elements to enhance the story
-      const themeDescription = THEME_DESCRIPTIONS[input.theme] || 'adventure and discovery';
+      // Get user preferences for enhanced personalization
+      const prefs = await this.getUserPreferences();
 
-      // Generate character traits if not provided
-      const enhancedInput = input as EnhancedStoryInput;
-      const characterTraits = enhancedInput.mainCharacter?.traits || [
-        CHARACTER_TRAITS.personality[
-          Math.floor(Math.random() * CHARACTER_TRAITS.personality.length)
-        ],
-      ];
+      // Determine pronouns based on gender
+      const pronouns =
+        input.gender === 'female' || input.gender === 'girl'
+          ? 'she/her'
+          : input.gender === 'boy' || input.gender === 'male'
+            ? 'he/him'
+            : 'they/them';
 
-      // Generate supporting character if not provided
-      const supportingCharacter = enhancedInput.supportingCharacters?.[0] || {
-        name: '',
-        type: 'animal' as const,
-        traits: [
-          CHARACTER_TRAITS.personality[
-            Math.floor(Math.random() * CHARACTER_TRAITS.personality.length)
-          ],
-        ],
-        role: CHARACTER_ARCHETYPES[Math.floor(Math.random() * CHARACTER_ARCHETYPES.length)],
-      };
+      // Prepare the API request
+      const themeDescription = THEME_DESCRIPTIONS[input.theme as StoryTheme] || input.theme;
+      const themeElements = THEME_ELEMENTS[input.theme as StoryTheme];
 
-      // Call the server-side API endpoint
-      const response = await fetch('/api/openai', {
+      // Construct a detailed prompt for the story
+      const prompt = `
+        Create a bedtime story for a child named ${input.childName} who uses ${pronouns} pronouns.
+
+        The story should be about ${themeDescription}.
+
+        ${input.interests?.length ? `Include these interests: ${input.interests.join(', ')}.` : ''}
+        ${prefs.learningInterests?.length ? `The child is also interested in learning about: ${prefs.learningInterests.join(', ')}.` : ''}
+
+        ${
+          themeElements
+            ? `
+        You can use these settings: ${themeElements.settings.join(', ')}.
+        You can include these character types: ${themeElements.characters.join(', ')}.
+        You can incorporate these challenges: ${themeElements.challenges.join(', ')}.
+        `
+            : ''
+        }
+        
+        ${input.favoriteCharacters?.length ? `Try to include references to these favorite characters: ${input.favoriteCharacters.join(', ')}.` : ''}
+        ${input.mostLikedCharacterTypes?.length ? `The child enjoys characters that are: ${input.mostLikedCharacterTypes.join(', ')}.` : ''}
+        
+        Make the story age-appropriate for a ${prefs.ageGroup || '6-8'} year old child.
+        The story should be engaging, with a positive message.
+
+        Format the story with a title at the beginning using a single # markdown heading.
+        Keep the story under 500 words.
+      `;
+
+      // Make the API request to Gemini
+      const response = await fetch('/api/gemini', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          operation: 'generateStory',
-          params: {
-            childName: input.childName,
-            interests: input.interests,
-            theme: input.theme,
-            mood: input.mood,
-            gender: input.gender,
-            favoriteCharacters: input.favoriteCharacters,
-            mainCharacter: {
-              traits: characterTraits,
-            },
-            supportingCharacters: [supportingCharacter],
-            readingLevel,
-            ageGroup,
-          },
+          type: 'story',
+          childName: input.childName,
+          gender: input.gender,
+          theme: input.theme,
+          interests: input.interests,
+          prompt: prompt,
         }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(`API error: ${errorData.error || response.statusText}`);
+        throw new Error(`Gemini API error: ${errorData.error || response.statusText}`);
       }
 
       const data = await response.json();
-      return (
-        data.content ||
-        this.generateFallbackStory(
-          input,
-          input.gender === 'boy' ? 'he' : input.gender === 'girl' ? 'she' : 'they',
-          input.gender === 'boy' ? 'his' : input.gender === 'girl' ? 'her' : 'their'
-        )
-      );
+
+      logger.info('Successfully received story from Gemini API', {
+        contentLength: data.content.length,
+        model: data.model,
+      });
+
+      return data.content;
     } catch (error) {
-      logger.error('Error calling OpenAI API endpoint', { error });
+      logger.error('Error calling Gemini API endpoint', serializeError(error));
       throw error;
     }
   }
 
-  private generateFallbackStory(
-    input: StoryInput,
-    pronouns: string,
-    possessivePronouns: string
-  ): string {
-    const { childName, interests, theme } = input;
-
-    // Get theme elements for more detailed fallback stories
-    const themeElements = THEME_ELEMENTS[theme] || THEME_ELEMENTS.adventure;
-    const setting =
-      themeElements.settings[Math.floor(Math.random() * themeElements.settings.length)];
-    const character =
-      themeElements.characters[Math.floor(Math.random() * themeElements.characters.length)];
-    const challenge =
-      themeElements.challenges[Math.floor(Math.random() * themeElements.challenges.length)];
-
-    // Enhanced fallback story generation based on theme
-    const themeBasedIntros: Record<StoryTheme, string> = {
-      adventure: `In a world full of endless possibilities, ${childName} embarked on an incredible journey to a ${setting}.`,
-      fantasy: `In a magical realm where dreams come true, ${childName} discovered something extraordinary in an ${setting}.`,
-      science: `Curious about the wonders of science, ${childName} began an amazing experiment in a ${setting}.`,
-      nature: `On a beautiful day surrounded by nature in a ${setting}, ${childName} made an incredible discovery.`,
-      friendship: `${childName} learned the true meaning of friendship on a special day at the ${setting}.`,
-      educational: `${childName} discovered something fascinating to learn about today while visiting a ${setting}.`,
-      courage: `${childName} faced ${challenge} with bravery and determination in a ${setting}.`,
-      kindness: `${childName} learned how a small act of kindness can make a big difference when meeting a ${character}.`,
-      curiosity: `${childName}'s curiosity about ${setting} led to an amazing discovery.`,
-      creativity: `${childName} let imagination soar and created something wonderful in a ${setting}.`,
-    };
-
-    const intro =
-      themeBasedIntros[theme] ||
-      `Once upon a time, there was a wonderful child named ${childName} who loved ${interests.join(' and ')}.`;
-
-    return `${intro}\n\n${this.generateStoryMiddle(
-      input,
-      pronouns,
-      possessivePronouns,
-      character,
-      challenge
-    )}\n\n${this.generateStoryEnding(input, pronouns)}`;
-  }
-
-  private generateStoryMiddle(
-    input: StoryInput,
-    pronouns: string,
-    possessivePronouns: string,
-    character: string = 'friend',
-    challenge: string = 'challenge'
-  ): string {
-    const { childName, interests, theme } = input;
-
-    return `As ${pronouns} explored with excitement, ${childName} met a ${character} who needed help with ${challenge}. 
-    Together, they used ${childName}'s knowledge of ${interests.join(' and ')} to solve the problem. 
-    It wasn't easy, but ${childName} was determined to help. ${pronouns === 'they' ? 'They' : pronouns === 'he' ? 'He' : 'She'} 
-    discovered that ${possessivePronouns} love for ${interests[0] || 'learning'} was exactly what was needed in this situation.`;
-  }
-
-  private generateStoryEnding(input: StoryInput, pronouns: string): string {
-    const { childName } = input;
-    return `At the end of this wonderful adventure, ${childName} realized that the greatest magic of all was believing in ${
-      pronouns === 'they' ? 'themselves' : pronouns === 'he' ? 'himself' : 'herself'
-    }. The end.`;
-  }
-
-  // Helper method to determine reading level based on age group
-  private getReadingLevelForAgeGroup(ageGroup: '3-5' | '6-8' | '9-12'): string {
-    switch (ageGroup) {
-      case '3-5':
-        return 'simple, with very basic vocabulary and short sentences';
-      case '6-8':
-        return 'intermediate, with age-appropriate vocabulary and a mix of simple and compound sentences';
-      case '9-12':
-        return 'advanced, with richer vocabulary and more complex sentence structures';
-      default:
-        return 'intermediate';
-    }
-  }
-
-  // Generate a unique story ID
-  private generateUniqueId(): string {
-    return uuidv4();
-  }
-
-  // Store generated story in user history
+  /**
+   * Store generated story in user history
+   *
+   * This method saves a generated story to the user's history in the database.
+   * It includes error handling and detailed logging.
+   *
+   * @param story Story object to save
+   * @returns Whether the operation was successful
+   */
   async saveStoryToHistory(story: Story): Promise<boolean> {
     if (!this.userId || this.userId === 'default-user') return false;
 
     try {
-      // Store in KV if server-side
-      if (this.isServerSide) {
-        try {
-          const kvKey = `user:stories:${this.userId}`;
+      // Create a history entry with minimal data to save space
+      const historyEntry = {
+        id: story.id,
+        title: story.title,
+        theme: story.theme,
+        childName: story.input.childName,
+        createdAt: story.createdAt,
+        wordCount: story.metadata.wordCount || 0,
+        fallback: story.metadata.fallback || false,
+      };
 
-          // Get existing stories
-          const existingStories = (await kv.get<Story[]>(kvKey)) || [];
+      // Get current user data
+      const userData = await kv.hgetall(`user:${this.userId}`);
 
-          // Add new story to the beginning of the array (most recent first)
-          const updatedStories = [story, ...existingStories].slice(0, 50); // Keep only the 50 most recent stories
-
-          await kv.set(kvKey, updatedStories);
-          logger.info('Saved story to user history in KV store', {
-            userId: this.userId,
-            storyId: story.id,
-          });
-          return true;
-        } catch (kvError) {
-          logger.error('Error saving story to history in KV:', { error: kvError });
-          // Fall back to localStorage if KV fails
-        }
+      if (!userData) {
+        logger.warn('No user data found when saving story to history', {
+          userId: this.userId,
+        });
+        return false;
       }
 
-      // Client-side storage fallback
-      if (typeof window !== 'undefined') {
-        const storageKey = `stories:${this.userId}`;
-        const existingStoriesJson = localStorage.getItem(storageKey);
-        const existingStories = existingStoriesJson ? JSON.parse(existingStoriesJson) : [];
+      // Get current history or initialize empty array
+      const currentHistory = JSON.parse((userData.storyHistory as string) || '[]');
 
-        // Add new story to the beginning of the array (most recent first)
-        const updatedStories = [story, ...existingStories].slice(0, 50); // Keep only the 50 most recent stories
+      // Add new story to history (at the beginning)
+      const updatedHistory = [historyEntry, ...currentHistory].slice(0, 20); // Keep only last 20 stories
 
-        localStorage.setItem(storageKey, JSON.stringify(updatedStories));
-        return true;
-      }
+      // Update history in database
+      await kv.hset(`user:${this.userId}`, {
+        storyHistory: JSON.stringify(updatedHistory),
+        lastStoryGeneratedAt: new Date().toISOString(),
+      });
 
-      return false;
+      logger.info('Successfully saved story to history', {
+        userId: this.userId,
+        storyId: story.id,
+        historyLength: updatedHistory.length,
+      });
+
+      return true;
     } catch (error) {
-      logger.error('Error saving story to history:', { error });
+      logger.error('Error saving story to history', serializeError(error));
       return false;
     }
   }
@@ -692,3 +1006,5 @@ export class UserPersonalizationEngine {
 // Singleton instance of the personalization engine
 export const userPersonalizationEngine = new UserPersonalizationEngine('default-user');
 export { DEFAULT_PREFERENCES };
+
+export * from '../types/story';

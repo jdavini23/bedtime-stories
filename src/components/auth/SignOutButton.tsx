@@ -3,25 +3,25 @@
 import { useClerk } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/common/Button';
 
 interface SignOutButtonProps {
   redirectUrl?: string;
+  variant?: 'primary' | 'secondary' | 'danger' | 'outline';
+  size?: 'sm' | 'md' | 'lg';
   className?: string;
-  variant?: 'primary' | 'outline' | 'secondary' | 'ghost' | 'link';
-  size?: 'sm' | 'md' | 'lg' | 'icon';
-  fullWidth?: boolean;
   children?: React.ReactNode;
+  fullwidth?: boolean;
 }
 
-export function SignOutButton({
+const SignOutButton: React.FC<SignOutButtonProps> = ({
   redirectUrl = '/',
-  className = '',
-  variant = 'outline',
+  variant = 'primary',
   size = 'md',
-  fullWidth = false,
-  children = 'Sign Out',
-}: SignOutButtonProps) {
+  className = '',
+  children,
+  fullwidth,
+}) => {
   const { signOut } = useClerk();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -29,26 +29,28 @@ export function SignOutButton({
   const handleSignOut = async () => {
     try {
       setIsLoading(true);
-      await signOut(() => {
-        router.push(redirectUrl);
-        router.refresh(); // Refresh to update auth state throughout the app
-      });
+      await signOut();
+      router.push(redirectUrl);
     } catch (error) {
       console.error('Error signing out:', error);
+    } finally {
       setIsLoading(false);
     }
   };
 
   return (
     <Button
+      onClick={handleSignOut}
       variant={variant}
       size={size}
       className={className}
-      onClick={handleSignOut}
+      fullwidth={fullwidth}
       disabled={isLoading}
-      fullWidth={fullWidth}
     >
-      {isLoading ? 'Signing out...' : children}
+      {children || 'Sign Out'}
     </Button>
   );
-}
+};
+
+export { SignOutButton };
+export default SignOutButton;

@@ -7,7 +7,7 @@ import { ThemeStep } from './ThemeStep';
 import { CharacterStep } from './CharacterStep';
 import { ReadingLevelStep } from './ReadingLevelStep';
 import { PreviewStep } from './PreviewStep';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/common/Button';
 import { Card } from '@/components/ui/card';
 import {
   EnhancedStoryInput,

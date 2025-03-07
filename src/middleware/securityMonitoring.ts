@@ -32,7 +32,7 @@ function logSecurityEvent(
     message,
     details,
   };
-  
+
   securityLogs.push(log);
   console.log(`[Security ${type}]`, message, details);
 }
@@ -42,9 +42,9 @@ const securityConfig: SecurityConfig = {
   rateLimitWindow: 60 * 1000, // 1 minute
   maxRequestsPerWindow: 100,
   suspiciousPatterns: [
-    /\.\.[/\\]/,  // Directory traversal - fixed unnecessary escape character
-    /[;|&`']/,     // Command injection
-    /<script>/i,   // XSS attempt
+    /\.\.[/\\]/, // Directory traversal - fixed unnecessary escape character
+    /[;|&`']/, // Command injection
+    /<script>/i, // XSS attempt
   ],
   requiredHeaders: ['x-clerk-auth-token'],
 };
@@ -53,9 +53,7 @@ const securityConfig: SecurityConfig = {
 const requestCounts = new Map<string, RequestData>();
 
 // Security monitoring middleware to detect and log potential security issues
-export async function securityMonitoring(
-  request: NextRequest
-): Promise<NextResponse> {
+export async function securityMonitoring(request: NextRequest): Promise<NextResponse> {
   const ip: string = request.headers.get('x-forwarded-for') || 'unknown';
   const userAgent: string = request.headers.get('user-agent') || 'unknown';
   const path: string = request.nextUrl.pathname;
@@ -76,8 +74,8 @@ export async function securityMonitoring(
 
   // Check for suspicious patterns
   const urlString = request.url;
-  const hasSuspiciousPattern = securityConfig.suspiciousPatterns.some(
-    pattern => pattern.test(urlString)
+  const hasSuspiciousPattern = securityConfig.suspiciousPatterns.some((pattern) =>
+    pattern.test(urlString)
   );
 
   if (hasSuspiciousPattern) {
@@ -92,7 +90,7 @@ export async function securityMonitoring(
 
   // Check for required security headers
   const missingHeaders = securityConfig.requiredHeaders.filter(
-    header => !request.headers.get(header)
+    (header) => !request.headers.get(header)
   );
 
   if (missingHeaders.length > 0 && !path.startsWith('/api/public')) {
