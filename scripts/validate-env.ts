@@ -2,16 +2,13 @@ import { logger } from '../src/utils/loggerInstance';
 
 const requiredEnvVars = {
   // Always required in all environments
-  required: [
-    'NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY',
-    'CLERK_SECRET_KEY',
-    'NEXT_PUBLIC_SUPABASE_URL',
-    'NEXT_PUBLIC_SUPABASE_ANON_KEY',
-  ] as const,
-  // Only required in production
+  required: ['NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY', 'CLERK_SECRET_KEY'] as const,
+  // Only required in production deployment (not preview)
   production: [
     'OPENAI_API_KEY',
     'GEMINI_API_KEY',
+    'NEXT_PUBLIC_SUPABASE_URL',
+    'NEXT_PUBLIC_SUPABASE_ANON_KEY',
     // Support both naming conventions for Upstash
     ['Upstash_KV_REST_API_URL', 'UPSTASH_REDIS_REST_URL'],
     ['Upstash_KV_REST_API_TOKEN', 'UPSTASH_REDIS_REST_TOKEN'],
@@ -25,15 +22,17 @@ type EnvVar = string | readonly string[];
 export function validateEnv(): void {
   const isProd = process.env.NODE_ENV === 'production';
   const isVercel = process.env.VERCEL === '1';
+  const isVercelProd = process.env.VERCEL_ENV === 'production';
 
   // In Vercel preview deployments, we'll use mock values
-  if (isVercel && process.env.VERCEL_ENV !== 'production') {
+  if (isVercel && !isVercelProd) {
     logger.info('Vercel preview deployment detected, using mock values');
     return;
   }
 
   const varsToCheck: EnvVar[] = [...requiredEnvVars.required];
-  if (isProd) {
+  // Only check production vars in Vercel production deployment
+  if (isVercelProd) {
     varsToCheck.push(...requiredEnvVars.production);
   }
 
@@ -52,7 +51,7 @@ export function validateEnv(): void {
   });
 
   if (missingVars.length > 0) {
-    const message = isProd
+    const message = isVercelProd
       ? 'Missing required environment variables in production:'
       : 'Missing environment variables:';
 
@@ -65,7 +64,7 @@ export function validateEnv(): void {
       vercelEnv: process.env.VERCEL_ENV,
     });
 
-    if (isProd) {
+    if (isVercelProd) {
       console.error(message, formattedMissingVars.join(', '));
     }
   }
@@ -74,13 +73,13 @@ export function validateEnv(): void {
   if (process.env.OPENAI_API_KEY && !process.env.OPENAI_API_KEY.startsWith('sk-')) {
     const message = 'Invalid OpenAI API key format';
     logger.warn(message);
-    if (isProd) console.error(message);
+    if (isVercelProd) console.error(message);
   }
 
   if (process.env.GEMINI_API_KEY && !process.env.GEMINI_API_KEY.startsWith('AI')) {
     const message = 'Invalid Gemini API key format';
     logger.warn(message);
-    if (isProd) console.error(message);
+    if (isVercelProd) console.error(message);
   }
 
   // Log initialization status (with redacted values)
@@ -92,8 +91,8 @@ export function validateEnv(): void {
     missingVarsCount: missingVars.length,
   });
 
-  // Only fail the build in production environment
-  if (isProd && process.env.VERCEL_ENV === 'production' && missingVars.length > 0) {
+  // Only fail the build in Vercel production deployment
+  if (isVercelProd && missingVars.length > 0) {
     throw new Error(
       `Missing required environment variables in production: ${missingVars.join(', ')}`
     );
