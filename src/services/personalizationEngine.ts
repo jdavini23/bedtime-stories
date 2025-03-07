@@ -1,10 +1,16 @@
 import { logger } from '../utils/logger';
 import { v4 as uuidv4 } from 'uuid';
-import { kv } from '@vercel/kv';
+import { Redis } from '@upstash/redis';
 import { StoryInput, UserPreferences, StoryTheme } from '../types/story';
 import { generateFallbackStory } from '../utils/fallback-generator';
 import { geminiCircuitBreaker, serializeError } from '../utils/error-handlers';
-import CircuitBreaker = require('opossum'); // Updated import statement
+import * as CircuitBreaker from 'opossum';
+
+// Initialize Redis client
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL!,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+});
 
 // Define interface for user preferences
 export interface UserPreferencesLocal {
@@ -266,7 +272,7 @@ export class UserPersonalizationEngine {
       if (this.isServerSide && this.userId !== 'default-user') {
         try {
           const kvKey = `user:preferences:${this.userId}`;
-          const storedPreferences = await kv.get(kvKey);
+          const storedPreferences = await redis.get(kvKey);
 
           if (storedPreferences && typeof storedPreferences === 'object') {
             logger.info('Retrieved user preferences from KV store', { userId: this.userId });
@@ -320,7 +326,7 @@ export class UserPersonalizationEngine {
       if (this.isServerSide && this.userId !== 'default-user') {
         try {
           const kvKey = `user:preferences:${this.userId}`;
-          await kv.set(kvKey, updatedPreferences);
+          await redis.set(kvKey, updatedPreferences);
           logger.info('Updated user preferences in KV store', { userId: this.userId });
           return true;
         } catch (kvError) {
@@ -347,7 +353,7 @@ export class UserPersonalizationEngine {
 
     try {
       // Get current user data
-      const userData = await kv.hgetall(`user:${this.userId}`);
+      const userData = await redis.hgetall(`user:${this.userId}`);
 
       if (!userData) {
         logger.warn('No user data found when incrementing story count', {
@@ -361,7 +367,7 @@ export class UserPersonalizationEngine {
       const newStoryCount = currentStoryCount + 1;
 
       // Update story count in database
-      await kv.hset(`user:${this.userId}`, {
+      await redis.hset(`user:${this.userId}`, {
         storiesGenerated: newStoryCount,
         lastStoryGeneratedAt: new Date().toISOString(),
       });
@@ -433,7 +439,7 @@ export class UserPersonalizationEngine {
 
     // Check cache
     try {
-      const cachedStory = await kv.get<string>(cacheKey);
+      const cachedStory = await redis.get<string>(cacheKey);
 
       if (cachedStory) {
         logger.info('Using cached story', {
@@ -462,7 +468,7 @@ export class UserPersonalizationEngine {
         // Cache the generated story
         try {
           const cacheTTL = 60 * 60 * 24; // 24 hours
-          await kv.set(cacheKey, storyContent, { ex: cacheTTL });
+          await redis.set(cacheKey, storyContent, { ex: cacheTTL });
 
           logger.info('Successfully cached story', {
             cacheKey,
@@ -542,7 +548,7 @@ export class UserPersonalizationEngine {
 
     try {
       // Check if we have a cached story for these parameters
-      const cachedStory = await kv.get<string>(cacheKey);
+      const cachedStory = await redis.get<string>(cacheKey);
 
       if (cachedStory) {
         logger.info('Using cached story', {
@@ -653,7 +659,7 @@ export class UserPersonalizationEngine {
 
           // Cache the generated story
           const cacheTTL = 60 * 60 * 24; // 24 hours
-          await kv.set(cacheKey, storyContent, { ex: cacheTTL });
+          await redis.set(cacheKey, storyContent, { ex: cacheTTL });
 
           logger.info('Successfully generated and cached story', {
             userId: this.userId,
@@ -891,7 +897,7 @@ export class UserPersonalizationEngine {
       };
 
       // Get current user data
-      const userData = await kv.hgetall(`user:${this.userId}`);
+      const userData = await redis.hgetall(`user:${this.userId}`);
 
       if (!userData) {
         logger.warn('No user data found when saving story to history', {
@@ -907,7 +913,7 @@ export class UserPersonalizationEngine {
       const updatedHistory = [historyEntry, ...currentHistory].slice(0, 20); // Keep only last 20 stories
 
       // Update history in database
-      await kv.hset(`user:${this.userId}`, {
+      await redis.hset(`user:${this.userId}`, {
         storyHistory: JSON.stringify(updatedHistory),
         lastStoryGeneratedAt: new Date().toISOString(),
       });
@@ -934,7 +940,7 @@ export class UserPersonalizationEngine {
       if (this.isServerSide) {
         try {
           const kvKey = `user:stories:${this.userId}`;
-          const stories = await kv.get<Story[]>(kvKey);
+          const stories = await redis.get<Story[]>(kvKey);
           return stories || [];
         } catch (kvError) {
           logger.error('Error fetching story history from KV:', { error: kvError });

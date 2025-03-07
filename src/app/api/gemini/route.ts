@@ -134,20 +134,20 @@ async function handleGenerateStory(params: any, userId: string) {
         ]);
 
         clearTimeout(timeoutId);
-
         // Extract and return the story content
-        const content = response.content || generateFallbackStoryUtil(params);
+        const content =
+          (response as { content: string }).content || generateFallbackStoryUtil(params);
 
         logger.info('Story generated successfully with Gemini', {
           userId,
           contentLength: content.length,
-          model: response.model,
+          model: (response as any).model,
         });
 
         return NextResponse.json({
           content,
-          model: response.model,
-          usage: response.usage,
+          model: (response as any).model,
+          usage: (response as any).usage,
         });
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
@@ -270,12 +270,11 @@ async function handleChatCompletion(params: any, userId: string) {
 
     // Add the last message
     prompt += lastMessage.content;
-
     // Call the Gemini API
     const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
     const geminiModel = genAI.getGenerativeModel({ model: DEFAULT_MODEL });
 
-    const result = await geminiModel.generateContent(prompt);
+    const result = await geminiModel.generateContent(prompt || '');
     const response = result.response;
     const text = response.text();
 
@@ -305,9 +304,18 @@ async function handleChatCompletion(params: any, userId: string) {
  */
 export async function POST(request: NextRequest) {
   try {
-    // Get authentication information
-    const auth = getAuth(request);
-    const userId = auth.userId || 'anonymous';
+    // Get authentication information (optional)
+    let userId = 'anonymous';
+    try {
+      const auth = getAuth(request);
+      if (auth.userId) {
+        userId = auth.userId;
+      }
+    } catch (authError) {
+      logger.warn('Authentication not available, proceeding as anonymous', {
+        error: (authError as Error).message,
+      });
+    }
 
     // Parse the request body
     const body = await request.json();

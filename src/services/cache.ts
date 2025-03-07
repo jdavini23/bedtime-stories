@@ -7,7 +7,7 @@ import { CACHE_KEYS } from '@/constants';
  * Check if caching is available
  */
 export function isCachingEnabled(): boolean {
-  return env.ENABLE_CACHING && !!env.KV_REST_API_URL && !!env.KV_REST_API_TOKEN;
+  return env.ENABLE_CACHING && !!env.UPSTASH_REDIS_REST_URL && !!env.UPSTASH_REDIS_REST_TOKEN;
 }
 
 /**

@@ -7,9 +7,21 @@ import { motion } from 'framer-motion';
 import { logger } from '@/utils/loggerInstance';
 import dynamic from 'next/dynamic';
 import ReadingTime from './ReadingTime';
+import { ErrorBoundary } from '../error-boundaries/ErrorBoundary';
 
 // Dynamically import TextToSpeech with no SSR to avoid hydration issues
-const TextToSpeech = dynamic(() => import('./TextToSpeech'), { ssr: false });
+const TextToSpeech = dynamic(() => import('./TextToSpeech'), {
+  ssr: false,
+  loading: () => (
+    <div className="px-6 pb-6">
+      <div className="bg-midnight-light/10 dark:bg-midnight-light/20 backdrop-blur-sm rounded-xl p-6">
+        <h3 className="text-lg font-medium text-sky-700 dark:text-sky-300 mb-4">
+          Loading Text-to-Speech...
+        </h3>
+      </div>
+    </div>
+  ),
+});
 
 interface StoryDisplayProps {
   story: Story;
@@ -138,7 +150,19 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
             {formatStoryParagraphs(story.content)}
           </div>
 
-          <TextToSpeech text={story.content} />
+          <ErrorBoundary
+            fallback={
+              <div className="px-6 pb-6">
+                <div className="bg-midnight-light/10 dark:bg-midnight-light/20 backdrop-blur-sm rounded-xl p-6">
+                  <h3 className="text-lg font-medium text-rose-600 dark:text-rose-400 mb-4">
+                    Text-to-Speech is currently unavailable
+                  </h3>
+                </div>
+              </div>
+            }
+          >
+            <TextToSpeech text={story.content} />
+          </ErrorBoundary>
 
           <div className="px-6 pb-6">
             <div className="grid grid-cols-2 gap-4">

@@ -196,9 +196,8 @@ exports.DEFAULT_PREFERENCES =
     void 0;
 var logger_1 = require('../utils/logger');
 var uuid_1 = require('uuid');
-var kv_1 = require('@vercel/kv');
-console.log('KV_REST_API_URL:', process.env.KV_REST_API_URL);
-console.log('KV_REST_API_TOKEN:', process.env.KV_REST_API_TOKEN);
+var redis = require('../utils/redis');
+
 var fallback_generator_1 = require('../utils/fallback-generator');
 var error_handlers_1 = require('../utils/error-handlers');
 var DEFAULT_PREFERENCES = {
@@ -388,11 +387,11 @@ var UserPersonalizationEngine = /** @class */ (function () {
           case 2:
             _a.trys.push([2, 4, , 5]);
             kvKey = 'user:preferences:'.concat(this.userId);
-            return [4 /*yield*/, kv_1.kv.get(kvKey)];
+            return [4 /*yield*/, serverRedisCall('get', [kvKey])];
           case 3:
             storedPreferences = _a.sent();
             if (storedPreferences && typeof storedPreferences === 'object') {
-              logger_1.logger.info('Retrieved user preferences from KV store', {
+              logger_1.logger.info('Retrieved user preferences from Redis store', {
                 userId: this.userId,
               });
               return [2 /*return*/, __assign(__assign({}, DEFAULT_PREFERENCES), storedPreferences)];
@@ -400,7 +399,9 @@ var UserPersonalizationEngine = /** @class */ (function () {
             return [3 /*break*/, 5];
           case 4:
             kvError_1 = _a.sent();
-            logger_1.logger.error('Error fetching user preferences from KV:', { error: kvError_1 });
+            logger_1.logger.error('Error fetching user preferences from Redis:', {
+              error: kvError_1,
+            });
             return [3 /*break*/, 5];
           case 5:
             // Client-side storage fallback
@@ -448,14 +449,18 @@ var UserPersonalizationEngine = /** @class */ (function () {
           case 3:
             _a.trys.push([3, 5, , 6]);
             kvKey = 'user:preferences:'.concat(this.userId);
-            return [4 /*yield*/, kv_1.kv.set(kvKey, updatedPreferences)];
+            return [4 /*yield*/, serverRedisCall('set', [kvKey, updatedPreferences])];
           case 4:
             _a.sent();
-            logger_1.logger.info('Updated user preferences in KV store', { userId: this.userId });
+            logger_1.logger.info('Updated user preferences in Redis store', {
+              userId: this.userId,
+            });
             return [2 /*return*/, true];
           case 5:
             kvError_2 = _a.sent();
-            logger_1.logger.error('Error updating user preferences in KV:', { error: kvError_2 });
+            logger_1.logger.error('Error updating user preferences in Redis:', {
+              error: kvError_2,
+            });
             return [3 /*break*/, 6];
           case 6:
             // Client-side storage fallback
@@ -487,7 +492,7 @@ var UserPersonalizationEngine = /** @class */ (function () {
             _a.label = 1;
           case 1:
             _a.trys.push([1, 4, , 5]);
-            return [4 /*yield*/, kv_1.kv.hgetall('user:'.concat(this.userId))];
+            return [4 /*yield*/, redis.hgetall('user:'.concat(this.userId))];
           case 2:
             userData = _a.sent();
             if (!userData) {
@@ -501,7 +506,7 @@ var UserPersonalizationEngine = /** @class */ (function () {
             // Update story count in database
             return [
               4 /*yield*/,
-              kv_1.kv.hset('user:'.concat(this.userId), {
+              redis.hset('user:'.concat(this.userId), {
                 storiesGenerated: newStoryCount,
                 lastStoryGeneratedAt: new Date().toISOString(),
               }),
@@ -592,7 +597,7 @@ var UserPersonalizationEngine = /** @class */ (function () {
             _b.label = 1;
           case 1:
             _b.trys.push([1, 3, , 4]);
-            return [4 /*yield*/, kv_1.kv.get(cacheKey)];
+            return [4 /*yield*/, redis.get(cacheKey)];
           case 2:
             cachedStory = _b.sent();
             if (cachedStory) {
@@ -630,7 +635,7 @@ var UserPersonalizationEngine = /** @class */ (function () {
                     case 2:
                       _a.trys.push([2, 4, , 5]);
                       cacheTTL = 60 * 60 * 24;
-                      return [4 /*yield*/, kv_1.kv.set(cacheKey, storyContent, { ex: cacheTTL })];
+                      return [4 /*yield*/, redis.set(cacheKey, storyContent, { ex: cacheTTL })];
                     case 3:
                       _a.sent();
                       logger_1.logger.info('Successfully cached story', {
@@ -706,8 +711,8 @@ var UserPersonalizationEngine = /** @class */ (function () {
    */
   UserPersonalizationEngine.prototype.generatePersonalizedStory = function (input, userPrefs) {
     console.log('generatePersonalizedStory called');
-    console.log('KV_REST_API_URL:', process.env.KV_REST_API_URL);
-    console.log('KV_REST_API_TOKEN:', process.env.KV_REST_API_TOKEN);
+    console.log('UPSTASH_REDIS_REST_URL:', process.env.UPSTASH_REDIS_REST_URL);
+    console.log('UPSTASH_REDIS_REST_TOKEN:', process.env.UPSTASH_REDIS_REST_TOKEN);
     return __awaiter(this, void 0, void 0, function () {
       var storyId,
         pronouns,
@@ -748,7 +753,7 @@ var UserPersonalizationEngine = /** @class */ (function () {
             _b.label = 1;
           case 1:
             _b.trys.push([1, 7, , 8]);
-            return [4 /*yield*/, kv_1.kv.get(cacheKey)];
+            return [4 /*yield*/, redis.get(cacheKey)];
           case 2:
             cachedStory = _b.sent();
             if (cachedStory) {
@@ -922,7 +927,7 @@ var UserPersonalizationEngine = /** @class */ (function () {
                       title = titleMatch ? titleMatch[1].trim() : 'Untitled Story';
                       content = storyContent.replace(/^#\s*(.+?)(?:\n|$)/m, '').trim();
                       cacheTTL = 60 * 60 * 24;
-                      return [4 /*yield*/, kv_1.kv.set(cacheKey, storyContent, { ex: cacheTTL })];
+                      return [4 /*yield*/, redis.set(cacheKey, storyContent, { ex: cacheTTL })];
                     case 7:
                       _f.sent();
                       logger_1.logger.info('Successfully generated and cached story', {
@@ -1245,7 +1250,7 @@ var UserPersonalizationEngine = /** @class */ (function () {
               wordCount: story.metadata.wordCount || 0,
               fallback: story.metadata.fallback || false,
             };
-            return [4 /*yield*/, kv_1.kv.hgetall('user:'.concat(this.userId))];
+            return [4 /*yield*/, redis.hgetall('user:'.concat(this.userId))];
           case 2:
             userData = _a.sent();
             if (!userData) {
@@ -1259,7 +1264,7 @@ var UserPersonalizationEngine = /** @class */ (function () {
             // Update history in database
             return [
               4 /*yield*/,
-              kv_1.kv.hset('user:'.concat(this.userId), {
+              redis.hset('user:'.concat(this.userId), {
                 storyHistory: JSON.stringify(updatedHistory),
                 lastStoryGeneratedAt: new Date().toISOString(),
               }),
@@ -1302,13 +1307,13 @@ var UserPersonalizationEngine = /** @class */ (function () {
           case 2:
             _a.trys.push([2, 4, , 5]);
             kvKey = 'user:stories:'.concat(this.userId);
-            return [4 /*yield*/, kv_1.kv.get(kvKey)];
+            return [4 /*yield*/, redis.get(kvKey)];
           case 3:
             stories = _a.sent();
             return [2 /*return*/, stories || []];
           case 4:
             kvError_3 = _a.sent();
-            logger_1.logger.error('Error fetching story history from KV:', { error: kvError_3 });
+            logger_1.logger.error('Error fetching story history from Redis:', { error: kvError_3 });
             return [3 /*break*/, 5];
           case 5:
             // Client-side storage fallback
@@ -1378,3 +1383,37 @@ exports.UserPersonalizationEngine = UserPersonalizationEngine;
 // Singleton instance of the personalization engine
 exports.userPersonalizationEngine = new UserPersonalizationEngine('default-user');
 __exportStar(require('../types/story'), exports);
+
+// Helper function to make server-side Redis calls
+async function serverRedisCall(operation, params) {
+  if (typeof window === 'undefined') {
+    // Server-side: use direct Redis client
+    const serverRedis = require('../utils/redis.server');
+    return serverRedis[operation](...params);
+  }
+
+  // Client-side: use API route
+  try {
+    const response = await fetch('/api/redis', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        operation,
+        ...params,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Redis operation failed');
+    }
+
+    const result = await response.json();
+    return result.data;
+  } catch (error) {
+    console.error('Redis operation error:', error);
+    // Fallback to client-side implementation
+    return redis[operation](...params);
+  }
+}
