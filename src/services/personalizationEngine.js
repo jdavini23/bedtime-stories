@@ -711,8 +711,8 @@ var UserPersonalizationEngine = /** @class */ (function () {
    */
   UserPersonalizationEngine.prototype.generatePersonalizedStory = function (input, userPrefs) {
     console.log('generatePersonalizedStory called');
-    console.log('KV_REST_API_URL:', process.env.KV_REST_API_URL);
-    console.log('KV_REST_API_TOKEN:', process.env.KV_REST_API_TOKEN);
+    console.log('UPSTASH_REDIS_REST_URL:', process.env.UPSTASH_REDIS_REST_URL);
+    console.log('UPSTASH_REDIS_REST_TOKEN:', process.env.UPSTASH_REDIS_REST_TOKEN);
     return __awaiter(this, void 0, void 0, function () {
       var storyId,
         pronouns,

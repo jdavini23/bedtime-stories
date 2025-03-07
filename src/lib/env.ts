@@ -30,6 +30,10 @@ interface EnvSchema {
   // Performance and limits
   STORY_CACHE_TTL_SECONDS: number;
   API_TIMEOUT_MS: number;
+
+  // Upstash Redis configuration
+  UPSTASH_REDIS_REST_URL: string;
+  UPSTASH_REDIS_REST_TOKEN: string;
 }
 
 // Helper to get environment variable with type conversion
@@ -92,6 +96,10 @@ export const env: EnvSchema = {
   // Performance and limits
   STORY_CACHE_TTL_SECONDS: getEnvVar('STORY_CACHE_TTL_SECONDS', 24 * 60 * 60, toNumber),
   API_TIMEOUT_MS: getEnvVar('API_TIMEOUT_MS', 25000, toNumber),
+
+  // Upstash Redis configuration
+  UPSTASH_REDIS_REST_URL: getEnvVar('UPSTASH_REDIS_REST_URL', ''),
+  UPSTASH_REDIS_REST_TOKEN: getEnvVar('UPSTASH_REDIS_REST_TOKEN', ''),
 };
 
 // Environment helper functions
@@ -109,7 +117,13 @@ export function isTest(): boolean {
 
 // Validate required environment variables in production
 if (isProduction()) {
-  const requiredVars = ['OPENAI_API_KEY', 'KV_REST_API_URL', 'KV_REST_API_TOKEN'];
+  const requiredVars = [
+    'OPENAI_API_KEY',
+    'KV_REST_API_URL',
+    'KV_REST_API_TOKEN',
+    'UPSTASH_REDIS_REST_URL',
+    'UPSTASH_REDIS_REST_TOKEN',
+  ];
 
   const missing = requiredVars.filter((key) => !env[key as keyof EnvSchema]);
 
