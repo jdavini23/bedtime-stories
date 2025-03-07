@@ -21,14 +21,24 @@ const requiredEnvVars = {
 
 export function validateEnv(): void {
   const isProd = process.env.NODE_ENV === 'production';
-  const varsToCheck = [...requiredEnvVars.required];
+  const isVercel = process.env.VERCEL === '1';
 
+  // In Vercel preview deployments, we'll use mock values
+  if (isVercel && process.env.VERCEL_ENV !== 'production') {
+    logger.info('Vercel preview deployment detected, using mock values');
+    return;
+  }
+
+  const varsToCheck = [...requiredEnvVars.required];
   if (isProd) {
     varsToCheck.push(...requiredEnvVars.production);
   }
 
+  // Special handling for Clerk publishable key variations
   const hasClerkPublishableKey =
-    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_;
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_ ||
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE;
 
   const missingVars = varsToCheck.filter((envVar) => {
     if (envVar === 'NEXT_PUBLIC_CLERK_PUBLISHABLE_') {
@@ -44,6 +54,9 @@ export function validateEnv(): void {
 
     logger.warn(message, {
       missingVars,
+      environment: process.env.NODE_ENV,
+      isVercel: isVercel,
+      vercelEnv: process.env.VERCEL_ENV,
     });
 
     if (isProd) {
@@ -67,13 +80,14 @@ export function validateEnv(): void {
   // Log initialization status (with redacted values)
   logger.info('Environment validation complete', {
     environment: process.env.NODE_ENV || 'development',
+    vercelEnv: process.env.VERCEL_ENV,
     openAiKeyFormat: process.env.OPENAI_API_KEY ? 'sk-...' : 'missing',
     geminiKeyFormat: process.env.GEMINI_API_KEY ? 'AI...' : 'missing',
     missingVarsCount: missingVars.length,
   });
 
-  // In production, fail the build if required variables are missing
-  if (isProd && missingVars.length > 0) {
+  // Only fail the build in production environment
+  if (isProd && process.env.VERCEL_ENV === 'production' && missingVars.length > 0) {
     throw new Error(
       `Missing required environment variables in production: ${missingVars.join(', ')}`
     );
