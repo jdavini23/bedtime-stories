@@ -1,14 +1,39 @@
 import { logger } from '@/utils/loggerInstance';
 
+interface Config {
+  nextauth: {
+    url: string;
+  };
+  google: {
+    clientId: string | undefined;
+  };
+  api: {
+    baseUrl: string;
+    timeout: number;
+  };
+}
+
 // Client-side public configuration
 export const publicConfig = {
   nextauth: {
-    url: process.env.NEXT_PUBLIC_NEXTAUTH_URL || 'http://localhost:3000',
+    url: process.env.NEXT_PUBLIC_NEXTAUTH_URL || `http://localhost:${process.env.PORT || 3003}`,
   },
   google: {
     clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
   },
+  api: {
+    baseUrl: process.env.NEXT_PUBLIC_API_URL || `http://localhost:${process.env.PORT || 3003}/api`,
+    timeout: 30000, // 30 seconds
+  },
 } as const;
+
+// Export config for easy access throughout the app
+export const config: Config = {
+  ...publicConfig,
+  api: {
+    ...publicConfig.api,
+  },
+};
 
 // Helper function to check if we're on the server
 const isServer = typeof window === 'undefined';
@@ -49,37 +74,23 @@ export function getServerConfig() {
       clientId: process.env.GOOGLE_CLIENT_ID || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     },
-    // Remove Firebase config since we're using Clerk now
-    firebase: {
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY,
+    api: {
+      ...config.api,
+      internalUrl: process.env.API_INTERNAL_URL || config.api.baseUrl,
     },
   };
 }
 
 // Validation function for server-side configuration
 export function validateServerConfig(config: ReturnType<typeof getServerConfig>) {
-  if (!isServer) {
-    logger.error('validateServerConfig should only be called on the server side');
+  const { nextauth, google } = config;
+
+  if (!nextauth.secret) {
+    throw new Error('NEXTAUTH_SECRET is required');
   }
 
-  const requiredFields = [
-    { key: 'nextauth.secret', value: config.nextauth.secret },
-    { key: 'google.clientId', value: config.google.clientId },
-    { key: 'google.clientSecret', value: config.google.clientSecret },
-  ];
-
-  const missingFields = requiredFields.filter((field) => !field.value).map((field) => field.key);
-
-  if (missingFields.length > 0) {
-    logger.error('Configuration validation failed:', {
-      secret: !!config.nextauth.secret,
-      clientId: !!config.google.clientId,
-      clientSecret: !!config.google.clientSecret,
-      missingFields,
-    });
-    logger.error(`Missing required environment variables: ${missingFields.join(', ')}`);
+  if (!google.clientId || !google.clientSecret) {
+    throw new Error('Google OAuth credentials are required');
   }
 
   return config;

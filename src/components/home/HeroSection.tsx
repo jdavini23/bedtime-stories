@@ -3,7 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/common/Button';
 import { motion } from 'framer-motion';
 
 interface HeroSectionProps {

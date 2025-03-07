@@ -7,7 +7,7 @@ import { logger } from '@/utils/logger';
 export async function POST(request: NextRequest) {
   try {
     // Get user ID from Clerk authentication
-    const auth = getAuth();
+    const auth = getAuth(request);
     const { userId } = auth;
 
     // Check if user is authenticated

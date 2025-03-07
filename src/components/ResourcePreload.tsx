@@ -15,7 +15,7 @@ interface ResourcePreloadProps {
 export function ResourcePreload({ resources }: ResourcePreloadProps) {
   // Preload resources when component mounts
   useEffect(() => {
-    resources.forEach(resource => {
+    resources.forEach((resource) => {
       const link = document.createElement('link');
       link.rel = 'preload';
       link.href = resource.href;

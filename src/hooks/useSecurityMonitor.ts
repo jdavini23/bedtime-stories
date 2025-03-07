@@ -13,23 +13,26 @@ export function useSecurityMonitor() {
   const { user, isLoaded, isSignedIn } = useUser();
   const lastSignInRef = useRef<Date | null>(null);
 
-  const logSecurityEvent = useCallback(async (event: SecurityEvent) => {
-    try {
-      await fetch('/api/security/log', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...event,
-          userId: user?.id,
-          timestamp: new Date().toISOString(),
-        }),
-      });
-    } catch (error) {
-      console.error('Failed to log security event:', error);
-    }
-  }, [user]);
+  const logSecurityEvent = useCallback(
+    async (event: SecurityEvent) => {
+      try {
+        await fetch('/api/security/log', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ...event,
+            userId: user?.id,
+            timestamp: new Date().toISOString(),
+          }),
+        });
+      } catch (error) {
+        console.error('Failed to log security event:', error);
+      }
+    },
+    [user]
+  );
 
   // Monitor for authentication state changes
   useEffect(() => {

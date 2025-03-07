@@ -3,8 +3,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { StoryInput, StoryTheme, StoryGender, StoryMetadata } from '@/types/story';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from '@/components/common/Button';
+import { Input } from '@/components/common/Input';
 import { Card } from '@/components/ui/card';
 import {
   EnhancedStoryInput,

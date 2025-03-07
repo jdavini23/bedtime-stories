@@ -44,10 +44,10 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  
+
   // Prevent timeouts during static generation
   staticPageGenerationTimeout: 180,
-  
+
   webpack: (config, { dev, isServer }) => {
     // Resolve module not found issues
     config.resolve.fallback = {
@@ -60,14 +60,14 @@ const nextConfig = {
     // Optimize source maps for production
     if (!dev) {
       config.devtool = 'source-map';
-      
+
       // Optimize source maps
       if (config.optimization) {
         // Ensure we have the optimization object
         if (!config.optimization.minimizer) {
           config.optimization.minimizer = [];
         }
-        
+
         // Configure source map generation for production
         config.optimization.minimize = true;
       }
@@ -75,7 +75,7 @@ const nextConfig = {
 
     // Optimize bundle size
     if (!dev && !isServer) {
-        // const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+      // const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
       if (process.env.ANALYZE === 'true') {
         import('webpack-bundle-analyzer').then(({ BundleAnalyzerPlugin }) => {
           console.log('Bundle analyzer is running...');
@@ -124,8 +124,7 @@ const nextConfig = {
           },
           {
             key: 'Permissions-Policy',
-            value:
-              'camera=(), microphone=(), geolocation=(), interest-cohort=()',
+            value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
           },
         ],
       },
@@ -165,6 +164,11 @@ const nextConfig = {
       },
     ];
   },
+};
+
+nextConfig.env = {
+  KV_REST_API_URL: process.env.KV_REST_API_URL,
+  KV_REST_API_TOKEN: process.env.KV_REST_API_TOKEN,
 };
 
 // Export the config without Sentry

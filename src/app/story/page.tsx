@@ -9,7 +9,7 @@ import { isAdmin } from '@/utils/auth';
 import { redirect } from 'next/navigation';
 import { StoryInput, Story } from '@/types/story';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/common/Button';
 import { EnhancedStoryInput } from '@/services/personalizationEngine';
 import { UserPersonalizationEngine } from '@/services/personalizationEngine';
 
@@ -31,7 +31,15 @@ export default function StoryPage() {
 
     try {
       // Use the personalization engine which now uses our secure server-side API
-      const personalizationEngine = new UserPersonalizationEngine(user?.id);
+      const personalizationEngine = new UserPersonalizationEngine(user?.id || 'anonymous-user');
+
+      // Log authentication status for debugging
+      console.log('Authentication status', {
+        isSignedIn,
+        hasUser: !!user,
+        userId: user?.id || 'anonymous-user',
+      });
+
       const story = await personalizationEngine.generatePersonalizedStory(storyInput);
 
       // Set the generated story
@@ -39,7 +47,16 @@ export default function StoryPage() {
       console.log('Story generated successfully!', story);
     } catch (error) {
       console.error('Error generating story:', error);
-      setError(error instanceof Error ? error.message : 'Failed to generate story');
+
+      // Enhanced error handling with specific user messages
+      const errorMessage = error instanceof Error ? error.message : 'Failed to generate story';
+      if (errorMessage.includes('API key')) {
+        setError('OpenAI API key configuration error. Please check your API key setup.');
+      } else if (errorMessage.includes('authentication') || errorMessage.includes('Unauthorized')) {
+        setError('Authentication error. Please try signing in again.');
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setIsGenerating(false);
     }

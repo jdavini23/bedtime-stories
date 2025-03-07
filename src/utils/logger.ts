@@ -1,4 +1,12 @@
-import { env } from '@/lib/env';
+// Try to import from the mock environment first, then fall back to the real environment
+let env;
+try {
+  // This will be used when running the test script
+  env = require('../scripts/mock-env').env;
+} catch (error) {
+  // This will be used in the normal application
+  env = require('@/lib/env').env;
+}
 
 /**
  * Log levels with numeric severity
@@ -83,7 +91,6 @@ class Logger {
     if (this.config.enableConsole) {
       this.consoleLog(logEntry);
     }
-
   }
 
   /**
@@ -93,8 +100,37 @@ class Logger {
     if (value === null) return { value: null };
     if (value === undefined) return { value: undefined };
 
+    // Special handling for Error objects
+    if (value instanceof Error) {
+      return {
+        message: value.message,
+        name: value.name,
+        stack: value.stack,
+      };
+    }
+
+    // Handle empty objects
     if (typeof value === 'object' && value !== null) {
-      return Object.entries(value as Record<string, unknown>).reduce(
+      const obj = value as Record<string, unknown>;
+      // Check if object is empty or has empty error property
+      if (Object.keys(obj).length === 0) {
+        return { value: 'Empty object' };
+      }
+
+      // Special handling for objects with error property
+      if (obj.error !== undefined) {
+        if (
+          obj.error === null ||
+          (typeof obj.error === 'object' && Object.keys(obj.error as object).length === 0)
+        ) {
+          return {
+            error: 'Empty error object',
+            originalObject: JSON.stringify(obj),
+          };
+        }
+      }
+
+      return Object.entries(obj).reduce(
         (acc, [key, val]) => {
           acc[key] = val;
           return acc;

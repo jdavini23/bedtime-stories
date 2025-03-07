@@ -82,7 +82,7 @@ try {
       version: 2,
       buildCommand: 'npm run build',
       installCommand: 'npm ci --legacy-peer-deps',
-      framework: 'nextjs'
+      framework: 'nextjs',
     };
 
     fs.writeFileSync(vercelJsonPath, JSON.stringify(vercelJson, null, 2));

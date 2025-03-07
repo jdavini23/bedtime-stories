@@ -2,27 +2,25 @@
 
 import React from 'react';
 import { StoryInput } from '@/types/story';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/common/Button';
 import { EnhancedStoryInput, StoryCharacter } from '@/services/personalizationEngine';
 
 // Extend the interface to include the ageGroup property
-interface ExtendedStoryInput extends EnhancedStoryInput {
-  ageGroup?: string;
-}
-
 interface PreviewStepProps {
-  storyInput: ExtendedStoryInput;
+  storyInput: StoryInput;
+  enhancedStoryInput: EnhancedStoryInput;
   onBack: () => void;
-  onComplete: () => void;
+  onSubmit: () => void;
   isLoading?: boolean;
 }
 
-export function PreviewStep({
+const PreviewStep: React.FC<PreviewStepProps> = ({
   storyInput,
+  enhancedStoryInput,
   onBack,
-  onComplete,
+  onSubmit,
   isLoading = false,
-}: PreviewStepProps) {
+}) => {
   // Helper function to display supporting character details
   const renderSupportingCharacter = (character?: StoryCharacter) => {
     if (!character) return 'None';
@@ -38,52 +36,46 @@ export function PreviewStep({
 
   return (
     <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-midnight dark:text-text-primary">
-          Preview Your Story Settings
-        </h2>
-        <p className="mt-2 text-sm text-text-secondary dark:text-text-primary/80">
-          Review your story settings before we create your personalized story
-        </p>
-      </div>
+      <div className="bg-white dark:bg-midnight-light rounded-lg p-6 shadow-dreamy">
+        <h3 className="text-xl font-semibold text-primary mb-4">Story Preview</h3>
 
-      <div className="space-y-4 bg-gray-50 dark:bg-midnight/30 p-6 rounded-lg border border-gray-100 dark:border-gray-700">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-4">
           <div>
-            <h3 className="text-sm font-medium text-text-secondary dark:text-text-primary/80">
+            <h4 className="text-sm font-medium text-text-secondary dark:text-text-primary mb-1">
               Theme
-            </h3>
-            <p className="mt-1 text-sm text-midnight dark:text-text-primary">{storyInput.theme}</p>
+            </h4>
+            <p className="text-text-primary dark:text-text-primary/90">{storyInput.theme}</p>
           </div>
+
           <div>
-            <h3 className="text-sm font-medium text-text-secondary dark:text-text-primary/80">
-              Character Name
-            </h3>
-            <p className="mt-1 text-sm text-midnight dark:text-text-primary">
-              {storyInput.childName}
-            </p>
+            <h4 className="text-sm font-medium text-text-secondary dark:text-text-primary mb-1">
+              Character
+            </h4>
+            <p className="text-text-primary dark:text-text-primary/90">{storyInput.childName}</p>
           </div>
+
           <div>
-            <h3 className="text-sm font-medium text-text-secondary dark:text-text-primary/80">
+            <h4 className="text-sm font-medium text-text-secondary dark:text-text-primary mb-1">
               Gender
-            </h3>
-            <p className="mt-1 text-sm text-midnight dark:text-text-primary">{storyInput.gender}</p>
+            </h4>
+            <p className="text-text-primary dark:text-text-primary/90">{storyInput.gender}</p>
           </div>
+
           <div>
-            <h3 className="text-sm font-medium text-text-secondary dark:text-text-primary/80">
+            <h4 className="text-sm font-medium text-text-secondary dark:text-text-primary mb-1">
               Reading Level
-            </h3>
-            <p className="mt-1 text-sm text-midnight dark:text-text-primary">
+            </h4>
+            <p className="text-text-primary dark:text-text-primary/90">
               {storyInput.readingLevel} {storyInput.ageGroup ? `(Ages ${storyInput.ageGroup})` : ''}
             </p>
           </div>
 
           {storyInput.interests && storyInput.interests.length > 0 && (
-            <div className="col-span-2">
-              <h3 className="text-sm font-medium text-text-secondary dark:text-text-primary/80">
+            <div>
+              <h4 className="text-sm font-medium text-text-secondary dark:text-text-primary mb-1">
                 Interests
-              </h3>
-              <p className="mt-1 text-sm text-midnight dark:text-text-primary">
+              </h4>
+              <p className="text-text-primary dark:text-text-primary/90">
                 {Array.isArray(storyInput.interests)
                   ? storyInput.interests.join(', ')
                   : storyInput.interests}
@@ -92,22 +84,22 @@ export function PreviewStep({
           )}
 
           {storyInput.mainCharacter?.traits && storyInput.mainCharacter.traits.length > 0 && (
-            <div className="col-span-2">
-              <h3 className="text-sm font-medium text-text-secondary dark:text-text-primary/80">
+            <div>
+              <h4 className="text-sm font-medium text-text-secondary dark:text-text-primary mb-1">
                 Character Traits
-              </h3>
-              <p className="mt-1 text-sm text-midnight dark:text-text-primary">
+              </h4>
+              <p className="text-text-primary dark:text-text-primary/90">
                 {storyInput.mainCharacter.traits.join(', ')}
               </p>
             </div>
           )}
 
           {storyInput.supportingCharacters && storyInput.supportingCharacters.length > 0 && (
-            <div className="col-span-2">
-              <h3 className="text-sm font-medium text-text-secondary dark:text-text-primary/80">
+            <div>
+              <h4 className="text-sm font-medium text-text-secondary dark:text-text-primary mb-1">
                 Supporting Character
-              </h3>
-              <p className="mt-1 text-sm text-midnight dark:text-text-primary">
+              </h4>
+              <p className="text-text-primary dark:text-text-primary/90">
                 {renderSupportingCharacter(storyInput.supportingCharacters[0])}
               </p>
             </div>
@@ -115,25 +107,17 @@ export function PreviewStep({
         </div>
       </div>
 
-      <div className="flex justify-between">
-        <Button variant="outline" onClick={onBack}>
+      <div className="flex justify-between space-x-4">
+        <Button variant="outline" onClick={onBack} disabled={isLoading}>
           Back
         </Button>
-
-        <Button variant="primary" onClick={onComplete} disabled={isLoading} className="w-1/2">
-          {isLoading ? (
-            <>
-              <span className="inline-block animate-pulse mr-2">✨</span>
-              Generating Story...
-            </>
-          ) : (
-            <>
-              <span className="inline-block mr-2">✨</span>
-              Create Story
-            </>
-          )}
+        <Button onClick={onSubmit} disabled={isLoading}>
+          {isLoading ? 'Creating Story...' : 'Create Story'}
         </Button>
       </div>
     </div>
   );
-}
+};
+
+export { PreviewStep };
+export default PreviewStep;

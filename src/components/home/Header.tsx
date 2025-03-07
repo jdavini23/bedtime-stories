@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Menu, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/common/Button';
 import ThemeToggleWrapper from '@/components/ThemeToggleWrapper';
 import { SignInButton } from '@/components/auth/SignInButton';
 import { SignOutButton } from '@/components/auth/SignOutButton';

@@ -43,14 +43,14 @@ try {
   // Only add variables that don't already exist
   const envLines = currentEnv.split('\n');
   const mockEnvLines = mockClerkEnv.split('\n');
-  
+
   for (const mockLine of mockEnvLines) {
     const [key] = mockLine.split('=');
     if (key && key.trim() && !key.trim().startsWith('#')) {
-      const keyExists = envLines.some(line => 
-        line.startsWith(key.trim() + '=') || line.startsWith(key.trim() + ' =')
+      const keyExists = envLines.some(
+        (line) => line.startsWith(key.trim() + '=') || line.startsWith(key.trim() + ' =')
       );
-      
+
       if (!keyExists) {
         envLines.push(mockLine);
       }
@@ -65,7 +65,6 @@ try {
   // Write updated env file
   fs.writeFileSync(envFilePath, envLines.join('\n'));
   console.log('✅ Added mock Clerk environment variables for build process');
-
 } catch (error) {
   console.error('❌ Error setting up Clerk environment:', error);
   process.exit(1);

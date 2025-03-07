@@ -23,7 +23,6 @@
     "build-storybook": "",
     "analyze": "node scripts/analyze-bundle.js",
     "monitor": "node scripts/performance-monitor.js",
-    "sentry:test": "node scripts/test-sentry.js",
     "verify:deployment": "node scripts/verify-deployment.js",
     "verify:env": "node scripts/verify-env.js",
     "deploy:prepare": "npm run build:clean && npm run build && npm run verify:deployment",
@@ -37,19 +36,20 @@
     "deploy": "node scripts/deploy.js",
     "setup:vercel": "node scripts/setup-vercel-env.js",
     "setup:sentry": "node scripts/setup-sentry.js",
-    "disable:sentry": "node scripts/disable-sentry.js",
-    "restore:sentry": "node scripts/restore-sentry.js",
     "setup:local": "node scripts/setup-local-env.js",
     "fix:verify": "node scripts/fix-verify-env.js",
     "fix:deployment": "node scripts/fix-deployment.js",
     "postinstall": "node scripts/handle-postinstall.js",
     "prepare": "node scripts/handle-prepare.js",
-    "prepare:vercel": "node scripts/prepare-for-vercel.js"
+    "prepare:vercel": "node scripts/prepare-for-vercel.js",
+    "test:circuit-breaker": "ts-node -P tsconfig.scripts.json src/scripts/test-circuit-breaker.ts"
   },
   "dependencies": {
     "@agentdeskai/browser-tools-mcp": "^1.0.11",
     "@clerk/nextjs": "^6.12.2",
     "@emotion/is-prop-valid": "^1.3.1",
+    "@google/generative-ai": "^0.23.0",
+    "@radix-ui/react-slot": "^1.1.2",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.49.1",
     "@types/uuid": "^10.0.0",
@@ -70,6 +70,8 @@
     "lucide-react": "^0.477.0",
     "next": "^15.1.7",
     "openai": "^4.29.2",
+    "opossum": "^8.4.0",
+    "playwright": "^1.50.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "reading-time": "^1.5.0",
@@ -90,6 +92,7 @@
     "@testing-library/react": "^16.2.0",
     "@types/jest": "^29.5.14",
     "@types/node": "22.13.8",
+    "@types/opossum": "^8.1.8",
     "@types/react": "19.0.10",
     "@typescript-eslint/eslint-plugin": "^7.1.1",
     "@typescript-eslint/parser": "^7.1.1",
@@ -98,6 +101,7 @@
     "autoprefixer": "^10.4.20",
     "compression-webpack-plugin": "^11.1.0",
     "cross-env": "^7.0.3",
+    "cursor-tools": "latest",
     "eslint": "^8.57.0",
     "eslint-config-next": "^15.1.7",
     "eslint-config-prettier": "^9.1.0",
@@ -121,10 +125,7 @@
     "webpack-bundle-analyzer": "^4.10.2"
   },
   "lint-staged": {
-    "**/*": [
-      "prettier --write --ignore-unknown",
-      "eslint --fix"
-    ]
+    "**/*": ["prettier --write --ignore-unknown", "eslint --fix"]
   },
   "engines": {
     "node": "22.x",

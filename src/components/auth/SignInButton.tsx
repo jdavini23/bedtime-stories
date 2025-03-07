@@ -1,28 +1,26 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/common/Button';
 import { useAuth } from '@clerk/nextjs';
 
 interface SignInButtonProps {
-  fallbackRedirectUrl?: string;
-  forceRedirectUrl?: string;
+  redirectUrl?: string;
+  variant?: 'primary' | 'secondary' | 'danger' | 'outline';
+  size?: 'sm' | 'md' | 'lg';
   className?: string;
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'link';
-  size?: 'sm' | 'md' | 'lg' | 'icon';
-  fullWidth?: boolean;
   children?: React.ReactNode;
+  fullwidth?: boolean;
 }
 
-export function SignInButton({
-  fallbackRedirectUrl = '/dashboard',
-  forceRedirectUrl,
-  className = '',
+const SignInButton: React.FC<SignInButtonProps> = ({
+  redirectUrl = '/sign-in',
   variant = 'primary',
   size = 'md',
-  fullWidth = false,
-  children = 'Sign In',
-}: SignInButtonProps) {
+  className = '',
+  children,
+  fullwidth,
+}) => {
   const router = useRouter();
   const { isSignedIn } = useAuth();
 
@@ -32,21 +30,22 @@ export function SignInButton({
   }
 
   const handleSignIn = () => {
-    // Use forceRedirectUrl if provided, otherwise fallback to fallbackRedirectUrl
-    const redirectUrl = forceRedirectUrl || fallbackRedirectUrl;
-    router.push(`/sign-in?redirect_url=${encodeURIComponent(redirectUrl)}`);
+    router.push(`${redirectUrl}?redirect_url=${encodeURIComponent(redirectUrl)}`);
   };
 
   return (
     <Button
-      variant={variant as any}
-      size={size as any}
-      fullWidth={fullWidth}
+      variant={variant}
+      size={size}
+      fullwidth={fullwidth}
       className={className}
       onClick={handleSignIn}
       data-testid="sign-in-button"
     >
-      {children}
+      {children || 'Sign In'}
     </Button>
   );
-}
+};
+
+export { SignInButton };
+export default SignInButton;

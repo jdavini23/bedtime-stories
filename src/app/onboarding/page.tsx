@@ -4,9 +4,9 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useSession } from '@/hooks/useSession';
 import { redirect } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/Select'; // Updated casing to match file system
+import { Button } from '@/components/common/Button';
+import { Input } from '@/components/common/Input';
+import { Select } from '@/components/ui/Select';
 import { logger } from '@/utils/loggerInstance';
 
 export default function OnboardingPage() {

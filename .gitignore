@@ -57,3 +57,6 @@ env-setup*
 *.ps1
 *.bat
 *.sh
+
+# clerk configuration (can include secrets)
+/.clerk/

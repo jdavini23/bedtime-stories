@@ -16,7 +16,7 @@ export function handleAuthError(error: unknown): AuthenticationError {
   if (error instanceof AuthError) {
     const message = getAuthErrorMessage(error);
     const code = error.code || 'unknown_auth_error';
-    
+
     logSecurityEvent('error', 'Authentication error occurred', {
       code,
       message,
@@ -42,10 +42,7 @@ export function handleAuthError(error: unknown): AuthenticationError {
     error: String(error),
   });
 
-  return new AuthenticationError(
-    'An unknown authentication error occurred',
-    'unknown_error'
-  );
+  return new AuthenticationError('An unknown authentication error occurred', 'unknown_error');
 }
 
 function getAuthErrorMessage(error: AuthError): string {
