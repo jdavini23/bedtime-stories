@@ -4,10 +4,25 @@ const { Redis } = require('@upstash/redis');
 
 let redis;
 
+function convertRedisUrl(url) {
+  if (!url) return url;
+  // Convert rediss:// URL to https:// format if needed
+  if (url.startsWith('rediss://')) {
+    // Extract host and credentials from rediss:// URL
+    const match = url.match(/rediss:\/\/(.*):(.*)@(.*)/);
+    if (match) {
+      const [_, username, password, host] = match;
+      return `https://${host}`;
+    }
+  }
+  return url;
+}
+
 // Only initialize Redis if environment variables are available
 if (process.env.Upstash_KV_URL && process.env.Upstash_KV_REST_API_TOKEN) {
+  const url = convertRedisUrl(process.env.Upstash_KV_URL);
   redis = new Redis({
-    url: process.env.Upstash_KV_URL,
+    url,
     token: process.env.Upstash_KV_REST_API_TOKEN,
   });
 } else {

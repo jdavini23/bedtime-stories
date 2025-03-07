@@ -63,10 +63,28 @@ try {
     }
   });
 
+  // Function to convert Redis URL if needed
+  function convertRedisUrl(url) {
+    if (!url) return url;
+    if (url.startsWith('rediss://')) {
+      const match = url.match(/rediss:\/\/(.*):(.*)@(.*)/);
+      if (match) {
+        const [_, username, password, host] = match;
+        return `https://${host}`;
+      }
+    }
+    return url;
+  }
+
   // Merge with process.env, preferring process.env values
   const finalEnv = Object.entries(process.env).reduce((acc, [key, value]) => {
     if (value) {
-      acc[key] = value;
+      // Convert Redis URL if needed
+      if (key === 'Upstash_KV_URL') {
+        acc[key] = convertRedisUrl(value);
+      } else {
+        acc[key] = value;
+      }
     }
     return acc;
   }, {});
