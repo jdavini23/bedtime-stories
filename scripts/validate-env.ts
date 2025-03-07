@@ -3,7 +3,7 @@ import { logger } from '../src/utils/loggerInstance';
 const requiredEnvVars = {
   // Always required in all environments
   required: [
-    'NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY',
+    'NEXT_PUBLIC_CLERK_PUBLISHABLE_',
     'CLERK_SECRET_KEY',
     'NEXT_PUBLIC_SUPABASE_URL',
     'NEXT_PUBLIC_SUPABASE_ANON_KEY',
@@ -14,6 +14,7 @@ const requiredEnvVars = {
     'GEMINI_API_KEY',
     'Upstash_KV_REST_API_URL',
     'Upstash_KV_REST_API_TOKEN',
+    'Upstash_KV_REST_API_READ_',
     'Upstash_KV_URL',
   ],
 };
@@ -26,7 +27,15 @@ export function validateEnv(): void {
     varsToCheck.push(...requiredEnvVars.production);
   }
 
-  const missingVars = varsToCheck.filter((envVar) => !process.env[envVar]);
+  const hasClerkPublishableKey =
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_;
+
+  const missingVars = varsToCheck.filter((envVar) => {
+    if (envVar === 'NEXT_PUBLIC_CLERK_PUBLISHABLE_') {
+      return !hasClerkPublishableKey;
+    }
+    return !process.env[envVar];
+  });
 
   if (missingVars.length > 0) {
     const message = isProd
