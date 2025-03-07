@@ -3,21 +3,24 @@ import { logger } from '../src/utils/loggerInstance';
 const requiredEnvVars = {
   // Always required in all environments
   required: [
-    'NEXT_PUBLIC_CLERK_PUBLISHABLE_',
+    'NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY',
     'CLERK_SECRET_KEY',
     'NEXT_PUBLIC_SUPABASE_URL',
     'NEXT_PUBLIC_SUPABASE_ANON_KEY',
-  ],
+  ] as const,
   // Only required in production
   production: [
     'OPENAI_API_KEY',
     'GEMINI_API_KEY',
-    'Upstash_KV_REST_API_URL',
-    'Upstash_KV_REST_API_TOKEN',
-    'Upstash_KV_REST_API_READ_',
-    'Upstash_KV_URL',
-  ],
+    // Support both naming conventions for Upstash
+    ['Upstash_KV_REST_API_URL', 'UPSTASH_REDIS_REST_URL'],
+    ['Upstash_KV_REST_API_TOKEN', 'UPSTASH_REDIS_REST_TOKEN'],
+    ['Upstash_KV_REST_API_READ_ONLY_TOKEN', 'UPSTASH_REDIS_REST_TOKEN'],
+    ['Upstash_KV_URL', 'UPSTASH_REDIS_REST_URL'],
+  ] as const,
 };
+
+type EnvVar = string | readonly string[];
 
 export function validateEnv(): void {
   const isProd = process.env.NODE_ENV === 'production';
@@ -29,22 +32,23 @@ export function validateEnv(): void {
     return;
   }
 
-  const varsToCheck = [...requiredEnvVars.required];
+  const varsToCheck: EnvVar[] = [...requiredEnvVars.required];
   if (isProd) {
     varsToCheck.push(...requiredEnvVars.production);
   }
 
-  // Special handling for Clerk publishable key variations
-  const hasClerkPublishableKey =
-    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
-    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_ ||
-    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE;
+  // Special handling for Clerk publishable key
+  const hasClerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
   const missingVars = varsToCheck.filter((envVar) => {
-    if (envVar === 'NEXT_PUBLIC_CLERK_PUBLISHABLE_') {
+    if (envVar === 'NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY') {
       return !hasClerkPublishableKey;
     }
-    return !process.env[envVar];
+    // Handle array of alternative variable names
+    if (Array.isArray(envVar)) {
+      return !envVar.some((v) => process.env[v as string]);
+    }
+    return !process.env[envVar as string];
   });
 
   if (missingVars.length > 0) {
@@ -52,15 +56,17 @@ export function validateEnv(): void {
       ? 'Missing required environment variables in production:'
       : 'Missing environment variables:';
 
+    const formattedMissingVars = missingVars.map((v) => (Array.isArray(v) ? v.join(' or ') : v));
+
     logger.warn(message, {
-      missingVars,
+      missingVars: formattedMissingVars,
       environment: process.env.NODE_ENV,
       isVercel: isVercel,
       vercelEnv: process.env.VERCEL_ENV,
     });
 
     if (isProd) {
-      console.error(message, missingVars.join(', '));
+      console.error(message, formattedMissingVars.join(', '));
     }
   }
 

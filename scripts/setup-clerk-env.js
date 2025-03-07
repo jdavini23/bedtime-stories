@@ -25,7 +25,7 @@ const envFilePath = path.join(process.cwd(), '.env.local');
 const mockClerkEnv = `
 # These are placeholder values for build time only
 # They won't be used in production runtime
-NEXT_PUBLIC_CLERK_PUBLISHABLE_=pk_test_mock_publishable_key
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_mock_publishable_key
 CLERK_SECRET_KEY=sk_test_mock_secret_key
 NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
 NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
@@ -40,11 +40,13 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=mock-anon-key
 OPENAI_API_KEY=sk-mock-openai-key
 GEMINI_API_KEY=AIzaSyMockGeminiKey
 
-# Upstash/KV Configuration
+# Upstash/KV Configuration (Supporting both naming conventions)
+UPSTASH_REDIS_REST_URL=https://mock-url.upstash.io
+UPSTASH_REDIS_REST_TOKEN=mock-token
 Upstash_KV_REST_API_URL=https://mock-url.upstash.io
 Upstash_KV_REST_API_TOKEN=mock-token
-Upstash_KV_REST_API_READ_=mock-read-token
-Upstash_KV_URL=https://mock-kv-url.upstash.io
+Upstash_KV_REST_API_READ_ONLY_TOKEN=mock-read-token
+Upstash_KV_URL=rediss://default:mock-token@mock-url.upstash.io:6379
 `;
 
 try {
@@ -80,7 +82,7 @@ try {
   const finalEnv = Object.entries(process.env).reduce((acc, [key, value]) => {
     if (value) {
       // Convert Redis URL if needed
-      if (key === 'Upstash_KV_URL') {
+      if (key === 'Upstash_KV_URL' || key === 'UPSTASH_REDIS_REST_URL') {
         acc[key] = convertRedisUrl(value);
       } else {
         acc[key] = value;
