@@ -5,10 +5,10 @@ const { Redis } = require('@upstash/redis');
 let redis;
 
 // Only initialize Redis if environment variables are available
-if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+if (process.env.Upstash_KV_URL && process.env.Upstash_KV_REST_API_TOKEN) {
   redis = new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN,
+    url: process.env.Upstash_KV_URL,
+    token: process.env.Upstash_KV_REST_API_TOKEN,
   });
 } else {
   // Mock Redis client for development/build

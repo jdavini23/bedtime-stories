@@ -12,10 +12,9 @@ const requiredEnvVars = {
   production: [
     'OPENAI_API_KEY',
     'GEMINI_API_KEY',
-    'KV_REST_API_URL',
-    'KV_REST_API_TOKEN',
-    'UPSTASH_REDIS_REST_URL',
-    'UPSTASH_REDIS_REST_TOKEN',
+    'Upstash_KV_REST_API_URL',
+    'Upstash_KV_REST_API_TOKEN',
+    'Upstash_KV_URL',
   ],
 };
 
