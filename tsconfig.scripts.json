@@ -20,6 +20,6 @@
     "types": ["node", "jest"],
     "typeRoots": ["node_modules/@types", "src/types"]
   },
-  "include": ["src/scripts/**/*.ts"],
+  "include": ["src/scripts/**/*.ts", "scripts/**/*.ts"],
   "exclude": ["node_modules", "browser-tools-mcp/**", "perplexity-mcp/**", ".next", "out"]
 }

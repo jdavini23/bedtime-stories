@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/setup-clerk-env.js && node scripts/validate-env.js && next build",
+    "build": "node scripts/setup-clerk-env.js && ts-node -P tsconfig.scripts.json scripts/validate-env.ts && next build",
     "start": "next start",
     "lint": "next lint",
     "type:check": "tsc --noEmit",
@@ -122,16 +122,14 @@
     "prettier": "^3.2.5",
     "rimraf": "^6.0.1",
     "tailwindcss": "^3.4.17",
+    "ts-node": "^10.9.2",
     "typescript": "5.8.2",
     "url-loader": "^4.1.1",
     "vitest": "^3.0.7",
     "webpack-bundle-analyzer": "^4.10.2"
   },
   "lint-staged": {
-    "**/*": [
-      "prettier --write --ignore-unknown",
-      "eslint --fix"
-    ]
+    "**/*": ["prettier --write --ignore-unknown", "eslint --fix"]
   },
   "engines": {
     "node": "22.x",

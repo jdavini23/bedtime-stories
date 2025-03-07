@@ -1,4 +1,4 @@
-import { logger } from '@/utils/loggerInstance';
+import { logger } from '../src/utils/loggerInstance';
 
 const requiredEnvVars = [
   'NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY',
