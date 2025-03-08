@@ -61,8 +61,8 @@ export default function RootLayout({ children }: RootLayoutProps): React.JSX.Ele
       }}
       signInUrl="/sign-in"
       signUpUrl="/sign-up"
-      afterSignInUrl="/"
-      afterSignUpUrl="/"
+      afterSignInUrl="/dashboard"
+      afterSignUpUrl="/dashboard"
       allowedRedirectOrigins={[
         'https://stepintostorytime.com',
         'https://www.stepintostorytime.com',

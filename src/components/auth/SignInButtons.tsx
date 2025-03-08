@@ -14,7 +14,7 @@ export function SignInButtons() {
       await signIn.authenticateWithRedirect({
         strategy: 'oauth_google',
         redirectUrl: '/sso-callback',
-        redirectUrlComplete: '/',
+        redirectUrlComplete: '/dashboard',
       });
     } catch (err) {
       console.error('Error signing in with Google:', err);
