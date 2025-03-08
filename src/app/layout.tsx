@@ -50,8 +50,24 @@ export default function RootLayout({ children }: RootLayoutProps): React.JSX.Ele
   return (
     <ClerkProvider
       publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
-      domain="stepintostorytime.com"
-      isSatellite={false}
+      appearance={{
+        elements: {
+          formButtonPrimary: 'bg-primary hover:bg-primary/90',
+          footerActionLink: 'text-primary hover:text-primary/90',
+          socialButtonsIconButton: 'border-gray-300 hover:bg-gray-50',
+          socialButtonsBlockButton: 'border-gray-300 hover:bg-gray-50',
+          socialButtonsProviderIcon: 'w-5 h-5',
+        },
+      }}
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+      afterSignInUrl="/dashboard"
+      afterSignUpUrl="/dashboard"
+      allowedRedirectOrigins={[
+        'https://stepintostorytime.com',
+        'https://www.stepintostorytime.com',
+        'https://clerk.stepintostorytime.com',
+      ]}
     >
       <html lang="en" suppressHydrationWarning className={inter.variable}>
         <head>

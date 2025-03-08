@@ -33,8 +33,8 @@ NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/dashboard
 NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/dashboard
 
 # Supabase Configuration
-NEXT_PUBLIC_SUPABASE_URL=https://mock-supabase-url.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=mock-anon-key
+NEXT_PUBLIC_SUPABASE_URL=https://zwnnxqvfavkzupmucbhk.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp3bm54cXZmYXZrenVwbXVjYmhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA5NzIwODcsImV4cCI6MjA1NjU0ODA4N30.F_kwlF4QV_zKoxbLK4wZjZhIfHSUJlob-mAYQk3FMP0
 
 # API Keys
 OPENAI_API_KEY=sk-mock-openai-key
