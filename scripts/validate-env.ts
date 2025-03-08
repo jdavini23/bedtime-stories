@@ -9,11 +9,9 @@ const requiredEnvVars = {
     'GEMINI_API_KEY',
     'NEXT_PUBLIC_SUPABASE_URL',
     'NEXT_PUBLIC_SUPABASE_ANON_KEY',
-    // Support both naming conventions for Upstash
-    ['Upstash_KV_REST_API_URL', 'UPSTASH_REDIS_REST_URL'],
-    ['Upstash_KV_REST_API_TOKEN', 'UPSTASH_REDIS_REST_TOKEN'],
-    ['Upstash_KV_REST_API_READ_ONLY_TOKEN', 'UPSTASH_REDIS_REST_TOKEN'],
-    ['Upstash_KV_URL', 'UPSTASH_REDIS_REST_URL'],
+    // Support all naming conventions for Upstash/KV, prioritizing Upstash_KV_ prefix
+    ['Upstash_KV_REST_API_URL', 'Upstash_KV_URL', 'UPSTASH_REDIS_REST_URL', 'KV_REST_API_URL'],
+    ['Upstash_KV_REST_API_TOKEN', 'UPSTASH_REDIS_REST_TOKEN', 'KV_REST_API_TOKEN'],
   ] as const,
 };
 
@@ -24,6 +22,16 @@ export function validateEnv(): void {
   const isVercel = process.env.VERCEL === '1';
   const isVercelProd = process.env.VERCEL_ENV === 'production';
 
+  // Log environment context
+  logger.info('Environment context:', {
+    NODE_ENV: process.env.NODE_ENV,
+    VERCEL: process.env.VERCEL,
+    VERCEL_ENV: process.env.VERCEL_ENV,
+    isProd,
+    isVercel,
+    isVercelProd,
+  });
+
   // In Vercel preview deployments, we'll use mock values
   if (isVercel && !isVercelProd) {
     logger.info('Vercel preview deployment detected, using mock values');
@@ -31,8 +39,10 @@ export function validateEnv(): void {
   }
 
   const varsToCheck: EnvVar[] = [...requiredEnvVars.required];
+
   // Only check production vars in Vercel production deployment
   if (isVercelProd) {
+    logger.info('Vercel production deployment detected, checking all required variables');
     varsToCheck.push(...requiredEnvVars.production);
   }
 
@@ -45,9 +55,17 @@ export function validateEnv(): void {
     }
     // Handle array of alternative variable names
     if (Array.isArray(envVar)) {
-      return !envVar.some((v) => process.env[v as string]);
+      const hasAnyVar = envVar.some((v) => process.env[v as string]);
+      if (!hasAnyVar) {
+        logger.warn(`Missing all alternative variables: ${envVar.join(' or ')}`);
+      }
+      return !hasAnyVar;
     }
-    return !process.env[envVar as string];
+    const hasVar = !!process.env[envVar as string];
+    if (!hasVar) {
+      logger.warn(`Missing environment variable: ${envVar}`);
+    }
+    return !hasVar;
   });
 
   if (missingVars.length > 0) {
