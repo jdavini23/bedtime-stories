@@ -1,6 +1,7 @@
 import { logger } from './logger';
-import CircuitBreaker = require('opossum');
-import { StoryInput } from '../services/personalizationEngine';
+import CircuitBreaker from 'opossum';
+import { StoryInput } from '@/types/story';
+import { generateFallbackStory } from '@/utils/fallback-generator';
 
 /**
  * Configure the circuit breaker for OpenAI API calls
@@ -373,32 +374,46 @@ export function validateGeminiApiKey(apiKey?: string): boolean {
   return true;
 }
 
-/**
- * Utility function to import the generateFallbackStory function from personalizationEngine
- * This avoids circular dependencies
- */
-export function generateFallbackStoryUtil(input: StoryInput): string {
-  // Import dynamically to avoid circular dependencies
-  const { generateFallbackStory } = require('../services/personalizationEngine');
-  return generateFallbackStory(input);
+export function createCircuitBreaker<T>(
+  fn: (...args: any[]) => Promise<T>,
+  options?: CircuitBreaker.Options
+): CircuitBreaker {
+  const breaker = new CircuitBreaker(fn, {
+    timeout: 30000,
+    errorThresholdPercentage: 50,
+    resetTimeout: 30000,
+    ...options,
+  });
+
+  breaker.fallback((result: T) => {
+    logger.info('Circuit breaker fallback triggered');
+    return result;
+  });
+
+  breaker.on('success', (result: T) => {
+    logger.info('Circuit breaker success');
+  });
+
+  breaker.on('timeout', (error: Error) => {
+    logger.error('Circuit breaker timeout', { error: error.message });
+  });
+
+  breaker.on('reject', () => {
+    logger.error('Circuit breaker rejected');
+  });
+
+  breaker.on('open', () => {
+    logger.warn('Circuit breaker opened');
+  });
+
+  breaker.on('close', () => {
+    logger.info('Circuit breaker closed');
+  });
+
+  return breaker;
 }
 
-/**
- * Type definition for OpenAI error responses
- */
-export type OpenAIErrorResponse = {
-  error: string;
-  message: string;
-  status?: number;
-  details?: unknown;
-};
-
-/**
- * Type definition for Gemini error responses
- */
-export interface GeminiErrorResponse {
-  error: string;
-  message: string;
-  status?: number;
-  details?: unknown;
+export function handleStoryGenerationError(error: Error, input: StoryInput) {
+  logger.error('Error generating story', { error: error.message });
+  return generateFallbackStory(input);
 }

@@ -1,14 +1,12 @@
 'use client';
 
 import React from 'react';
-import { StoryInput } from '@/types/story';
 import { Button } from '@/components/common/Button';
-import { EnhancedStoryInput, StoryCharacter } from '@/services/personalizationEngine';
+import { EnhancedStoryInput, StoryCharacter } from '@/services/personalization';
 
 // Extend the interface to include the ageGroup property
 interface PreviewStepProps {
-  storyInput: StoryInput;
-  enhancedStoryInput: EnhancedStoryInput;
+  storyInput: EnhancedStoryInput;
   onBack: () => void;
   onSubmit: () => void;
   isLoading?: boolean;
@@ -16,7 +14,6 @@ interface PreviewStepProps {
 
 const PreviewStep: React.FC<PreviewStepProps> = ({
   storyInput,
-  enhancedStoryInput,
   onBack,
   onSubmit,
   isLoading = false,
@@ -70,7 +67,7 @@ const PreviewStep: React.FC<PreviewStepProps> = ({
             </p>
           </div>
 
-          {storyInput.interests && storyInput.interests.length > 0 && (
+          {storyInput.mainCharacter?.interests && storyInput.mainCharacter.interests.length > 0 && (
             <div>
               <h4 className="text-sm font-medium text-text-secondary dark:text-text-primary mb-1">
                 Interests

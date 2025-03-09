@@ -1,9 +1,9 @@
 import { Story, StoryInput } from '@/types/story';
-import { UserPersonalizationEngine } from '@/services/personalizationEngine';
+import { StoryGenerator } from '@/services/personalization';
 
 export async function generateStory(input: StoryInput, userId?: string): Promise<Story> {
   try {
-    const engine = new UserPersonalizationEngine(userId);
+    const engine = new StoryGenerator(userId);
     const story = await engine.generatePersonalizedStory(input);
     if (!story) {
       throw new Error('Failed to generate story');

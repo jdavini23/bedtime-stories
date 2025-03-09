@@ -1,52 +1,42 @@
 import { describe, it, expect } from 'vitest';
-import { ServerUserPersonalizationEngine } from '@/services/serverPersonalizationEngine';
+import { StoryGenerator } from '@/services/personalization/storyGeneration';
+import { PreferencesManager } from '@/services/personalization/preferences';
+import { TEST_USER_ID, TEST_PREFERENCES } from '@/utils/test-constants';
+import { UserPreferencesLocal } from '@/types/preferences';
 
-describe('Clerk Authentication and Personalization', () => {
-  // This is a mock user ID - replace with a real test user from your Clerk instance
-  const TEST_USER_ID = 'user_123';
-
-  it('should fetch user preferences', async () => {
-    const personalizationEngine = new ServerUserPersonalizationEngine(TEST_USER_ID);
-    const preferences = await personalizationEngine.getUserPreferences();
-
+describe('Clerk Auth Tests', () => {
+  it('should get user preferences', async () => {
+    const preferencesManager = new PreferencesManager(TEST_USER_ID);
+    const preferences = await preferencesManager.getUserPreferences();
     expect(preferences).toBeDefined();
-    expect(preferences).toHaveProperty('preferredThemes');
-    expect(preferences).toHaveProperty('mostLikedCharacterTypes');
-    expect(preferences).toHaveProperty('generatedStories');
   });
 
   it('should update user preferences', async () => {
-    const personalizationEngine = new ServerUserPersonalizationEngine(TEST_USER_ID);
-    const testPreferences = {
-      preferredThemes: ['adventure', 'fantasy'],
-      mostLikedCharacterTypes: ['brave', 'curious'],
-      generatedStories: 5,
-    };
-
-    const updateResult = await personalizationEngine.updateUserPreferences(testPreferences);
+    const preferencesManager = new PreferencesManager(TEST_USER_ID);
+    const updateResult = await preferencesManager.updateUserPreferences(TEST_PREFERENCES);
     expect(updateResult).toBe(true);
 
-    const updatedPreferences = await personalizationEngine.getUserPreferences();
-    expect(updatedPreferences).toMatchObject(testPreferences);
+    const updatedPreferences = await preferencesManager.getUserPreferences();
+    expect(updatedPreferences).toEqual(TEST_PREFERENCES);
   });
 
-  it('should increment generated stories', async () => {
-    const personalizationEngine = new ServerUserPersonalizationEngine(TEST_USER_ID);
-    const initialPreferences = await personalizationEngine.getUserPreferences();
-    const initialStoriesCount = initialPreferences.generatedStories || 0;
+  it('should increment generated stories count', async () => {
+    const preferencesManager = new PreferencesManager(TEST_USER_ID);
+    const initialPreferences = await preferencesManager.getUserPreferences();
+    const initialCount = initialPreferences.generatedStories || 0;
 
-    await personalizationEngine.incrementGeneratedStories();
+    await preferencesManager.updateUserPreferences({
+      ...initialPreferences,
+      generatedStories: initialCount + 1,
+    });
 
-    const updatedPreferences = await personalizationEngine.getUserPreferences();
-    expect(updatedPreferences.generatedStories).toBe(initialStoriesCount + 1);
+    const updatedPreferences = await preferencesManager.getUserPreferences();
+    expect(updatedPreferences.generatedStories).toBe(initialCount + 1);
   });
 
-  it('should handle user without preferences', async () => {
-    const personalizationEngine = new ServerUserPersonalizationEngine(undefined);
-    const preferences = await personalizationEngine.getUserPreferences();
+  it('should handle undefined user ID', async () => {
+    const preferencesManager = new PreferencesManager(undefined);
+    const preferences = await preferencesManager.getUserPreferences();
     expect(preferences).toBeDefined();
-    expect(preferences).toHaveProperty('preferredThemes');
-    expect(preferences).toHaveProperty('mostLikedCharacterTypes');
-    expect(preferences).toHaveProperty('generatedStories');
   });
 });

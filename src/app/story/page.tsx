@@ -10,13 +10,7 @@ import { redirect } from 'next/navigation';
 import { StoryInput, Story } from '@/types/story';
 import Link from 'next/link';
 import { Button } from '@/components/common/Button';
-import { EnhancedStoryInput } from '@/services/personalizationEngine';
-import { UserPersonalizationEngine } from '@/services/personalizationEngine';
-
-// Extend the EnhancedStoryInput to include ageGroup
-interface ExtendedStoryInput extends EnhancedStoryInput {
-  ageGroup?: string;
-}
+import { StoryGenerator } from '@/services/personalization/storyGeneration';
 
 export default function StoryPage() {
   const { isLoaded, isSignedIn, user } = useUser();
@@ -25,13 +19,13 @@ export default function StoryPage() {
   const [error, setError] = useState<string | null>(null);
   const [useConversationalUI, setUseConversationalUI] = useState(true);
 
-  const handleStoryGeneration = async (storyInput: ExtendedStoryInput) => {
+  const handleStoryGeneration = async (storyInput: StoryInput) => {
     setIsGenerating(true);
     setError(null);
 
     try {
-      // Use the personalization engine which now uses our secure server-side API
-      const personalizationEngine = new UserPersonalizationEngine(user?.id || 'anonymous-user');
+      // Use the story generator which now uses our secure server-side API
+      const storyGenerator = new StoryGenerator(user?.id || 'anonymous-user');
 
       // Log authentication status for debugging
       console.log('Authentication status', {
@@ -40,7 +34,7 @@ export default function StoryPage() {
         userId: user?.id || 'anonymous-user',
       });
 
-      const story = await personalizationEngine.generatePersonalizedStory(storyInput);
+      const story = await storyGenerator.generatePersonalizedStory(storyInput);
 
       // Set the generated story
       setGeneratedStory(story);
@@ -102,7 +96,7 @@ export default function StoryPage() {
       <div className="container mx-auto py-6 flex flex-col flex-grow">
         <div className="flex justify-between items-center mb-8">
           <Link href="/">
-            <Button variant="ghost" size="sm" className="hover:bg-white/10 transition-colors">
+            <Button variant="outline" size="sm" className="hover:bg-white/10 transition-colors">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"

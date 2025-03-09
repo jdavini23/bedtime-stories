@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuth } from '@clerk/nextjs/server';
-import { userPersonalizationEngine } from '@/services/personalizationEngine';
+import { storyGenerator } from '@/services/personalization';
 import { StoryInput } from '@/types/story';
 import { logger } from '@/utils/logger';
 
@@ -26,10 +26,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate story using personalization engine with user ID
-    const story = await userPersonalizationEngine.generatePersonalizedStory({
-      ...input,
-      userId,
-    });
+    const story = await storyGenerator.generatePersonalizedStory(input);
 
     // Log successful story generation
     logger.info('Story generated successfully', {

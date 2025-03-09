@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { serverUserPersonalizationEngine } from '@/services/serverPersonalizationEngine';
+import { StoryGenerator } from '@/services/personalization';
 import { StoryInput } from '@/types/story';
 import { generateStory } from '@/lib/storyGenerator';
 import { logger } from '@/utils/logger';
 import { env } from '@/lib/env';
-import { devAuthMiddleware } from '@/middleware/devAuth';
 import { createSupabaseClient } from '@/lib/supabase';
 
 // Add CORS headers to all responses
@@ -58,14 +57,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Initialize engine with user ID
-    serverUserPersonalizationEngine.init(userId);
+    // Create a new instance of StoryGenerator with user ID
+    const generator = new StoryGenerator(userId);
 
     // Attempt personalized story generation
     let story;
     try {
       logger.info('Attempting personalized story generation...');
-      story = await serverUserPersonalizationEngine.generatePersonalizedStory(input);
+      story = await generator.generatePersonalizedStory(input);
       logger.info('Personalized Story Generated:', { success: !!story });
     } catch (personalizationError) {
       logger.error('Personalization Error:', { error: personalizationError });

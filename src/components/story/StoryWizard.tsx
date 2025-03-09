@@ -1,27 +1,17 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { StoryInput, StoryTheme, StoryGender, StoryMetadata } from '@/types/story';
+import { StoryInput, StoryTheme, ReadingLevel } from '@/types/story';
 import { ThemeStep } from './ThemeStep';
 import { CharacterStep } from './CharacterStep';
 import { ReadingLevelStep } from './ReadingLevelStep';
 import { PreviewStep } from './PreviewStep';
 import { Button } from '@/components/common/Button';
 import { Card } from '@/components/ui/card';
-import {
-  EnhancedStoryInput,
-  StoryCharacter,
-  UserPreferences,
-} from '@/services/personalizationEngine';
-
-// Extend the EnhancedStoryInput to include ageGroup
-interface ExtendedStoryInput extends EnhancedStoryInput {
-  ageGroup?: UserPreferences['ageGroup'];
-}
 
 interface StoryWizardProps {
-  onComplete: (input: ExtendedStoryInput) => Promise<void>;
+  onComplete: (input: StoryInput) => Promise<void>;
   isLoading?: boolean;
 }
 
@@ -37,27 +27,34 @@ const STEPS: { id: WizardStep; label: string }[] = [
 export function StoryWizard({ onComplete, isLoading = false }: StoryWizardProps) {
   const [currentStep, setCurrentStep] = useState<WizardStep>('theme');
   const [direction, setDirection] = useState(0);
-  const [storyInput, setStoryInput] = useState<Partial<ExtendedStoryInput>>({
-    theme: '' as StoryTheme,
+  const [storyInput, setStoryInput] = useState<StoryInput>({
+    theme: '',
     childName: '',
-    gender: 'neutral' as StoryGender,
-    mood: 'adventurous',
-    interests: [],
-    mostLikedCharacterTypes: [],
-    readingLevel: 'intermediate' as StoryMetadata['readingLevel'],
-    ageGroup: '6-8',
-    mainCharacter: {
-      traits: [],
-      appearance: [],
-      skills: [],
-    },
-    supportingCharacters: [],
+    childAge: 6,
+    characters: ['adventurous child'],
+    setting: 'a magical world',
+    length: 'medium',
+    readingLevel: 'intermediate',
   });
 
   const currentStepIndex = STEPS.findIndex((step) => step.id === currentStep);
 
-  const handleStepComplete = (stepData: Partial<ExtendedStoryInput>) => {
-    setStoryInput((prev) => ({ ...prev, ...stepData }));
+  const handleStepComplete = (stepData: Partial<StoryInput>) => {
+    setStoryInput((prev) => {
+      const newInput = { ...prev, ...stepData };
+
+      // Ensure theme-based setting is set when theme changes
+      if (stepData.theme && !stepData.setting) {
+        newInput.setting = `a world of ${stepData.theme}`;
+      }
+
+      // Ensure we always have at least one character
+      if (!newInput.characters || newInput.characters.length === 0) {
+        newInput.characters = ['adventurous child'];
+      }
+
+      return newInput;
+    });
     goToNextStep();
   };
 
@@ -66,7 +63,7 @@ export function StoryWizard({ onComplete, isLoading = false }: StoryWizardProps)
       setDirection(1);
       setCurrentStep(STEPS[currentStepIndex + 1].id);
     } else if (isValidStoryInput(storyInput)) {
-      onComplete(storyInput as ExtendedStoryInput);
+      onComplete(storyInput);
     }
   };
 
@@ -77,15 +74,30 @@ export function StoryWizard({ onComplete, isLoading = false }: StoryWizardProps)
     }
   };
 
-  const isValidStoryInput = (input: Partial<ExtendedStoryInput>): input is ExtendedStoryInput => {
-    return (
-      !!input.theme &&
-      !!input.childName &&
-      !!input.readingLevel &&
-      !!input.gender &&
-      Array.isArray(input.mostLikedCharacterTypes) &&
-      input.mostLikedCharacterTypes.length > 0
-    );
+  const isValidStoryInput = (input: Partial<StoryInput>): input is StoryInput => {
+    const requiredFields = [
+      'theme',
+      'childName',
+      'childAge',
+      'characters',
+      'setting',
+      'length',
+      'readingLevel',
+    ];
+
+    const missingFields = requiredFields.filter((field) => !input[field as keyof typeof input]);
+
+    if (missingFields.length > 0) {
+      console.warn('Missing required fields:', missingFields);
+      return false;
+    }
+
+    if (!Array.isArray(input.characters) || input.characters.length === 0) {
+      console.warn('Characters must be a non-empty array');
+      return false;
+    }
+
+    return true;
   };
 
   const renderStepContent = () => {
@@ -93,8 +105,9 @@ export function StoryWizard({ onComplete, isLoading = false }: StoryWizardProps)
       case 'theme':
         return (
           <ThemeStep
-            onComplete={(theme) => handleStepComplete({ theme: theme as StoryTheme })}
-            initialValue={storyInput.theme}
+            selectedTheme={storyInput.theme as StoryTheme}
+            onThemeSelect={(theme) => handleStepComplete({ theme })}
+            onNext={goToNextStep}
           />
         );
       case 'character':
@@ -105,40 +118,58 @@ export function StoryWizard({ onComplete, isLoading = false }: StoryWizardProps)
                 childName,
                 gender,
                 interests,
-                characterTraits,
+                characterTraits = [],
                 supportingCharacter,
-                mostLikedCharacterTypes,
+                mostLikedCharacterTypes = [],
               } = characterData;
 
-              // Create enhanced story input with character customization
-              const enhancedData: Partial<ExtendedStoryInput> = {
-                childName,
-                gender: gender as StoryGender,
-                interests: interests
-                  ? interests
-                      .split(',')
-                      .map((i) => i.trim())
-                      .filter(Boolean)
-                  : [],
-                mostLikedCharacterTypes: mostLikedCharacterTypes || [],
-                mainCharacter: {
-                  traits: characterTraits || [],
-                },
-              };
+              // Build character list
+              const characters = [];
 
-              // Add supporting character if provided
-              if (supportingCharacter) {
-                enhancedData.supportingCharacters = [supportingCharacter];
+              // Add main character with traits
+              if (characterTraits.length > 0) {
+                characters.push(
+                  `${gender === 'neutral' ? 'child' : gender} with traits: ${characterTraits.join(', ')}`
+                );
+              } else {
+                characters.push(gender === 'neutral' ? 'child' : gender);
               }
 
-              handleStepComplete(enhancedData);
+              // Add supporting character if provided
+              if (supportingCharacter?.name && supportingCharacter?.type) {
+                characters.push(
+                  `${supportingCharacter.name} the ${supportingCharacter.type}${
+                    supportingCharacter.traits?.length
+                      ? ` (${supportingCharacter.traits.join(', ')})`
+                      : ''
+                  }`
+                );
+              }
+
+              // Add additional character types if selected
+              if (mostLikedCharacterTypes.length > 0) {
+                characters.push(...mostLikedCharacterTypes);
+              }
+
+              // Use interests as setting, or provide a default based on theme
+              const setting = interests?.trim()
+                ? interests.split(',')[0].trim()
+                : storyInput.theme
+                  ? `a world of ${storyInput.theme}`
+                  : 'a magical world';
+
+              handleStepComplete({
+                childName: childName || storyInput.childName,
+                childAge: storyInput.childAge,
+                characters: characters.length > 0 ? characters : ['adventurous child'],
+                setting,
+              });
             }}
             initialValues={{
               childName: storyInput.childName || '',
-              gender: storyInput.gender || 'neutral',
-              interests: Array.isArray(storyInput.interests) ? storyInput.interests.join(', ') : '',
-              characterTraits: storyInput.mainCharacter?.traits || [],
-              supportingCharacter: storyInput.supportingCharacters?.[0],
+              gender: 'neutral',
+              interests: storyInput.setting || '',
+              characterTraits: [],
             }}
             theme={storyInput.theme}
           />
@@ -148,22 +179,28 @@ export function StoryWizard({ onComplete, isLoading = false }: StoryWizardProps)
           <ReadingLevelStep
             onComplete={(level, ageGroup) =>
               handleStepComplete({
-                readingLevel: level as StoryMetadata['readingLevel'],
-                ageGroup,
+                readingLevel: level as ReadingLevel,
+                length: ageGroup === '3-5' ? 'short' : ageGroup === '9-12' ? 'long' : 'medium',
               })
             }
             initialValue={storyInput.readingLevel}
-            initialAgeGroup={storyInput.ageGroup}
+            initialAgeGroup={
+              (storyInput.childAge ?? 6) <= 5
+                ? '3-5'
+                : (storyInput.childAge ?? 6) >= 9
+                  ? '9-12'
+                  : '6-8'
+            }
           />
         );
       case 'preview':
         return (
           <PreviewStep
-            storyInput={storyInput as ExtendedStoryInput}
+            storyInput={storyInput}
             onBack={goToPreviousStep}
-            onComplete={() => {
+            onSubmit={() => {
               if (isValidStoryInput(storyInput)) {
-                onComplete(storyInput as ExtendedStoryInput);
+                onComplete(storyInput);
               }
             }}
             isLoading={isLoading}

@@ -31,6 +31,10 @@ async function callGeminiAPI(prompt: string, model: string = DEFAULT_MODEL) {
     throw new Error('Gemini API key is not configured');
   }
 
+  if (!prompt) {
+    throw new Error('Prompt is required for Gemini API call');
+  }
+
   try {
     logger.debug('Making Gemini API call', { model });
 
@@ -38,8 +42,18 @@ async function callGeminiAPI(prompt: string, model: string = DEFAULT_MODEL) {
     const geminiModel = genAI.getGenerativeModel({ model });
 
     const result = await geminiModel.generateContent(prompt);
-    const response = result.response;
-    const text = response.text();
+
+    // Check if the response is blocked or has other issues
+    if (!result.response.candidates || result.response.candidates.length === 0) {
+      throw new Error('No valid response from Gemini API');
+    }
+
+    const text = result.response.text();
+
+    // Validate the response text
+    if (!text) {
+      throw new Error('Empty response from Gemini API');
+    }
 
     logger.info('Gemini API call successful', {
       model,
@@ -62,8 +76,17 @@ async function callGeminiAPI(prompt: string, model: string = DEFAULT_MODEL) {
       throw new Error('Network error when calling Gemini API: ' + error.message);
     }
 
+    // Log the full error for debugging
     logger.error('Error in Gemini API call', serializeError(error));
-    throw error;
+
+    // Ensure error is properly formatted
+    const formattedError = {
+      error: 'Gemini API Error',
+      message: error instanceof Error ? error.message : String(error),
+      details: serializeError(error),
+    };
+
+    throw formattedError;
   }
 }
 
@@ -248,53 +271,35 @@ async function handleChatCompletion(params: any, userId: string) {
 
     // Extract the messages and convert to a format Gemini can understand
     const messages = params.messages;
-    const lastMessage = messages[messages.length - 1];
+    const prompt = messages[messages.length - 1]?.content || '';
 
-    if (!lastMessage || !lastMessage.content) {
-      return NextResponse.json({ error: 'Invalid message format' }, { status: 400 });
+    if (!prompt) {
+      return NextResponse.json(
+        { error: 'Invalid request', message: 'No message content provided' },
+        { status: 400 }
+      );
     }
 
-    // For Gemini, we'll use the last message as the prompt
-    // but we'll include context from previous messages
-    let prompt = '';
-
-    // Add context from previous messages
-    if (messages.length > 1) {
-      prompt += 'Previous conversation:\n';
-      for (let i = 0; i < messages.length - 1; i++) {
-        const msg = messages[i];
-        prompt += `${msg.role}: ${msg.content}\n`;
-      }
-      prompt += '\nNow respond to this message:\n';
-    }
-
-    // Add the last message
-    prompt += lastMessage.content;
     // Call the Gemini API
-    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY!);
     const geminiModel = genAI.getGenerativeModel({ model: DEFAULT_MODEL });
 
-    const result = await geminiModel.generateContent(prompt || '');
+    const result = await geminiModel.generateContent(prompt);
     const response = result.response;
     const text = response.text();
 
     return NextResponse.json({
-      choices: [
-        {
-          message: {
-            role: 'assistant',
-            content: text,
-          },
-        },
-      ],
+      content: text,
       model: DEFAULT_MODEL,
+      usage: {
+        promptTokens: prompt.length / 4, // Rough estimate
+        completionTokens: text.length / 4, // Rough estimate
+        totalTokens: (prompt.length + text.length) / 4, // Rough estimate
+      },
     });
   } catch (error) {
-    logger.error('Error in handleChatCompletion', serializeError(error));
-
-    // Handle specific error types
+    logger.error('Error in chat completion', serializeError(error));
     const errorResponse = handleGeminiError(error);
-
     return NextResponse.json(errorResponse, { status: errorResponse.status || 500 });
   }
 }
@@ -304,43 +309,38 @@ async function handleChatCompletion(params: any, userId: string) {
  */
 export async function POST(request: NextRequest) {
   try {
-    // Get authentication information (optional)
-    let userId = 'anonymous';
-    try {
-      const auth = getAuth(request);
-      if (auth.userId) {
-        userId = auth.userId;
-      }
-    } catch (authError) {
-      logger.warn('Authentication not available, proceeding as anonymous', {
-        error: (authError as Error).message,
-      });
+    console.log('API route request URL:', request.url);
+    const auth = getAuth(request);
+    const userId = auth.userId;
+
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Parse the request body
-    const body = await request.json();
+    const params = await request.json();
+    const type = params.type || 'story';
 
-    // Determine the request type
-    const requestType = body.type || 'story';
-
-    // Handle different request types
-    switch (requestType) {
-      case 'story':
-        return handleGenerateStory(body, userId);
-      case 'chat':
-        return handleChatCompletion(body, userId);
-      default:
-        return NextResponse.json(
-          { error: 'Invalid request type', message: `Unsupported request type: ${requestType}` },
-          { status: 400 }
-        );
+    let response;
+    if (type === 'story') {
+      response = await handleGenerateStory(params, userId);
+    } else if (type === 'chat') {
+      response = await handleChatCompletion(params, userId);
+    } else {
+      return NextResponse.json({ error: 'Invalid request type' }, { status: 400 });
     }
+
+    return response;
   } catch (error) {
     logger.error('Error in Gemini API route handler', serializeError(error));
 
-    return NextResponse.json(
-      { error: 'Internal server error', message: 'An unexpected error occurred' },
-      { status: 500 }
-    );
+    // Ensure we always return a properly formatted error response
+    const errorResponse = {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      message: 'An error occurred while processing your request',
+      status: 500,
+      details: serializeError(error),
+    };
+
+    return NextResponse.json(errorResponse, { status: errorResponse.status });
   }
 }

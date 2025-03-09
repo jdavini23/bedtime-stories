@@ -74,4 +74,25 @@ export const env = {
   NEXT_PUBLIC_STRIPE_CUSTOMER_SUBSCRIPTION_DATA: '{}',
   NEXT_PUBLIC_STRIPE_CUSTOMER_TRIAL_FROM_PLAN: 'true',
   NEXT_PUBLIC_STRIPE_CUSTOMER_TRIAL_PERIOD_DAYS: '0',
+  KV_REST_API_URL: 'test-url',
+  KV_REST_API_TOKEN: 'test-token',
+  SENTRY_DSN: 'test-dsn',
+  ENABLE_MOCK_STORIES: true,
+  ENABLE_CACHING: true,
+  STORY_CACHE_TTL_SECONDS: 86400,
+  API_TIMEOUT_MS: 25000,
+  UPSTASH_REDIS_REST_URL: 'test-redis-url',
+  UPSTASH_REDIS_REST_TOKEN: 'test-redis-token',
 };
+
+export function isProduction(): boolean {
+  return false;
+}
+
+export function isDevelopment(): boolean {
+  return false;
+}
+
+export function isTest(): boolean {
+  return true;
+}

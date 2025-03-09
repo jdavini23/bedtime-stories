@@ -5,11 +5,12 @@ import {
   READING_LEVELS,
   AGE_GROUPS,
 } from '../constants';
+import { ReadingLevel as PreferencesReadingLevel, StoryLength } from './preferences';
 
 export type StoryTheme = (typeof STORY_THEMES)[number];
 export type StoryMood = (typeof STORY_MOODS)[number];
 export type StoryGender = (typeof GENDER_OPTIONS)[number];
-export type ReadingLevel = (typeof READING_LEVELS)[number];
+export type ReadingLevel = PreferencesReadingLevel;
 export type AgeGroup = (typeof AGE_GROUPS)[number];
 
 export type StoryMetadata = {
@@ -23,38 +24,23 @@ export type StoryMetadata = {
 
 export interface StoryInput {
   childName: string;
-  gender: StoryGender;
-  theme: StoryTheme;
-  interests: string[];
-  favoriteCharacters?: string[];
-  mostLikedCharacterTypes?: string[];
-  mood?: StoryMood;
-  language?: string;
-  readingLevel?: ReadingLevel;
-  themes?: StoryTheme[];
-  userId?: string;
+  childAge: number;
+  theme: string;
+  characters: string[];
+  setting: string;
+  length: StoryLength;
+  readingLevel: ReadingLevel;
 }
 
 export interface Story {
   id: string;
   title: string;
   content: string;
-  theme: string;
-  createdAt: string;
-  input: StoryInput;
   metadata: {
-    pronouns: string;
-    possessivePronouns: string;
-    generatedAt: string;
-    wordCount?: number;
-    readingTime?: number;
+    input: StoryInput;
     fallback?: boolean;
-    error?: string;
+    timestamp: number;
   };
-  userId?: string;
-  pronouns: string;
-  possessivePronouns: string;
-  generatedAt: string;
 }
 
 export interface UserPreferences {

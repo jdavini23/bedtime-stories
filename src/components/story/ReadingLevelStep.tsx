@@ -2,12 +2,12 @@
 
 import React, { useState } from 'react';
 import { StoryMetadata } from '@/types/story';
-import { UserPreferences } from '@/services/personalizationEngine';
+import { UserPreferencesLocal } from '@/services/personalization';
 
 interface ReadingLevelStepProps {
-  onComplete: (level: string, ageGroup: UserPreferences['ageGroup']) => void;
+  onComplete: (level: string, ageGroup: UserPreferencesLocal['ageGroup']) => void;
   initialValue?: string;
-  initialAgeGroup?: UserPreferences['ageGroup'];
+  initialAgeGroup?: UserPreferencesLocal['ageGroup'];
 }
 
 const READING_LEVEL_OPTIONS = [

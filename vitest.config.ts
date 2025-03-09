@@ -17,6 +17,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      '@/lib/env': path.resolve(__dirname, './src/__tests__/mocks/env.ts'),
     },
   },
 });

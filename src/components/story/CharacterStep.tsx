@@ -7,8 +7,8 @@ import {
   CHARACTER_TRAITS,
   CHARACTER_ARCHETYPES,
   StoryCharacter,
-  userPersonalizationEngine,
-} from '@/services/personalizationEngine';
+  suggestCharacterTraits,
+} from '@/services/personalization';
 
 interface CharacterStepProps {
   onComplete: (data: {
@@ -92,7 +92,7 @@ export function CharacterStep({ onComplete, initialValues, theme }: CharacterSte
   // Generate suggested traits based on theme when component mounts or theme changes
   useEffect(() => {
     if (theme) {
-      const suggestedTraits = userPersonalizationEngine.suggestCharacterTraits(theme as any);
+      const suggestedTraits = suggestCharacterTraits(theme as any);
       if (suggestedTraits.length > 0 && characterData.characterTraits.length === 0) {
         setCharacterData((prev) => ({
           ...prev,

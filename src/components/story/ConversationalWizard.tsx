@@ -7,17 +7,17 @@ import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import { Card } from '@/components/ui/card';
 import {
-  EnhancedStoryInput,
   StoryCharacter,
-  UserPreferences,
+  UserPreferencesLocal,
   CHARACTER_TRAITS,
   CHARACTER_ARCHETYPES,
   THEME_DESCRIPTIONS,
-} from '@/services/personalizationEngine';
+  EnhancedStoryInput,
+} from '@/services/personalization';
 
 // Extend the EnhancedStoryInput to include ageGroup
 interface ExtendedStoryInput extends EnhancedStoryInput {
-  ageGroup?: UserPreferences['ageGroup'];
+  ageGroup?: UserPreferencesLocal['ageGroup'];
 }
 
 interface ConversationalWizardProps {
@@ -499,10 +499,11 @@ export function ConversationalWizard({ onComplete, isLoading = false }: Conversa
               </p>
               <p>
                 <span className="font-medium">Gender:</span>{' '}
-                {GENDER_OPTIONS.find((g) => g.value === storyInput.gender)?.label}
+                {GENDER_OPTIONS.find((g) => g.value === storyInput.mainCharacter?.gender)?.label}
               </p>
               <p>
-                <span className="font-medium">Interests:</span> {storyInput.interests?.join(', ')}
+                <span className="font-medium">Interests:</span>{' '}
+                {storyInput.mainCharacter?.interests?.join(', ')}
               </p>
               <p>
                 <span className="font-medium">Character Traits:</span>{' '}
@@ -584,9 +585,9 @@ export function ConversationalWizard({ onComplete, isLoading = false }: Conversa
       !!input.theme &&
       !!input.childName &&
       !!input.readingLevel &&
-      !!input.gender &&
-      Array.isArray(input.mostLikedCharacterTypes) &&
-      input.mostLikedCharacterTypes.length > 0
+      !!input.characterGender &&
+      Array.isArray(input.favoriteCharacterTypes) &&
+      input.favoriteCharacterTypes.length > 0
     );
   };
 

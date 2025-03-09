@@ -1,4 +1,4 @@
-import { StoryInput } from '../services/personalizationEngine';
+import { StoryInput, Story } from '@/types/story';
 import { logger } from './logger';
 
 /**
@@ -11,32 +11,20 @@ import { logger } from './logger';
  * @param input Story generation input parameters
  * @returns Generated fallback story content
  */
-export function generateFallbackStory(input: StoryInput): string {
-  logger.info('Generating fallback story', {
-    childName: input.childName,
-    theme: input.theme,
-  });
+export function generateFallbackStory(input: StoryInput): Story {
+  const title = `A Special Story for ${input.childName}`;
+  const content = `Once upon a time, there was a child named ${input.childName} who loved to explore and learn new things. They had many wonderful adventures and made lots of friends along the way.`;
 
-  // Determine pronouns based on gender
-  const pronouns = input.gender === 'female' ? 'she/her' : 'he/him';
-  const pronoun = pronouns.split('/')[0];
-  const possessivePronoun = input.gender === 'female' ? 'her' : 'his';
-
-  // Get a random template based on the theme
-  const template = getTemplateForTheme(input.theme);
-
-  // Replace placeholders with personalized content
-  const story = template
-    .replace(/\{childName\}/g, input.childName)
-    .replace(/\{pronoun\}/g, pronoun)
-    .replace(/\{possessivePronoun\}/g, possessivePronoun)
-    .replace(/\{theme\}/g, input.theme);
-
-  logger.debug('Fallback story generated', {
-    storyLength: story.length,
-  });
-
-  return story;
+  return {
+    id: Math.random().toString(36).substring(7),
+    title,
+    content,
+    metadata: {
+      input,
+      fallback: true,
+      timestamp: Date.now(),
+    },
+  };
 }
 
 /**

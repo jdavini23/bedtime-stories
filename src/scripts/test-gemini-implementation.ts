@@ -1,10 +1,10 @@
-import { UserPersonalizationEngine } from '../services/personalizationEngine';
+import { StoryGenerator } from '../services/personalization';
 import { StoryInput } from '../types/story';
 
 async function testGeminiImplementation() {
   // Provide a valid userId
   const userId = 'test-user';
-  const engine = new UserPersonalizationEngine(userId);
+  const engine = new StoryGenerator(userId);
 
   // Mock input data for testing
   const input: StoryInput = {
