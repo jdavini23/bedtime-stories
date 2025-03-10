@@ -2,9 +2,6 @@ import React from 'react';
 import Script from 'next/script';
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
-// Import these after installing the packages
-// import { SpeedInsights } from '@vercel/speed-insights/react';
-// import { Analytics } from '@vercel/analytics/react';
 import './globals.css';
 import { Providers } from '@/providers/Providers';
 import { ClerkProvider } from '@clerk/nextjs';
@@ -17,9 +14,6 @@ const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-inter',
-  preload: true,
-  adjustFontFallback: true,
-  fallback: ['system-ui', 'sans-serif'],
 });
 
 export const dynamic = 'force-static';
@@ -47,12 +41,10 @@ interface RootLayoutProps {
 }
 
 export default function RootLayout({ children }: RootLayoutProps): React.JSX.Element {
+  console.log('Initializing ClerkProvider');
+  console.log('ClerkProvider frontendApi:', process.env.NEXT_PUBLIC_CLERK_FRONTEND_API);
   return (
-    <ClerkProvider
-      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
-      domain="stepintostorytime.com"
-      isSatellite={false}
-    >
+    <ClerkProvider frontendApi={process.env.NEXT_PUBLIC_CLERK_FRONTEND_API}>
       <html lang="en" suppressHydrationWarning className={inter.variable}>
         <head>
           <PreloadResources />
@@ -67,8 +59,6 @@ export default function RootLayout({ children }: RootLayoutProps): React.JSX.Ele
           >
             <Providers>
               {children}
-              {/* <SpeedInsights />
-              <Analytics /> */}
               <ScriptOptimizer />
             </Providers>
           </ErrorBoundary>

@@ -1,12 +1,15 @@
 // This is a temporary configuration file without Sentry integration
 // The original file is backed up at next.config.js.backup
 
+const crypto = require('crypto');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   productionBrowserSourceMaps: true,
   reactStrictMode: true,
+  swcMinify: true,
   // Add assetPrefix to ensure static assets are loaded from the correct port
-  assetPrefix: process.env.NODE_ENV === 'development' ? '' : undefined,
+  assetPrefix: process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : undefined,
   experimental: {
     serverActions: {
       allowedOrigins: [
@@ -49,45 +52,63 @@ const nextConfig = {
   staticPageGenerationTimeout: 180,
 
   webpack: (config, { dev, isServer }) => {
-    // Resolve module not found issues
-    config.resolve.fallback = {
-      fs: false,
-      net: false,
-      tls: false,
-      dns: false,
-    };
+    // Fixes npm packages that depend on `fs` module
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        dns: false,
+        tls: false,
+        perf_hooks: false,
+        '@opentelemetry/api': false,
+      };
 
-    // Optimize source maps for production
-    if (!dev) {
-      config.devtool = 'source-map';
-
-      // Optimize source maps
-      if (config.optimization) {
-        // Ensure we have the optimization object
-        if (!config.optimization.minimizer) {
-          config.optimization.minimizer = [];
-        }
-
-        // Configure source map generation for production
-        config.optimization.minimize = true;
+      // Configure chunk loading for development
+      if (dev) {
+        config.output = {
+          ...config.output,
+          chunkFilename: '[name].js',
+          publicPath: 'http://localhost:3000/_next/',
+        };
       }
+
+      // Basic optimization settings
+      config.optimization = {
+        ...config.optimization,
+        runtimeChunk: 'single',
+        splitChunks: {
+          chunks: 'all',
+          minSize: 20000,
+          maxSize: 244000,
+          cacheGroups: {
+            default: false,
+            vendors: false,
+            commons: {
+              name: 'commons',
+              chunks: 'all',
+              minChunks: 2,
+              reuseExistingChunk: true,
+            },
+            shared: {
+              name: false,
+              chunks: 'all',
+              minChunks: 2,
+              reuseExistingChunk: true,
+            },
+          },
+        },
+      };
     }
 
-    // Optimize bundle size
-    if (!dev && !isServer) {
-      // const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
-      if (process.env.ANALYZE === 'true') {
-        import('webpack-bundle-analyzer').then(({ BundleAnalyzerPlugin }) => {
-          console.log('Bundle analyzer is running...');
-          config.plugins.push(
-            new BundleAnalyzerPlugin({
-              analyzerMode: 'server',
-              analyzerPort: 8888,
-              openAnalyzer: true,
-            })
-          );
-        });
-      }
+    if (isServer) {
+      console.log('Server-side environment variables:', {
+        NEXT_PUBLIC_CLERK_FRONTEND_API: process.env.NEXT_PUBLIC_CLERK_FRONTEND_API,
+      });
+    } else {
+      console.log('Client-side environment variables:', {
+        NEXT_PUBLIC_CLERK_FRONTEND_API: process.env.NEXT_PUBLIC_CLERK_FRONTEND_API,
+      });
     }
 
     return config;
@@ -151,6 +172,23 @@ const nextConfig = {
             key: 'Cache-Control',
             value: 'public, max-age=31536000, immutable',
           },
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*',
+          },
+        ],
+      },
+      {
+        source: '/_next/static/media/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*',
+          },
         ],
       },
       {
@@ -167,10 +205,9 @@ const nextConfig = {
 };
 
 nextConfig.env = {
-  KV_REST_API_URL: process.env.KV_REST_API_URL,
-  KV_REST_API_TOKEN: process.env.KV_REST_API_TOKEN,
   UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
   UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
+  NEXT_PUBLIC_CLERK_FRONTEND_API: process.env.NEXT_PUBLIC_CLERK_FRONTEND_API,
 };
 
 // Export the config without Sentry

@@ -2,6 +2,8 @@ import { logger } from './logger';
 import CircuitBreaker from 'opossum';
 import { StoryInput } from '@/types/story';
 import { generateFallbackStory } from '@/utils/fallback-generator';
+import { Story } from '@/types/story';
+import { v4 as uuidv4 } from 'uuid';
 
 /**
  * Configure the circuit breaker for OpenAI API calls
@@ -413,7 +415,27 @@ export function createCircuitBreaker<T>(
   return breaker;
 }
 
-export function handleStoryGenerationError(error: Error, input: StoryInput) {
-  logger.error('Error generating story', { error: error.message });
-  return generateFallbackStory(input);
+/**
+ * Handle story generation errors and return a fallback story
+ */
+export function handleStoryGenerationError(error: Error, input: StoryInput): Story {
+  logger.error('Story generation error', {
+    error: serializeError(error),
+    input,
+  });
+
+  // Generate a fallback story content
+  const fallbackContent = generateFallbackStory(input);
+
+  // Return a properly typed Story object
+  return {
+    id: uuidv4(),
+    title: 'A Special Adventure',
+    content: JSON.stringify(fallbackContent), // Convert Story object to string
+    metadata: {
+      input,
+      fallback: true,
+      timestamp: Date.now(),
+    },
+  };
 }

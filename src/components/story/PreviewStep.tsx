@@ -67,15 +67,13 @@ const PreviewStep: React.FC<PreviewStepProps> = ({
             </p>
           </div>
 
-          {storyInput.mainCharacter?.interests && storyInput.mainCharacter.interests.length > 0 && (
+          {storyInput.interests && storyInput.interests.length > 0 && (
             <div>
               <h4 className="text-sm font-medium text-text-secondary dark:text-text-primary mb-1">
                 Interests
               </h4>
               <p className="text-text-primary dark:text-text-primary/90">
-                {Array.isArray(storyInput.interests)
-                  ? storyInput.interests.join(', ')
-                  : storyInput.interests}
+                {storyInput.interests?.join(', ')}
               </p>
             </div>
           )}

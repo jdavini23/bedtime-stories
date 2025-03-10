@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { StoryGenerator } from '@/services/personalization/storyGeneration';
 import { PreferencesManager } from '@/services/personalization/preferences';
 import { TEST_USER_ID, TEST_PREFERENCES } from '@/utils/test-constants';
-import { UserPreferencesLocal } from '@/types/preferences';
+import { UserPreferences } from '@/types/user';
 
 describe('Clerk Auth Tests', () => {
   it('should get user preferences', async () => {

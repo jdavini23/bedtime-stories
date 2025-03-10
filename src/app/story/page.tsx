@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import { useUser } from '@/hooks/useUser';
-import { StoryWizard } from '@/components/story/StoryWizard';
-import { ConversationalWizard } from '@/components/story/ConversationalWizard';
+import { ConversationalWizardWithProvider as ConversationalWizard } from '@/components/story/wizard';
 import { StoryDisplay } from '@/components/story/StoryDisplay';
 import { isAdmin } from '@/utils/auth';
 import { redirect } from 'next/navigation';
@@ -17,7 +16,6 @@ export default function StoryPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedStory, setGeneratedStory] = useState<Story | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [useConversationalUI, setUseConversationalUI] = useState(true);
 
   const handleStoryGeneration = async (storyInput: StoryInput) => {
     setIsGenerating(true);
@@ -59,10 +57,6 @@ export default function StoryPage() {
   const handleCreateNewStory = () => {
     setGeneratedStory(null);
     setError(null);
-  };
-
-  const toggleWizardStyle = () => {
-    setUseConversationalUI(!useConversationalUI);
   };
 
   if (!isLoaded) {
@@ -119,18 +113,7 @@ export default function StoryPage() {
             <span className="inline-block animate-float">✨</span>{' '}
             {generatedStory ? 'Your Story' : 'Create Your Story'}
           </h1>
-          <div className="w-24">
-            {!generatedStory && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={toggleWizardStyle}
-                className="hover:bg-white/10 transition-colors"
-              >
-                {useConversationalUI ? 'Classic UI' : 'Chat UI'}
-              </Button>
-            )}
-          </div>
+          <div className="w-24" /> {/* Spacer for layout balance */}
         </div>
 
         {error && (
@@ -166,13 +149,7 @@ export default function StoryPage() {
           </div>
         ) : (
           <div className="max-w-2xl mx-auto my-auto flex-grow flex items-center">
-            {useConversationalUI ? (
-              <ConversationalWizard onComplete={handleStoryGeneration} isLoading={isGenerating} />
-            ) : (
-              <div className="bg-white/80 dark:bg-midnight-light/30 rounded-xl shadow-xl p-6 backdrop-blur-sm w-full">
-                <StoryWizard onComplete={handleStoryGeneration} isLoading={isGenerating} />
-              </div>
-            )}
+            <ConversationalWizard onComplete={handleStoryGeneration} isLoading={isGenerating} />
           </div>
         )}
       </div>

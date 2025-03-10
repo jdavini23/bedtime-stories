@@ -3,7 +3,7 @@ import { Redis } from '@upstash/redis';
 import { StoryInput, StoryTheme, Story } from '@/types/story';
 import { THEME_DESCRIPTIONS, THEME_ELEMENTS } from './themes';
 import { generateFallbackStory } from '@/utils/fallback-generator';
-import { geminiCircuitBreaker, handleStoryGenerationError } from '@/utils/error-handlers';
+import { geminiCircuitBreaker } from '@/utils/error-handlers';
 import { storyLogger } from '@/utils/logging/logUtils';
 import { PreferencesManager } from './preferences';
 
@@ -12,6 +12,15 @@ const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL!,
   token: process.env.UPSTASH_REDIS_REST_TOKEN!,
 });
+
+// Handle story generation errors
+function handleStoryGenerationError(error: Error, input: StoryInput): Story {
+  storyLogger.error('Story generation error', {
+    error,
+    input,
+  });
+  return generateFallbackStory(input);
+}
 
 export class StoryGenerator {
   private userId: string | undefined;

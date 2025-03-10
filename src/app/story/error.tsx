@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { Button } from '@/components/common/Button';
-import { logger } from '@/utils/loggerInstance';
 
 export default function StoryError({
   error,
@@ -12,7 +11,8 @@ export default function StoryError({
   reset: () => void;
 }) {
   React.useEffect(() => {
-    logger.error('Story page error:', { error: error.message, digest: error.digest });
+    // Log error to console in development
+    console.error('Story page error:', error);
   }, [error]);
 
   return (

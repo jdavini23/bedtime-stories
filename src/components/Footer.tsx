@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import { Twitter, Instagram, Facebook, Heart } from 'lucide-react';
 
 export default function Footer() {
   return (
@@ -58,42 +58,15 @@ export default function Footer() {
             <div className="flex gap-4">
               <a href="#" className="hover:text-primary transition-colors">
                 <span className="sr-only">Twitter</span>
-                <Image
-                  src="/images/illustrations/twitter.svg"
-                  alt="Twitter"
-                  width={24}
-                  height={24}
-                  className="text-current"
-                  loading="lazy"
-                  sizes="24px"
-                  quality={85}
-                />
+                <Twitter size={24} />
               </a>
               <a href="#" className="hover:text-primary transition-colors">
                 <span className="sr-only">Instagram</span>
-                <Image
-                  src="/images/illustrations/instagram.svg"
-                  alt="Instagram"
-                  width={24}
-                  height={24}
-                  className="text-current"
-                  loading="lazy"
-                  sizes="24px"
-                  quality={85}
-                />
+                <Instagram size={24} />
               </a>
               <a href="#" className="hover:text-primary transition-colors">
                 <span className="sr-only">Facebook</span>
-                <Image
-                  src="/images/illustrations/facebook.svg"
-                  alt="Facebook"
-                  width={24}
-                  height={24}
-                  className="text-current"
-                  loading="lazy"
-                  sizes="24px"
-                  quality={85}
-                />
+                <Facebook size={24} />
               </a>
             </div>
           </div>
@@ -102,16 +75,7 @@ export default function Footer() {
         <div className="border-t border-text-primary/20 pt-6 text-center">
           <p>
             Made with{' '}
-            <Image
-              src="/images/illustrations/heart.svg"
-              alt="love"
-              width={16}
-              height={16}
-              className="inline"
-              loading="lazy"
-              sizes="16px"
-              quality={85}
-            />{' '}
+            <Heart size={16} className="inline text-red-500" />{' '}
             for parents and kids. © {new Date().getFullYear()} Step Into Story Time
           </p>
         </div>

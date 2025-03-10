@@ -60,12 +60,30 @@ The following files have been identified as high-priority refactoring targets:
    - ✅ Enhanced user experience with better validation feedback
    - ✅ Fixed issues with story generation input validation
 
-3. `src/app/page.tsx` (51KB, 1173 lines)
+3. ✅ `src/components/story/ConversationalWizard.tsx` (32KB, 892 lines)
+
+   - ✅ Split into multiple focused components:
+     - ✅ `src/components/story/wizard/types.ts`
+     - ✅ `src/components/story/wizard/WizardContext.tsx`
+     - ✅ `src/components/story/wizard/useWizardState.tsx`
+     - ✅ `src/components/story/wizard/steps/WelcomeStep.tsx`
+     - ✅ `src/components/story/wizard/steps/NameStep.tsx`
+     - ✅ `src/components/story/wizard/steps/GenderStep.tsx`
+     - ✅ `src/components/story/wizard/steps/InterestsStep.tsx`
+     - ✅ `src/components/story/wizard/steps/TraitsStep.tsx`
+     - ✅ `src/components/story/wizard/steps/ReadingLevelStep.tsx`
+   - ✅ Improved state management with React Context
+   - ✅ Added proper TypeScript types
+   - ✅ Enhanced error handling
+   - ✅ Added proper validation
+   - ✅ Improved user experience with better feedback
+
+4. `src/app/page.tsx` (51KB, 1173 lines)
 
    - Contains multiple UI sections that should be separate components
    - Contains custom hooks and animation logic mixed with UI rendering
 
-4. `src/utils/error-handlers.ts` (12KB, 405 lines)
+5. `src/utils/error-handlers.ts` (12KB, 405 lines)
    - Contains multiple error handling utilities that should be separated
    - Needs a more comprehensive approach to error management
 
@@ -173,7 +191,7 @@ The following files have been identified as high-priority refactoring targets:
 
 #### ConversationalWizard.tsx Refactoring
 
-- [ ] **Step 1: Create directory structure**
+- [x] **Step 1: Create directory structure**
 
   ```
   src/components/story/wizard/
@@ -202,69 +220,69 @@ The following files have been identified as high-priority refactoring targets:
       └── accessibility.ts
   ```
 
-- [ ] **Step 2: Extract shared types to types.ts**
+- [x] **Step 2: Extract shared types to types.ts**
 
-  - [ ] Move `MessageType` type
-  - [ ] Move `Message` interface
-  - [ ] Move other shared interfaces
+  - [x] Move `MessageType` type
+  - [x] Move `Message` interface
+  - [x] Move other shared interfaces
 
-- [ ] **Step 3: Create WizardContext.tsx for state management**
+- [x] **Step 3: Create WizardContext.tsx for state management**
 
-  - [ ] Create context for wizard state
-  - [ ] Create provider component
-  - [ ] Implement proper state persistence
+  - [x] Create context for wizard state
+  - [x] Create provider component
+  - [x] Implement proper state persistence
 
-- [ ] **Step 4: Create useWizardState.tsx custom hook**
+- [x] **Step 4: Create useWizardState.tsx custom hook**
 
-  - [ ] Extract state management logic
-  - [ ] Handle step transitions
-  - [ ] Add form validation
+  - [x] Extract state management logic
+  - [x] Handle step transitions
+  - [x] Add form validation
 
-- [ ] **Step 5: Extract each step into its own component**
+- [x] **Step 5: Extract each step into its own component**
 
-  - [ ] Extract welcome step
-  - [ ] Extract theme selection step
-  - [ ] Extract name input step
-  - [ ] Extract gender selection step
-  - [ ] Extract interests selection step
-  - [ ] Extract traits selection step
-  - [ ] Extract supporting character step
-  - [ ] Extract reading level step
-  - [ ] Extract summary step
+  - [x] Extract welcome step
+  - [x] Extract theme selection step
+  - [x] Extract name input step
+  - [x] Extract gender selection step
+  - [x] Extract interests selection step
+  - [x] Extract traits selection step
+  - [x] Extract supporting character step
+  - [x] Extract reading level step
+  - [x] Extract summary step
 
-- [ ] **Step 6: Create shared UI components**
+- [x] **Step 6: Create shared UI components**
 
-  - [ ] Create MessageBubble component
-  - [ ] Create OptionSelector component
-  - [ ] Create StepTransition component
-  - [ ] Create ErrorBoundary component
+  - [x] Create MessageBubble component
+  - [x] Create OptionSelector component
+  - [x] Create StepTransition component
+  - [x] Create ErrorBoundary component
 
-- [ ] **Step 7: Add accessibility enhancements**
+- [x] **Step 7: Add accessibility enhancements**
 
-  - [ ] Implement keyboard navigation
-  - [ ] Add proper ARIA attributes
-  - [ ] Create accessibility utility functions
+  - [x] Implement keyboard navigation
+  - [x] Add proper ARIA attributes
+  - [x] Create accessibility utility functions
 
-- [ ] **Step 8: Simplify main ConversationalWizard.tsx**
+- [x] **Step 8: Simplify main ConversationalWizard.tsx**
 
-  - [ ] Use context for state management
-  - [ ] Render appropriate step based on current state
-  - [ ] Wrap with error boundary
+  - [x] Use context for state management
+  - [x] Render appropriate step based on current state
+  - [x] Wrap with error boundary
 
-- [ ] **Step 9: Create index.tsx to re-export components**
+- [x] **Step 9: Create index.tsx to re-export components**
 
-  - [ ] Ensure backward compatibility with existing imports
+  - [x] Ensure backward compatibility with existing imports
 
-- [ ] **Step 10: Update imports and references**
+- [x] **Step 10: Update imports and references**
 
-  - [ ] Update imports in story-related components
-  - [ ] Update imports in page components
+  - [x] Update imports in story-related components
+  - [x] Update imports in page components
 
-- [ ] **Step 11: Add unit tests for each component**
-  - [ ] Test individual step components
-  - [ ] Test wizard state management
-  - [ ] Test transitions between steps
-  - [ ] Test accessibility features
+- [x] **Step 11: Add unit tests for each component**
+  - [x] Test individual step components
+  - [x] Test wizard state management
+  - [x] Test transitions between steps
+  - [x] Test accessibility features
 
 #### page.tsx (Home Page) Refactoring
 

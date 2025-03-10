@@ -5,40 +5,16 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
 import Image from 'next/image';
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback, Suspense } from 'react';
 import { Menu, X, ChevronRight, Moon, Sun } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import dynamic from 'next/dynamic';
 import ThemeToggleWrapper from '@/components/ThemeToggleWrapper';
 import { TypedText } from '@/components/TypedText';
 import { SignInButton } from '@/components/auth/SignInButton';
 import { SignOutButton } from '@/components/auth/SignOutButton';
 import { useAuth } from '@clerk/nextjs';
-
-// Dynamically import components that are below the fold
-const StoryFeatureGrid = dynamic(
-  () => import('@/components/StoryFeatureCard').then((mod) => mod.StoryFeatureGrid),
-  {
-    loading: () => (
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 animate-pulse">
-        {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div key={i} className="bg-lavender/20 dark:bg-lavender/10 h-64 rounded-lg"></div>
-        ))}
-      </div>
-    ),
-    ssr: false,
-  }
-);
-
-// Dynamically import the FAQ section
-
-// Dynamically import the footer
-const Footer = dynamic(() => import('../components/Footer'), {
-  loading: () => (
-    <div className="h-40 bg-lavender/10 dark:bg-midnight/30 animate-pulse rounded-t-lg"></div>
-  ),
-  ssr: false,
-});
+import FeatureGrid from '@/components/FeatureGrid';
+import Footer from '@/components/Footer';
 
 // Custom hook for Intersection Observer
 function useIntersectionObserver(options = {}) {
@@ -869,7 +845,7 @@ export default function Home() {
         <div className="max-w-5xl mx-auto">
           <h2 className="text-primary text-center mb-12">Why Parents Love It</h2>
 
-          <StoryFeatureGrid />
+          <FeatureGrid />
 
           {/* Testimonial */}
           <Card
@@ -1166,7 +1142,11 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <Footer />
+      <Suspense fallback={
+        <div className="h-40 bg-lavender/10 dark:bg-midnight/30 animate-pulse rounded-t-lg"></div>
+      }>
+        <Footer />
+      </Suspense>
     </main>
   );
 }

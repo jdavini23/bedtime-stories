@@ -60,33 +60,6 @@ const AnimatedIcon = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-export function StoryFeatureGrid() {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
-      <StoryCard
-        title="Interactive Stories"
-        description="Engage with magical tales that come to life"
-        color="#FF85A1"
-        icon={<BookIcon className="w-12 h-12 text-dreamy" />}
-      />
-
-      <StoryCard
-        title="Fun Characters"
-        description="Meet delightful friends along the journey"
-        color="#7B3F92"
-        icon={<StarIcon className="w-12 h-12 text-primary" />}
-      />
-
-      <StoryCard
-        title="Learning Adventures"
-        description="Discover new worlds while learning"
-        color="#00A6FB"
-        icon={<RocketIcon className="w-12 h-12 text-sky" />}
-      />
-    </div>
-  );
-}
-
 const BookIcon = ({ className }: { className?: string }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -136,4 +109,33 @@ const RocketIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
+// Default export component
+const StoryFeatureGrid = () => {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
+      <StoryCard
+        title="Interactive Stories"
+        description="Engage with magical tales that come to life"
+        color="#FF85A1"
+        icon={<BookIcon className="w-12 h-12 text-dreamy" />}
+      />
+
+      <StoryCard
+        title="Fun Characters"
+        description="Meet delightful friends along the journey"
+        color="#7B3F92"
+        icon={<StarIcon className="w-12 h-12 text-primary" />}
+      />
+
+      <StoryCard
+        title="Learning Adventures"
+        description="Discover new worlds while learning"
+        color="#00A6FB"
+        icon={<RocketIcon className="w-12 h-12 text-sky" />}
+      />
+    </div>
+  );
+};
+
 export { StoryCard };
+export default StoryFeatureGrid;
