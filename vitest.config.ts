@@ -1,17 +1,25 @@
+/// <reference types="vitest" />
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
+import tsconfigPaths from 'vite-tsconfig-paths';
 import path from 'path';
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), tsconfigPaths()],
   test: {
     environment: 'jsdom',
     globals: true,
-    setupFiles: ['./vitest.setup.ts'],
-    include: ['**/*.test.{ts,tsx}'],
+    setupFiles: ['./src/test/setup.ts'],
+    include: ['src/**/*.{test,spec}.{js,jsx,ts,tsx}'],
     coverage: {
       reporter: ['text', 'json', 'html'],
-      exclude: ['node_modules/', '.next/', 'public/'],
+      include: ['src/**/*.{js,jsx,ts,tsx}'],
+      exclude: [
+        'src/**/*.d.ts',
+        'src/**/*.stories.{js,jsx,ts,tsx}',
+        'src/pages/_app.tsx',
+        'src/pages/_document.tsx',
+      ],
     },
   },
   resolve: {

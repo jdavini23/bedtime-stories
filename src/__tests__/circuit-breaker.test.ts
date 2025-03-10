@@ -1,14 +1,14 @@
-import { jest } from '@jest/globals';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import CircuitBreaker from 'opossum';
 import { openAICircuitBreaker, serializeError } from '@/utils/error-handlers';
 
 // Mock the logger
-jest.mock('@/utils/logger', () => ({
+vi.mock('@/utils/logger', () => ({
   logger: {
-    debug: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
   },
 }));
 
@@ -16,37 +16,36 @@ describe('CircuitBreaker', () => {
   let circuitBreaker: CircuitBreaker<any>;
 
   // Mock functions for testing
-  const successFn = jest.fn().mockResolvedValue('success');
-  const failureFn = jest.fn().mockRejectedValue(new Error('test error'));
-  const fallbackFn = jest.fn().mockReturnValue('fallback');
+  const successFn = vi.fn().mockResolvedValue('success');
+  const failureFn = vi.fn().mockRejectedValue(new Error('test error'));
+  const fallbackFn = vi.fn().mockReturnValue('fallback');
+
+  // CircuitBreaker options type
+  const circuitBreakerOptions: CircuitBreaker.Options = {
+    errorThresholdPercentage: 50,
+    resetTimeout: 1000, // 1 second
+    timeout: 3000, // 3 seconds
+  };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     // Create a new circuit breaker for each test
-    circuitBreaker = new CircuitBreaker(async () => await successFn(), {
-      failureThreshold: 2,
-      resetTimeout: 1000, // 1 second
-      timeout: 3000, // 3 seconds
-    });
+    circuitBreaker = new CircuitBreaker(async () => await successFn(), circuitBreakerOptions);
 
     // Add fallback
     circuitBreaker.fallback(() => fallbackFn());
   });
 
-  test('should execute function successfully when circuit is closed', async () => {
+  it('should execute function successfully when circuit is closed', async () => {
     const result = await circuitBreaker.fire();
     expect(result).toBe('success');
     expect(successFn).toHaveBeenCalledTimes(1);
     expect(fallbackFn).not.toHaveBeenCalled();
   });
 
-  test('should use fallback when function fails', async () => {
+  it('should use fallback when function fails', async () => {
     // Override the circuit breaker to use the failure function
-    circuitBreaker = new CircuitBreaker(async () => await failureFn(), {
-      failureThreshold: 2,
-      resetTimeout: 1000,
-      timeout: 3000,
-    });
+    circuitBreaker = new CircuitBreaker(async () => await failureFn(), circuitBreakerOptions);
 
     // Add fallback
     circuitBreaker.fallback(() => fallbackFn());
@@ -57,19 +56,15 @@ describe('CircuitBreaker', () => {
     expect(fallbackFn).toHaveBeenCalledTimes(1);
   });
 
-  test('should open circuit after threshold failures', async () => {
+  it('should open circuit after threshold failures', async () => {
     // Override the circuit breaker to use the failure function
-    circuitBreaker = new CircuitBreaker(async () => await failureFn(), {
-      failureThreshold: 2,
-      resetTimeout: 1000,
-      timeout: 3000,
-    });
+    circuitBreaker = new CircuitBreaker(async () => await failureFn(), circuitBreakerOptions);
 
     // Add fallback
     circuitBreaker.fallback(() => fallbackFn());
 
     // Spy on the 'open' event
-    const openSpy = jest.fn();
+    const openSpy = vi.fn();
     circuitBreaker.on('open', openSpy);
 
     // First failure
@@ -83,27 +78,28 @@ describe('CircuitBreaker', () => {
     expect(openSpy).toHaveBeenCalledTimes(1);
 
     // Third call should use fallback without calling the function
-    failureFn.mockClear();
+    vi.mocked(failureFn).mockClear();
     await circuitBreaker.fire();
     expect(failureFn).not.toHaveBeenCalled();
     expect(fallbackFn).toHaveBeenCalledTimes(3);
   });
 
-  test('should close circuit after reset timeout', async () => {
-    // Override the circuit breaker to use the failure function initially
-    circuitBreaker = new CircuitBreaker(async () => await failureFn(), {
-      failureThreshold: 2,
+  it('should close circuit after reset timeout', async () => {
+    const quickResetOptions: CircuitBreaker.Options = {
+      ...circuitBreakerOptions,
       resetTimeout: 100, // Very short timeout for testing
-      timeout: 3000,
-    });
+    };
+
+    // Override the circuit breaker to use the failure function initially
+    circuitBreaker = new CircuitBreaker(async () => await failureFn(), quickResetOptions);
 
     // Add fallback
     circuitBreaker.fallback(() => fallbackFn());
 
     // Spy on the events
-    const openSpy = jest.fn();
-    const closeSpy = jest.fn();
-    const halfOpenSpy = jest.fn();
+    const openSpy = vi.fn();
+    const closeSpy = vi.fn();
+    const halfOpenSpy = vi.fn();
 
     circuitBreaker.on('open', openSpy);
     circuitBreaker.on('close', closeSpy);
@@ -118,11 +114,7 @@ describe('CircuitBreaker', () => {
     await new Promise((resolve) => setTimeout(resolve, 150));
 
     // Now switch to success function for the next call
-    circuitBreaker = new CircuitBreaker(async () => await successFn(), {
-      failureThreshold: 2,
-      resetTimeout: 100,
-      timeout: 3000,
-    });
+    circuitBreaker = new CircuitBreaker(async () => await successFn(), quickResetOptions);
 
     // Add event listeners again
     circuitBreaker.on('open', openSpy);
@@ -140,11 +132,11 @@ describe('CircuitBreaker', () => {
 });
 
 describe('openAICircuitBreaker', () => {
-  test('should be properly configured', () => {
+  it('should be properly configured', () => {
     expect(openAICircuitBreaker).toBeInstanceOf(CircuitBreaker);
   });
 
-  test('should have event handlers registered', () => {
+  it('should have event handlers registered', () => {
     // This is a bit of a hack to check if event handlers are registered
     // Opossum doesn't expose a way to check registered listeners directly
     const listeners = (openAICircuitBreaker as any)._events;
@@ -154,7 +146,7 @@ describe('openAICircuitBreaker', () => {
 });
 
 describe('serializeError', () => {
-  test('should serialize Error objects', () => {
+  it('should serialize Error objects', () => {
     const error = new Error('test error');
     const serialized = serializeError(error);
     expect(serialized.name).toBe('Error');
@@ -162,19 +154,19 @@ describe('serializeError', () => {
     expect(serialized.stack).toBeDefined();
   });
 
-  test('should handle non-Error objects', () => {
+  it('should handle non-Error objects', () => {
     const obj = { foo: 'bar' };
     const serialized = serializeError(obj);
     expect(serialized).toEqual(obj);
   });
 
-  test('should handle primitive values', () => {
+  it('should handle primitive values', () => {
     const serialized = serializeError('test');
     expect(serialized.message).toBe('test');
     expect(serialized.type).toBe('string');
   });
 
-  test('should handle null/undefined', () => {
+  it('should handle null/undefined', () => {
     const serialized = serializeError(null);
     expect(serialized.message).toBe('Unknown error (null or undefined)');
   });
