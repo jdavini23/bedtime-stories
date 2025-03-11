@@ -4,52 +4,11 @@ import React, { FC, useState, useCallback, memo } from 'react';
 import { Story } from '@/types/story';
 import { Button } from '../common/Button';
 import { motion } from 'framer-motion';
-import { logger } from '@/utils/loggerInstance';
-import dynamic from 'next/dynamic';
 import ReadingTime from './ReadingTime';
-import { ErrorBoundary } from '../error-boundaries/ErrorBoundary';
 
-// Dynamic import with webpack magic comments for better chunk loading
-const TextToSpeech = dynamic(
-  () =>
-    import(/* webpackChunkName: "text-to-speech" */ './TextToSpeech').catch((err) => {
-      logger.error('Failed to load TextToSpeech component', { error: err });
-      return () => (
-        <div className="text-red-500 p-4 rounded-lg bg-red-50">
-          Failed to load text-to-speech functionality. Please try refreshing the page.
-        </div>
-      );
-    }),
-  {
-    loading: () => (
-      <div className="animate-pulse p-4 rounded-lg bg-gray-50">
-        Loading text-to-speech functionality...
-      </div>
-    ),
-    ssr: false,
-  }
-);
-
-// Wrap TextToSpeech in an error boundary
-const TextToSpeechWithErrorBoundary = ({ text }: { text: string }) => (
-  <ErrorBoundary
-    fallback={
-      <div className="px-6 pb-6">
-        <div className="bg-midnight-light/10 dark:bg-midnight-light/20 backdrop-blur-sm rounded-xl p-6">
-          <h3 className="text-lg font-medium text-red-600 dark:text-red-400 mb-4">
-            Text-to-Speech is currently unavailable
-          </h3>
-        </div>
-      </div>
-    }
-  >
-    <TextToSpeech text={text} />
-  </ErrorBoundary>
-);
-
-interface StoryDisplayProps {
-  story: Story;
-}
+// TODO: Text-to-speech functionality is temporarily disabled.
+// Will be re-implemented later using the TextToSpeech component.
+// See src/components/story/TextToSpeech.tsx for the implementation.
 
 // Helper function to format story paragraphs with animations
 const formatStoryParagraphs = (content: string): React.ReactNode[] => {
@@ -74,6 +33,10 @@ const formatStoryParagraphs = (content: string): React.ReactNode[] => {
   return paragraphs;
 };
 
+interface StoryDisplayProps {
+  story: Story;
+}
+
 const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
   const [copySuccess, setCopySuccess] = useState<boolean>(false);
   const [isSharing, setIsSharing] = useState<boolean>(false);
@@ -95,7 +58,7 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 2000);
     } catch (err: unknown) {
-      logger.error('Failed to copy text:', { error: err });
+      console.error('Failed to copy text:', err);
     }
   }, [story?.content]);
 
@@ -173,8 +136,6 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
           >
             {formatStoryParagraphs(story.content)}
           </div>
-
-          <TextToSpeechWithErrorBoundary text={story.content} />
 
           <div className="px-6 pb-6">
             <div className="grid grid-cols-2 gap-4">

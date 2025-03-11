@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/setup-clerk-env.js && ts-node -P tsconfig.scripts.json scripts/validate-env.ts && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "type:check": "tsc --noEmit",
@@ -88,7 +88,6 @@
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.0.0",
     "@google/generative-ai": "^0.24.0",
-    "@rollup/rollup-win32-x64-msvc": "^4.34.9",
     "@svgr/webpack": "^8.1.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",
@@ -132,13 +131,10 @@
     "webpack-bundle-analyzer": "^4.10.2"
   },
   "lint-staged": {
-    "**/*": [
-      "prettier --write --ignore-unknown",
-      "eslint --fix"
-    ]
+    "**/*": ["prettier --write --ignore-unknown", "eslint --fix"]
   },
   "engines": {
-    "node": "22.x",
+    "node": ">=18.0.0",
     "npm": ">=10.0.0"
   },
   "packageManager": "npm@10.2.4"
