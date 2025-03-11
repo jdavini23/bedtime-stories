@@ -74,7 +74,7 @@ describe('GenderStep', () => {
   it('should have proper grid layout', () => {
     renderComponent();
 
-    const grid = screen.getByRole('list') || screen.getByRole('group');
+    const grid = screen.getByRole('group');
     expect(grid).toHaveClass('grid', 'grid-cols-2', 'gap-2');
   });
 

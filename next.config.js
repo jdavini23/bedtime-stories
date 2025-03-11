@@ -30,13 +30,11 @@ const nextConfig = {
     optimizeCss: true,
     // Enable scroll restoration
     scrollRestoration: true,
-    // Enable memory optimization
+    // Enable memory optimization but exclude problematic packages
     optimizePackageImports: [
       'framer-motion',
       'lucide-react',
       'react-dom',
-      '@clerk/nextjs',
-      'swr',
       'zod',
       'class-variance-authority',
       'tailwind-merge',
@@ -62,6 +60,22 @@ const nextConfig = {
         tls: false,
         perf_hooks: false,
         '@opentelemetry/api': false,
+      };
+
+      // Disable barrel optimization for specific modules
+      config.module = {
+        ...config.module,
+        rules: [
+          ...config.module.rules,
+          {
+            test: /node_modules\/@clerk\/.*\.js$/,
+            sideEffects: false,
+          },
+          {
+            test: /node_modules\/swr\/.*\.js$/,
+            sideEffects: false,
+          },
+        ],
       };
 
       // Configure chunk loading for development

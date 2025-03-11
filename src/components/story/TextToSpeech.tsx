@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '../common/Button';
-import { logger } from '@/utils/logger';
+import { logger } from '@/utils/loggerInstance';
 
 interface TextToSpeechProps {
   text: string;
@@ -20,120 +20,127 @@ const TextToSpeech: React.FC<TextToSpeechProps> = ({ text }) => {
 
   // Initialize speech synthesis
   useEffect(() => {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      try {
-        // Create utterance
-        const speechUtterance = new SpeechSynthesisUtterance(text);
-        setUtterance(speechUtterance);
+    // Return early if window is undefined
+    if (typeof window === 'undefined') {
+      return;
+    }
 
-        // Get available voices
-        const loadVoices = () => {
-          try {
-            const availableVoices = window.speechSynthesis.getVoices();
-            setVoicesLoaded(true);
+    // Return early if speech synthesis is not supported
+    if (!('speechSynthesis' in window)) {
+      setError('Speech synthesis not supported in your browser.');
+      return;
+    }
 
-            if (availableVoices.length === 0) {
-              // If no voices are available, we'll use the default voice
-              setVoices([]);
-              console.log('No voices available, using default voice');
-              return;
-            }
+    try {
+      // Create utterance
+      const speechUtterance = new SpeechSynthesisUtterance(text);
+      setUtterance(speechUtterance);
 
-            // Filter to only include English voices
-            const englishVoices = availableVoices.filter(
+      // Get available voices
+      const loadVoices = () => {
+        try {
+          const availableVoices = window.speechSynthesis.getVoices();
+          setVoicesLoaded(true);
+
+          if (availableVoices.length === 0) {
+            // If no voices are available, we'll use the default voice
+            setVoices([]);
+            logger.info('No voices available, using default voice');
+            return;
+          }
+
+          // Filter to only include English voices
+          const englishVoices = availableVoices.filter(
+            (v) => v.lang.includes('en-') || v.lang.includes('en_')
+          );
+
+          const voicesToUse = englishVoices.length > 0 ? englishVoices : availableVoices;
+          setVoices(voicesToUse);
+
+          // Try to find a good English voice for stories
+          let preferredVoice = null;
+
+          // First try to find a female English voice
+          preferredVoice = voicesToUse.find(
+            (v) =>
+              v.name.includes('Female') &&
+              (v.name.includes('US') || v.name.includes('UK') || v.name.includes('GB'))
+          );
+
+          // If no specific female voice found, try any English voice
+          if (!preferredVoice) {
+            preferredVoice = voicesToUse.find(
               (v) => v.lang.includes('en-') || v.lang.includes('en_')
             );
+          }
 
-            const voicesToUse = englishVoices.length > 0 ? englishVoices : availableVoices;
-            setVoices(voicesToUse);
+          // If still no voice found, use the first available voice
+          if (!preferredVoice && voicesToUse.length > 0) {
+            preferredVoice = voicesToUse[0];
+          }
 
-            // Try to find a good English voice for stories
-            let preferredVoice = null;
-
-            // First try to find a female English voice
-            preferredVoice = voicesToUse.find(
-              (v) =>
-                v.name.includes('Female') &&
-                (v.name.includes('US') || v.name.includes('UK') || v.name.includes('GB'))
-            );
-
-            // If no specific female voice found, try any English voice
-            if (!preferredVoice) {
-              preferredVoice = voicesToUse.find(
-                (v) => v.lang.includes('en-') || v.lang.includes('en_')
-              );
-            }
-
-            // If still no voice found, use the first available voice
-            if (!preferredVoice && voicesToUse.length > 0) {
-              preferredVoice = voicesToUse[0];
-            }
-
-            if (preferredVoice) {
-              setVoice(preferredVoice);
-              // Only set the voice if the utterance exists
-              if (speechUtterance) {
-                try {
-                  speechUtterance.voice = preferredVoice;
-                } catch (voiceErr) {
-                  console.error('Error setting voice:', voiceErr);
-                }
+          if (preferredVoice) {
+            setVoice(preferredVoice);
+            // Only set the voice if the utterance exists
+            if (speechUtterance) {
+              try {
+                speechUtterance.voice = preferredVoice;
+              } catch (voiceErr) {
+                logger.error('Error setting voice:', { error: voiceErr });
               }
             }
-          } catch (err) {
-            console.error('Error loading voices:', err);
-            setError('Could not load voice options. Using default voice.');
           }
-        };
-
-        // Chrome loads voices asynchronously
-        if (window.speechSynthesis.onvoiceschanged !== undefined) {
-          window.speechSynthesis.onvoiceschanged = loadVoices;
+        } catch (err) {
+          logger.error('Error loading voices:', { error: err });
+          setError('Could not load voice options. Using default voice.');
         }
+      };
 
-        // Try to load voices immediately as well (for Firefox/Safari)
-        loadVoices();
-
-        // Set initial rate
-        speechUtterance.rate = rate;
-
-        // Handle end of speech
-        speechUtterance.onend = () => {
-          setIsPlaying(false);
-          setIsPaused(false);
-        };
-
-        // Handle errors
-        speechUtterance.onerror = (event) => {
-          console.error('Speech synthesis error:', event);
-          setError('Error playing audio. Please try again or use a different voice.');
-          setIsPlaying(false);
-          setIsPaused(false);
-
-          // Try to recover by canceling any ongoing speech
-          try {
-            window.speechSynthesis.cancel();
-          } catch (cancelErr) {
-            console.error('Error canceling speech after error:', cancelErr);
-          }
-        };
-
-        // Cleanup
-        return () => {
-          try {
-            window.speechSynthesis.cancel();
-          } catch (err) {
-            console.error('Error during cleanup:', err);
-          }
-        };
-      } catch (err) {
-        console.error('Error initializing speech synthesis:', err);
-        setError('Speech synthesis not available on your browser.');
+      // Chrome loads voices asynchronously
+      if (window.speechSynthesis.onvoiceschanged !== undefined) {
+        window.speechSynthesis.onvoiceschanged = loadVoices;
       }
-    } else {
-      setError('Speech synthesis not supported in your browser.');
+
+      // Try to load voices immediately as well (for Firefox/Safari)
+      loadVoices();
+
+      // Set initial rate
+      speechUtterance.rate = rate;
+
+      // Handle end of speech
+      speechUtterance.onend = () => {
+        setIsPlaying(false);
+        setIsPaused(false);
+      };
+
+      // Handle errors
+      speechUtterance.onerror = (event) => {
+        logger.error('Speech synthesis error:', { error: event });
+        setError('Error playing audio. Please try again or use a different voice.');
+        setIsPlaying(false);
+        setIsPaused(false);
+
+        // Try to recover by canceling any ongoing speech
+        try {
+          window.speechSynthesis.cancel();
+        } catch (cancelErr) {
+          logger.error('Error canceling speech after error:', { error: cancelErr });
+        }
+      };
+
+      // Cleanup
+      return () => {
+        try {
+          window.speechSynthesis.cancel();
+        } catch (err) {
+          logger.error('Error during cleanup:', { error: err });
+        }
+      };
+    } catch (err) {
+      logger.error('Error initializing speech synthesis:', { error: err });
+      setError('Speech synthesis not available on your browser.');
     }
-  }, [text]);
+  }, [text, rate]);
 
   // Update utterance when voice or rate changes
   useEffect(() => {
@@ -142,7 +149,7 @@ const TextToSpeech: React.FC<TextToSpeechProps> = ({ text }) => {
         utterance.voice = voice;
         utterance.rate = rate;
       } catch (err) {
-        console.error('Error updating utterance:', err);
+        logger.error('Error updating utterance:', { error: err });
         setError('Could not update voice settings. Please try a different voice.');
       }
     }
@@ -171,7 +178,7 @@ const TextToSpeech: React.FC<TextToSpeechProps> = ({ text }) => {
           try {
             utterance.voice = voice;
           } catch (voiceErr) {
-            console.error('Error setting voice before speaking:', voiceErr);
+            logger.error('Error setting voice before speaking:', { error: voiceErr });
             // Continue with default voice if there's an error
           }
         }
@@ -186,7 +193,7 @@ const TextToSpeech: React.FC<TextToSpeechProps> = ({ text }) => {
       setIsPlaying(true);
       setIsPaused(false);
     } catch (err) {
-      console.error('Error playing speech:', err);
+      logger.error('Error playing speech:', { error: err });
       setError('Could not play audio. Please try again or use a different voice.');
     }
   }, [utterance, text, isPaused, voice, rate]);
@@ -196,7 +203,7 @@ const TextToSpeech: React.FC<TextToSpeechProps> = ({ text }) => {
       window.speechSynthesis.pause();
       setIsPaused(true);
     } catch (err) {
-      console.error('Error pausing speech:', err);
+      logger.error('Error pausing speech:', { error: err });
       setError('Could not pause audio. Please try again.');
     }
   }, []);
@@ -207,7 +214,7 @@ const TextToSpeech: React.FC<TextToSpeechProps> = ({ text }) => {
       setIsPlaying(false);
       setIsPaused(false);
     } catch (err) {
-      console.error('Error stopping speech:', err);
+      logger.error('Error stopping speech:', { error: err });
       setError('Could not stop audio. Please try again.');
     }
   }, []);
@@ -230,16 +237,30 @@ const TextToSpeech: React.FC<TextToSpeechProps> = ({ text }) => {
           }, 100);
         }
       } catch (err) {
-        console.error('Error changing voice:', err);
+        logger.error('Error changing voice:', { error: err });
         setError('Could not change voice. Please try again.');
       }
     },
     [voices, isPlaying, utterance, handleStop, handlePlay]
   );
 
-  const handleRateChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setRate(parseFloat(e.target.value));
-  }, []);
+  const handleRateChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      try {
+        const newRate = parseFloat(e.target.value);
+        setRate(newRate);
+
+        // If currently playing, update the rate immediately
+        if (utterance && isPlaying) {
+          utterance.rate = newRate;
+        }
+      } catch (err) {
+        logger.error('Error changing rate:', { error: err });
+        setError('Could not change playback speed. Please try again.');
+      }
+    },
+    [utterance, isPlaying]
+  );
 
   // If speech synthesis is not supported
   if (typeof window === 'undefined') {
@@ -342,8 +363,8 @@ const TextToSpeech: React.FC<TextToSpeechProps> = ({ text }) => {
           )}
         </div>
 
-        <div className="flex items-center justify-between">
-          <div className="w-1/2 pr-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="w-full">
             <label
               htmlFor="voice-select"
               className="block text-sm font-medium text-gray-800 dark:text-cloud mb-1"
@@ -368,7 +389,7 @@ const TextToSpeech: React.FC<TextToSpeechProps> = ({ text }) => {
             </select>
           </div>
 
-          <div className="w-1/2 pl-4">
+          <div className="w-full">
             <label
               htmlFor="rate-slider"
               className="block text-sm font-semibold text-gray-800 dark:text-cloud mb-1"

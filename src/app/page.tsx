@@ -439,21 +439,21 @@ export default function Home() {
                 </div>
                 {isLoaded ? (
                   isSignedIn ? (
-                    <SignOutButton variant="outline" fullWidth className="mb-2">
+                    <SignOutButton variant="outline" fullwidth className="mb-2">
                       Sign Out
                     </SignOutButton>
                   ) : (
                     <SignInButton
                       redirectUrl="/sign-in"
                       variant="outline"
-                      fullWidth
+                      fullwidth
                       className="mb-2"
                     >
                       Sign In
                     </SignInButton>
                   )
                 ) : (
-                  <SignInButton redirectUrl="/sign-in" variant="outline" fullWidth className="mb-2">
+                  <SignInButton redirectUrl="/sign-in" variant="outline" fullwidth className="mb-2">
                     Sign In
                   </SignInButton>
                 )}
@@ -1142,9 +1142,11 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <Suspense fallback={
-        <div className="h-40 bg-lavender/10 dark:bg-midnight/30 animate-pulse rounded-t-lg"></div>
-      }>
+      <Suspense
+        fallback={
+          <div className="h-40 bg-lavender/10 dark:bg-midnight/30 animate-pulse rounded-t-lg"></div>
+        }
+      >
         <Footer />
       </Suspense>
     </main>

@@ -106,18 +106,14 @@ export const useStoryApi = () => {
         throw new ApiError('Child name is required', 400, { field: 'childName' });
       }
 
-      if (!input.mostLikedCharacterTypes || input.mostLikedCharacterTypes.length === 0) {
-        throw new ApiError('At least one character type is required', 400, {
-          field: 'mostLikedCharacterTypes',
+      if (!input.characters || input.characters.length === 0) {
+        throw new ApiError('At least one character is required', 400, {
+          field: 'characters',
         });
       }
 
       if (!input.theme) {
         throw new ApiError('Story theme is required', 400, { field: 'theme' });
-      }
-
-      if (!input.gender) {
-        throw new ApiError('Child gender is required', 400, { field: 'gender' });
       }
 
       try {

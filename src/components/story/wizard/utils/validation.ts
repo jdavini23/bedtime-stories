@@ -33,6 +33,17 @@ export function validateTraits(traits: string[]): { isValid: boolean; error?: st
   return { isValid: true };
 }
 
+// Validate age input
+export function validateAge(age: number | undefined): { isValid: boolean; error?: string } {
+  if (!age) {
+    return { isValid: false, error: 'Age is required' };
+  }
+  if (age < 4 || age > 12) {
+    return { isValid: false, error: 'Age must be between 4 and 12' };
+  }
+  return { isValid: true };
+}
+
 // Validate the entire story input before submission
 export function validateStoryInput(input: Partial<ExtendedStoryInput>): {
   isValid: boolean;
@@ -42,6 +53,10 @@ export function validateStoryInput(input: Partial<ExtendedStoryInput>): {
 
   if (!input.childName?.trim()) {
     errors.childName = 'Name is required';
+  }
+
+  if (!input.childAge || input.childAge < 4 || input.childAge > 12) {
+    errors.childAge = 'Age must be between 4 and 12';
   }
 
   if (!input.theme) {
@@ -83,6 +98,12 @@ export function canProceedToNextStep(
       const nameValidation = validateName(input.childName || '');
       if (!nameValidation.isValid) {
         return { canProceed: false, error: nameValidation.error };
+      }
+      break;
+    case 'age-question':
+      const ageValidation = validateAge(input.childAge);
+      if (!ageValidation.isValid) {
+        return { canProceed: false, error: ageValidation.error };
       }
       break;
     case 'interests-question':

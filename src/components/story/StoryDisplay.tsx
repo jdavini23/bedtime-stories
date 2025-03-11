@@ -9,19 +9,43 @@ import dynamic from 'next/dynamic';
 import ReadingTime from './ReadingTime';
 import { ErrorBoundary } from '../error-boundaries/ErrorBoundary';
 
-// Dynamically import TextToSpeech with no SSR to avoid hydration issues
-const TextToSpeech = dynamic(() => import('./TextToSpeech'), {
-  ssr: false,
-  loading: () => (
-    <div className="px-6 pb-6">
-      <div className="bg-midnight-light/10 dark:bg-midnight-light/20 backdrop-blur-sm rounded-xl p-6">
-        <h3 className="text-lg font-medium text-sky-700 dark:text-sky-300 mb-4">
-          Loading Text-to-Speech...
-        </h3>
+// Dynamic import with webpack magic comments for better chunk loading
+const TextToSpeech = dynamic(
+  () =>
+    import(/* webpackChunkName: "text-to-speech" */ './TextToSpeech').catch((err) => {
+      logger.error('Failed to load TextToSpeech component', { error: err });
+      return () => (
+        <div className="text-red-500 p-4 rounded-lg bg-red-50">
+          Failed to load text-to-speech functionality. Please try refreshing the page.
+        </div>
+      );
+    }),
+  {
+    loading: () => (
+      <div className="animate-pulse p-4 rounded-lg bg-gray-50">
+        Loading text-to-speech functionality...
       </div>
-    </div>
-  ),
-});
+    ),
+    ssr: false,
+  }
+);
+
+// Wrap TextToSpeech in an error boundary
+const TextToSpeechWithErrorBoundary = ({ text }: { text: string }) => (
+  <ErrorBoundary
+    fallback={
+      <div className="px-6 pb-6">
+        <div className="bg-midnight-light/10 dark:bg-midnight-light/20 backdrop-blur-sm rounded-xl p-6">
+          <h3 className="text-lg font-medium text-red-600 dark:text-red-400 mb-4">
+            Text-to-Speech is currently unavailable
+          </h3>
+        </div>
+      </div>
+    }
+  >
+    <TextToSpeech text={text} />
+  </ErrorBoundary>
+);
 
 interface StoryDisplayProps {
   story: Story;
@@ -78,16 +102,16 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
   const handleShare = useCallback(async () => {
     setIsSharing(true);
     try {
-      const childName = story?.input?.childName || 'You';
+      const childName = story?.metadata?.input?.childName || 'You';
       const mailtoLink = `mailto:?subject=A Bedtime Story for ${childName}&body=${encodeURIComponent(story?.content || '')}`;
       window.location.href = mailtoLink;
     } finally {
       setTimeout(() => setIsSharing(false), 1000);
     }
-  }, [story?.input?.childName, story?.content]);
+  }, [story?.metadata?.input?.childName, story?.content]);
 
   // Return early if story is undefined
-  if (!story || !story.input) {
+  if (!story || !story.metadata?.input) {
     return (
       <div className="w-full max-w-3xl mx-auto">
         <div className="bg-white/80 dark:bg-midnight-light/30 backdrop-blur-sm rounded-xl shadow-xl">
@@ -99,7 +123,7 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
 
   return (
     <div className="relative w-full max-w-3xl mx-auto">
-      {story && story.input && (
+      {story && story.metadata?.input && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -111,13 +135,13 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6">
             <div>
               <h2 className="text-2xl sm:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-sky to-primary">
-                {story.input.childName || 'Your'}&apos;s Bedtime Story
+                {story.metadata.input.childName || 'Your'}&apos;s Bedtime Story
               </h2>
               <div className="flex items-center gap-2 mt-2 text-sm text-gray-500 dark:text-cloud/70">
-                <span className="text-lg">{getThemeEmoji(story.input.theme)}</span>
+                <span className="text-lg">{getThemeEmoji(story.metadata.input.theme)}</span>
                 <span>•</span>
-                <time dateTime={story.createdAt}>
-                  {new Date(story.createdAt).toLocaleDateString(undefined, {
+                <time dateTime={new Date(story.metadata.timestamp).toISOString()}>
+                  {new Date(story.metadata.timestamp).toLocaleDateString(undefined, {
                     month: 'short',
                     day: 'numeric',
                     year: 'numeric',
@@ -129,7 +153,7 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
             </div>
 
             <div className="flex flex-wrap items-center gap-2 mt-4 sm:mt-0">
-              {story.input.interests.map((interest) => (
+              {story.metadata.input.characters.map((interest) => (
                 <span
                   key={interest}
                   className="px-3 py-1 text-xs font-medium text-sky-700 dark:text-sky-300 bg-sky-100 dark:bg-sky-900/30 rounded-full shadow-sm"
@@ -150,19 +174,7 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
             {formatStoryParagraphs(story.content)}
           </div>
 
-          <ErrorBoundary
-            fallback={
-              <div className="px-6 pb-6">
-                <div className="bg-midnight-light/10 dark:bg-midnight-light/20 backdrop-blur-sm rounded-xl p-6">
-                  <h3 className="text-lg font-medium text-rose-600 dark:text-rose-400 mb-4">
-                    Text-to-Speech is currently unavailable
-                  </h3>
-                </div>
-              </div>
-            }
-          >
-            <TextToSpeech text={story.content} />
-          </ErrorBoundary>
+          <TextToSpeechWithErrorBoundary text={story.content} />
 
           <div className="px-6 pb-6">
             <div className="grid grid-cols-2 gap-4">

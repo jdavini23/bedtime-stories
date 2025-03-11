@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { StoryWizard } from '@/components/story/StoryWizard';
+import { ConversationalWizardWithProvider as StoryWizard } from '@/components/story/wizard';
 import { StoryInput } from '@/types/story';
 
 export default function TestPage() {

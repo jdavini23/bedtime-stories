@@ -2,13 +2,13 @@
 
 import { useCallback } from 'react';
 import { useWizard } from './WizardContext';
-import { MessageType, READING_LEVEL_OPTIONS } from './types';
+import { MessageType, READING_LEVEL_OPTIONS, ExtendedStoryInput } from './types';
 import { StoryGender, StoryMetadata, StoryTheme } from '@/types/story';
 import { StoryCharacter } from '@/services/personalization';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/common/Button';
 
 export function useWizardState() {
-  const { dispatch, ...state } = useWizard();
+  const { dispatch, onComplete, ...state } = useWizard();
 
   const simulateTyping = useCallback(
     (callback: () => void, delay = 800) => {
@@ -257,29 +257,116 @@ export function useWizardState() {
       content: state.nameInput,
       sender: 'user',
     });
-
-    simulateTyping(() => {
-      addMessage({
-        type: 'gender-question',
-        content: (
-          <div className="space-y-3">
-            <p>Nice to meet you, {state.nameInput}! Are you a boy or a girl?</p>
-          </div>
-        ),
-        sender: 'system',
-      });
-      setCurrentQuestion('gender-question');
-    });
-  }, [addMessage, setCurrentQuestion, simulateTyping, state.nameInput, updateStoryInput]);
+  }, [addMessage, state.nameInput, updateStoryInput]);
 
   const handleGenerateStory = useCallback(() => {
+    if (!state.storyInput) {
+      console.error('[Wizard] Cannot generate story: No story input available');
+      return;
+    }
+
+    // Validate required fields
+    const requiredFields = ['childName', 'theme', 'readingLevel', 'childAge'] as const;
+    const missingFields = requiredFields.filter((field) => !state.storyInput[field]);
+    if (missingFields.length > 0) {
+      console.error('[Wizard] Cannot generate story: Missing required fields', { missingFields });
+      return;
+    }
+
     setWaitingForResponse(true);
     addMessage({
       type: 'generating',
       content: <p>Generating your personalized story...</p>,
       sender: 'system',
     });
-  }, [addMessage, setWaitingForResponse]);
+
+    if (onComplete) {
+      // Prepare the complete story input with valid default values for all required fields
+      const completeStoryInput: ExtendedStoryInput = {
+        ...state.storyInput,
+        childName: state.storyInput.childName || '',
+        childAge: state.storyInput.childAge || 8,
+        theme: state.storyInput.theme || 'fantasy',
+        characters: state.selectedInterests?.length ? state.selectedInterests : ['Adventure'],
+        setting: state.storyInput.setting || 'A magical kingdom far, far away',
+        length: state.storyInput.length || 'medium',
+        readingLevel: state.storyInput.readingLevel || 'intermediate',
+        mainCharacter: {
+          traits: state.selectedTraits?.length ? state.selectedTraits : ['brave', 'kind'],
+          appearance: ['friendly smile', 'bright eyes'],
+          skills: ['problem-solving', 'creativity'],
+        },
+        supportingCharacters: [
+          {
+            name: 'Wise Owl',
+            type: 'animal',
+            role: 'mentor',
+            traits: ['wise', 'helpful'],
+          },
+        ],
+        ageGroup: state.storyInput.ageGroup || '6-8',
+      };
+
+      // Log the complete story input for debugging
+      console.log('[Wizard] Generating story with input:', {
+        childName: completeStoryInput.childName,
+        childAge: completeStoryInput.childAge,
+        theme: completeStoryInput.theme,
+        readingLevel: completeStoryInput.readingLevel,
+        characters: completeStoryInput.characters,
+        setting: completeStoryInput.setting,
+        length: completeStoryInput.length,
+        mainCharacter: completeStoryInput.mainCharacter,
+        supportingCharacters: completeStoryInput.supportingCharacters,
+        ageGroup: completeStoryInput.ageGroup,
+      });
+
+      // Call the onComplete callback with the complete story input
+      onComplete(completeStoryInput)
+        .then(() => {
+          console.log('[Wizard] Story generation completed successfully');
+          // Add success message
+          addMessage({
+            type: 'summary',
+            content: (
+              <div className="text-green-500">
+                <p>Your story has been generated successfully!</p>
+              </div>
+            ),
+            sender: 'system',
+          });
+          // Set current question to 'summary' to indicate we're done
+          setCurrentQuestion('summary');
+        })
+        .catch((error: Error) => {
+          console.error('[Wizard] Error generating story:', error);
+          addMessage({
+            type: 'generating',
+            content: (
+              <div className="text-red-500">
+                <p>Sorry, there was an error generating your story. Please try again.</p>
+                <p className="text-sm mt-1">{error.message}</p>
+              </div>
+            ),
+            sender: 'system',
+          });
+        })
+        .finally(() => {
+          setWaitingForResponse(false);
+        });
+    } else {
+      console.error('[Wizard] No onComplete callback provided');
+      setWaitingForResponse(false);
+    }
+  }, [
+    addMessage,
+    onComplete,
+    setWaitingForResponse,
+    state.storyInput,
+    state.selectedInterests,
+    state.selectedTraits,
+    setCurrentQuestion,
+  ]);
 
   const handleReadingLevelSelect = useCallback(
     (readingLevel: StoryMetadata['readingLevel']) => {
@@ -311,10 +398,7 @@ export function useWizardState() {
                 <li>Reading Level: {readingLevel}</li>
               </ul>
               <p>Would you like me to generate your story now?</p>
-              <Button
-                onClick={handleGenerateStory}
-                className="mt-4 w-full px-4 py-2 bg-sky/10 hover:bg-sky/20 transition-colors"
-              >
+              <Button onClick={handleGenerateStory} variant="primary" className="mt-4 w-full">
                 Generate Story
               </Button>
             </div>

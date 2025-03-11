@@ -22,6 +22,8 @@ export type MessageType =
   | 'theme-response'
   | 'name-question'
   | 'name-response'
+  | 'age-question'
+  | 'age-response'
   | 'gender-question'
   | 'gender-response'
   | 'interests-question'

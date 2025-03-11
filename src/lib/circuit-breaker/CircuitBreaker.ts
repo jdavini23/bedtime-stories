@@ -13,7 +13,7 @@ export class CircuitBreaker {
   private readonly failureThreshold: number;
   private readonly resetTimeout: number;
 
-  constructor(failureThreshold: number = 5, resetTimeout: number = 60000) {
+  constructor(failureThreshold: number = 10, resetTimeout: number = 120000) {
     this.failureThreshold = failureThreshold;
     this.resetTimeout = resetTimeout;
   }

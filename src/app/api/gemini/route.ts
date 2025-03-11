@@ -1,14 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuth } from '@clerk/nextjs/server';
+import { auth } from '@clerk/nextjs';
 import { logger } from '@/utils/logger';
-import {
-  handleGeminiError,
-  generateFallbackStoryUtil,
-  validateGeminiApiKey,
-  serializeError,
-  type GeminiErrorResponse,
-} from '@/utils/error-handlers';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { StoryInput } from '@/types/story';
+import { serializeError, handleGeminiError, validateGeminiApiKey } from '@/utils/error-handlers';
+import { generateFallbackStory } from '@/utils/fallback-generator';
 
 // Gemini API configuration
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
@@ -75,15 +71,18 @@ async function callGeminiAPI(prompt: string, model: string = DEFAULT_MODEL) {
       logger.error('Network error when calling Gemini API', { error: error.message });
       throw new Error('Network error when calling Gemini API: ' + error.message);
     }
-
     // Log the full error for debugging
-    logger.error('Error in Gemini API call', serializeError(error));
+    logger.error('Error in Gemini API call', { error: serializeError(error) });
+    logger.debug('Type of error', { type: typeof error });
 
     // Ensure error is properly formatted
     const formattedError = {
       error: 'Gemini API Error',
       message: error instanceof Error ? error.message : String(error),
-      details: serializeError(error),
+      details:
+        typeof error === 'object' && error !== null
+          ? serializeError(error)
+          : { message: String(error), type: typeof error },
     };
 
     throw formattedError;
@@ -158,8 +157,10 @@ async function handleGenerateStory(params: any, userId: string) {
 
         clearTimeout(timeoutId);
         // Extract and return the story content
-        const content =
-          (response as { content: string }).content || generateFallbackStoryUtil(params);
+        const content = (response as { content: string }).content;
+        if (!content) {
+          throw new Error('No content returned from Gemini API');
+        }
 
         logger.info('Story generated successfully with Gemini', {
           userId,
@@ -200,16 +201,14 @@ async function handleGenerateStory(params: any, userId: string) {
         error: lastError.message,
         retries: maxRetries,
       });
-
       // Generate fallback story
-      const fallbackStory = generateFallbackStoryUtil(params);
-
+      const fallbackStory = generateFallbackStory(params);
       logger.info('Using fallback story after Gemini API failure', {
-        contentLength: fallbackStory.length,
+        contentLength: fallbackStory.content.length,
       });
 
       return NextResponse.json({
-        content: fallbackStory,
+        content: fallbackStory.content,
         model: 'fallback-generator',
         fallback: true,
       });
@@ -231,11 +230,11 @@ async function handleGenerateStory(params: any, userId: string) {
 
     // If it's a server error, generate a fallback story
     if (errorResponse.status >= 500) {
-      const fallbackStory = generateFallbackStoryUtil(params);
+      const fallbackStory = generateFallbackStory(params);
 
       logger.info('Using fallback story after error', {
         errorType: errorResponse.error,
-        contentLength: fallbackStory.length,
+        contentLength: fallbackStory.content.length,
       });
 
       return NextResponse.json({
@@ -307,40 +306,51 @@ async function handleChatCompletion(params: any, userId: string) {
 /**
  * Main API route handler
  */
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
-    console.log('API route request URL:', request.url);
-    const auth = getAuth(request);
-    const userId = auth.userId;
-
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // Check if API key is configured
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json(
+        { error: 'Server configuration error', message: 'Gemini API key is not configured' },
+        { status: 500 }
+      );
     }
 
-    const params = await request.json();
-    const type = params.type || 'story';
+    // Parse the request body
+    const body = await request.json();
+    logger.debug('Received request body', {
+      type: body.type,
+      hasInput: !!body.input,
+      hasPrompt: !!body.prompt,
+    });
 
-    let response;
-    if (type === 'story') {
-      response = await handleGenerateStory(params, userId);
-    } else if (type === 'chat') {
-      response = await handleChatCompletion(params, userId);
+    // Route the request based on type
+    if (body.type === 'story') {
+      return handleGenerateStory(body.input, 'default-user');
+    } else if (body.type === 'chat') {
+      return handleChatCompletion(body, 'default-user');
     } else {
-      return NextResponse.json({ error: 'Invalid request type' }, { status: 400 });
+      // Handle direct prompt if no specific type
+      const { prompt } = body;
+      if (!prompt) {
+        return NextResponse.json(
+          { error: 'Invalid request', message: 'Prompt is required' },
+          { status: 400 }
+        );
+      }
+
+      const result = await callGeminiAPI(prompt);
+      return NextResponse.json(result);
     }
-
-    return response;
   } catch (error) {
-    logger.error('Error in Gemini API route handler', serializeError(error));
-
-    // Ensure we always return a properly formatted error response
-    const errorResponse = {
-      error: error instanceof Error ? error.message : 'Unknown error',
-      message: 'An error occurred while processing your request',
-      status: 500,
-      details: serializeError(error),
-    };
-
-    return NextResponse.json(errorResponse, { status: errorResponse.status });
+    logger.error('Error in API route handler', { error: serializeError(error) });
+    return NextResponse.json(
+      {
+        error: 'Gemini API Error',
+        message: error instanceof Error ? error.message : 'An unexpected error occurred',
+      },
+      { status: 500 }
+    );
   }
 }

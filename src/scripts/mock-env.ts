@@ -3,8 +3,10 @@
  */
 export const env = {
   NODE_ENV: 'test',
-  OPENAI_API_KEY: 'test-api-key',
-  GEMINI_API_KEY: 'test-api-key',
+  OPENAI_API_KEY: 'test-openai-key',
+  GEMINI_API_KEY: 'test-gemini-key',
+  CLERK_SECRET_KEY: 'test-clerk-key',
+  CLERK_PUBLISHABLE_KEY: 'test-clerk-publishable-key',
   REDIS_URL: 'redis://localhost:6379',
   REDIS_TOKEN: 'test-token',
   SUPABASE_URL: 'http://localhost:54321',

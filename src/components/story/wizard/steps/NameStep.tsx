@@ -8,7 +8,8 @@ import { useWizardDispatch } from '../WizardContext';
 
 export function NameStep() {
   const dispatch = useWizardDispatch();
-  const { nameInput, setNameInput, handleNameSubmit } = useWizardState();
+  const { nameInput, setNameInput, handleNameSubmit, addMessage, setCurrentQuestion } =
+    useWizardState();
 
   const handleSubmit = () => {
     if (nameInput.trim()) {
@@ -22,7 +23,21 @@ export function NameStep() {
           type: 'name-response',
         },
       });
+
+      // Update the story input with the name
       handleNameSubmit();
+
+      // Ask for the child's age
+      addMessage({
+        type: 'age-question',
+        content: (
+          <div className="space-y-3">
+            <p>How old are you, {nameInput}?</p>
+          </div>
+        ),
+        sender: 'system',
+      });
+      setCurrentQuestion('age-question');
     }
   };
 

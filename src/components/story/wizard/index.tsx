@@ -4,6 +4,7 @@ import React, { useRef, useEffect } from 'react';
 import { WizardProvider } from './WizardContext';
 import { WelcomeStep } from './steps/WelcomeStep';
 import { NameStep } from './steps/NameStep';
+import { AgeStep } from './steps/AgeStep';
 import { GenderStep } from './steps/GenderStep';
 import { InterestsStep } from './steps/InterestsStep';
 import { TraitsStep } from './steps/TraitsStep';
@@ -133,6 +134,8 @@ function ConversationalWizard({ onComplete, isLoading = false }: ConversationalW
           return <WelcomeStep />;
         case 'name-question':
           return <NameStep />;
+        case 'age-question':
+          return <AgeStep />;
         case 'gender-question':
           return <GenderStep />;
         case 'interests-question':
@@ -200,7 +203,7 @@ function ConversationalWizard({ onComplete, isLoading = false }: ConversationalW
 
 export function ConversationalWizardWithProvider(props: ConversationalWizardProps) {
   return (
-    <WizardProvider>
+    <WizardProvider onComplete={props.onComplete}>
       <ConversationalWizard {...props} />
     </WizardProvider>
   );

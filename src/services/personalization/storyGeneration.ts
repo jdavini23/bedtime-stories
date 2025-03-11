@@ -129,25 +129,46 @@ export class StoryGenerator {
         Format the story with a title at the beginning using a single # markdown heading.
       `;
 
+      storyLogger.debug('Making request to Gemini API', {
+        apiUrl:
+          typeof window !== 'undefined' ? `${window.location.origin}/api/gemini` : '/api/gemini',
+      });
+
       // Make the API request to Gemini
-      const response = await fetch('/api/gemini', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          type: 'story',
-          input,
-          prompt,
-        }),
+      const response = await fetch(
+        typeof window !== 'undefined' ? `${window.location.origin}/api/gemini` : '/api/gemini',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            type: 'story',
+            input,
+            prompt,
+          }),
+        }
+      );
+
+      storyLogger.debug('Received response from Gemini API', {
+        status: response.status,
+        statusText: response.statusText,
       });
 
       if (!response.ok) {
         const errorData = await response.json();
+        storyLogger.error('API request failed', {
+          status: response.status,
+          errorData,
+        });
         throw new Error(`Gemini API error: ${errorData.error || response.statusText}`);
       }
 
       const data = await response.json();
+      storyLogger.info('Successfully received story content', {
+        contentLength: data.content?.length || 0,
+      });
+
       return data.content;
     } catch (error) {
       storyLogger.error('Error calling Gemini API endpoint', { error });
@@ -248,17 +269,18 @@ export class StoryGenerator {
             },
           };
         } catch (error) {
-          // If circuit breaker fails, use fallback generator
-          storyLogger.error('Error generating story', { error });
+          // Handle error and return fallback story
+          storyLogger.error('Error generating story with circuit breaker', { error });
           return handleStoryGenerationError(error as Error, input);
         }
       } catch (error) {
-        storyLogger.error('Error in generatePersonalizedStory', { error });
+        // Handle Redis error and return fallback story
+        storyLogger.error('Error with Redis cache', { error });
         return handleStoryGenerationError(error as Error, input);
       }
     } catch (error) {
-      // If input validation fails, use fallback generator
-      storyLogger.error('Invalid story input', { error });
+      // Handle validation error and return fallback story
+      storyLogger.error('Error validating story input', { error });
       return handleStoryGenerationError(error as Error, input);
     }
   }

@@ -26,7 +26,8 @@ export default function StoryPage() {
       const storyGenerator = new StoryGenerator(user?.id || 'anonymous-user');
 
       // Log authentication status for debugging
-      console.log('Authentication status', {
+      console.log('[StoryPage] Starting story generation', {
+        storyInput,
         isSignedIn,
         hasUser: !!user,
         userId: user?.id || 'anonymous-user',
@@ -34,11 +35,18 @@ export default function StoryPage() {
 
       const story = await storyGenerator.generatePersonalizedStory(storyInput);
 
+      // Log the generated story for debugging
+      console.log('[StoryPage] Story generated successfully', {
+        storyId: story.id,
+        hasTitle: !!story.title,
+        contentLength: story.content.length,
+        metadata: story.metadata,
+      });
+
       // Set the generated story
       setGeneratedStory(story);
-      console.log('Story generated successfully!', story);
     } catch (error) {
-      console.error('Error generating story:', error);
+      console.error('[StoryPage] Error generating story:', error);
 
       // Enhanced error handling with specific user messages
       const errorMessage = error instanceof Error ? error.message : 'Failed to generate story';

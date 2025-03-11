@@ -31,6 +31,7 @@ type WizardAction =
 
 interface WizardContextType extends WizardState {
   dispatch: React.Dispatch<WizardAction>;
+  onComplete?: (input: ExtendedStoryInput) => Promise<void>;
 }
 
 const initialState: WizardState = {
@@ -226,10 +227,20 @@ function wizardReducer(state: WizardState, action: WizardAction): WizardState {
   }
 }
 
-export function WizardProvider({ children }: { children: ReactNode }) {
+export function WizardProvider({
+  children,
+  onComplete,
+}: {
+  children: ReactNode;
+  onComplete?: (input: ExtendedStoryInput) => Promise<void>;
+}) {
   const [state, dispatch] = useReducer(wizardReducer, initialState);
 
-  return <WizardContext.Provider value={{ ...state, dispatch }}>{children}</WizardContext.Provider>;
+  return (
+    <WizardContext.Provider value={{ ...state, dispatch, onComplete }}>
+      {children}
+    </WizardContext.Provider>
+  );
 }
 
 export function useWizard() {
