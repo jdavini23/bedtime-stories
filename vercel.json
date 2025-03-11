@@ -4,21 +4,6 @@
   "installCommand": "npm install",
   "devCommand": "npm run dev",
   "framework": "nextjs",
-  "env": {
-    "NODE_OPTIONS": "--max_old_space_size=4096",
-    "GENERATE_SOURCEMAP": "false",
-    "NEXT_TELEMETRY_DISABLED": "1",
-    "GEMINI_API_KEY": "${GEMINI_API_KEY}",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "${NEXT_PUBLIC_SUPABASE_ANON_KEY}",
-    "NEXT_PUBLIC_SUPABASE_URL": "${NEXT_PUBLIC_SUPABASE_URL}",
-    "Upstash_KV_REST_API_URL": "${Upstash_KV_REST_API_URL}",
-    "Upstash_KV_REST_API_TOKEN": "${Upstash_KV_REST_API_TOKEN}",
-    "Upstash_KV_REST_API_READ_ONLY_TOKEN": "${Upstash_KV_REST_API_READ_ONLY_TOKEN}",
-    "Upstash_KV_URL": "${Upstash_KV_URL}",
-    "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}",
-    "CLERK_SECRET_KEY": "${CLERK_SECRET_KEY}",
-    "NEXT_PUBLIC_APP_URL": "${NEXT_PUBLIC_APP_URL}"
-  },
   "regions": ["iad1"],
   "headers": [
     {
@@ -94,18 +79,23 @@
     }
   },
   "outputDirectory": ".next",
-  "build": {
+    "build": {
     "env": {
-      "GEMINI_API_KEY": "@gemini_api_key",
-      "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@next_public_supabase_anon_key",
-      "NEXT_PUBLIC_SUPABASE_URL": "@next_public_supabase_url",
-      "Upstash_KV_REST_API_URL": "@upstash_kv_rest_api_url",
-      "Upstash_KV_REST_API_TOKEN": "@upstash_kv_rest_api_token",
-      "Upstash_KV_REST_API_READ_ONLY_TOKEN": "@upstash_kv_rest_api_read_only_token",
-      "Upstash_KV_URL": "@upstash_kv_url",
-      "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "@next_public_clerk_publishable_key",
-      "CLERK_SECRET_KEY": "@clerk_secret_key",
-      "NEXT_PUBLIC_APP_URL": "@next_public_app_url"
+      "NODE_OPTIONS": "--max_old_space_size=4096",
+      "GENERATE_SOURCEMAP": "false",
+      "NEXT_TELEMETRY_DISABLED": "1",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp3bm54cXZmYXZrenVwbXVjYmhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA5NzIwODcsImV4cCI6MjA1NjU0ODA4N30.F_kwlF4QV_zKoxbLK4wZjZhIfHSUJlob-mAYQk3FMP0",
+      "NEXT_PUBLIC_SUPABASE_URL": "https://zwnnxqvfavkzupmucbhk.supabase.co",
+      "Upstash_KV_REST_API_URL": "https://on-foxhound-55066.upstash.io",
+      "Upstash_KV_REST_API_TOKEN": "AdcaAAIjcDEzNzU5N2VkNGJkYWI0NzczODgwZmRiYTY3YTYxY2Y0YnAxMA",
+      "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_cmljaC1tYXN0aWZmLTIwLmNsZXJrLmFjY291bnRzLmRldiQ",
+      "CLERK_SECRET_KEY": "sk_test_ADShLaY9enp2qrH5TLBjZXID6OOLQTKwknc4WCd07w",
+      "NEXT_PUBLIC_APP_URL": "http://localhost:3000",
+      "GEMINI_API_KEY": "AIzaSyDinNULHx8UfFTKod8PZ2YWmlminQpokMI",
+      "NEXT_PUBLIC_CLERK_SIGN_IN_URL": "/sign-in",
+      "NEXT_PUBLIC_CLERK_SIGN_UP_URL": "/sign-up",
+      "NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL": "/",
+      "NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL": "/"
     }
   }
 }

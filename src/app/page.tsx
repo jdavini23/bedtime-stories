@@ -5,8 +5,8 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
 import Image from 'next/image';
-import React, { useState, useEffect, useRef, useMemo, useCallback, Suspense } from 'react';
-import { Menu, X, ChevronRight, Moon, Sun } from 'lucide-react';
+import React, { useState, useEffect, useRef, useMemo, Suspense } from 'react';
+import { Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ThemeToggleWrapper from '@/components/ThemeToggleWrapper';
 import { TypedText } from '@/components/TypedText';
@@ -28,11 +28,12 @@ function useIntersectionObserver(options = {}) {
       setIsIntersecting(entry.isIntersecting);
     }, options);
 
-    observer.observe(ref.current);
+    const currentRef = ref.current;
+    observer.observe(currentRef);
 
     return () => {
-      if (ref.current) {
-        observer.unobserve(ref.current);
+      if (currentRef) {
+        observer.unobserve(currentRef);
       }
     };
   }, [options]);
@@ -103,7 +104,7 @@ export default function Home() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
-  const [isCarouselPaused, setIsCarouselPaused] = useState(false);
+  const [isCarouselPaused] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState('fantasy'); // Default theme
   const carouselRef = useRef<HTMLDivElement>(null);
   const { isLoaded, isSignedIn } = useAuth();
@@ -197,16 +198,8 @@ export default function Home() {
   );
 
   // Function to navigate to the next story with circular navigation
-  const goToNextStory = useCallback(() => {
-    setActiveStoryIndex((prev) => (prev === sampleStories.length - 1 ? 0 : prev + 1));
-    setRefreshKey((prev) => prev + 1); // Force re-render of typing animations
-  }, [sampleStories.length]);
 
   // Function to navigate to the previous story with circular navigation
-  const goToPrevStory = useCallback(() => {
-    setActiveStoryIndex((prev) => (prev === 0 ? sampleStories.length - 1 : prev - 1));
-    setRefreshKey((prev) => prev + 1); // Force re-render of typing animations
-  }, [sampleStories.length]);
 
   // Sample story preview text that uses the child's name
   const getStoryPreview = (name: string) => {
@@ -248,24 +241,10 @@ export default function Home() {
   };
 
   // Toggle carousel pause state
-  const toggleCarouselPause = useCallback(() => {
-    setIsCarouselPaused((prev) => !prev);
-  }, []);
 
   // Handle carousel dot navigation
-  const goToStory = useCallback((index: number) => {
-    setActiveStoryIndex(index);
-    setRefreshKey((prev) => prev + 1);
-  }, []);
 
   // Handle carousel mouse events
-  const handleCarouselMouseEnter = useCallback(() => {
-    setIsCarouselPaused(true);
-  }, []);
-
-  const handleCarouselMouseLeave = useCallback(() => {
-    setIsCarouselPaused(false);
-  }, []);
 
   // Memoize the carousel items to prevent unnecessary re-renders
   const carouselItems = useMemo(() => {
@@ -439,21 +418,21 @@ export default function Home() {
                 </div>
                 {isLoaded ? (
                   isSignedIn ? (
-                    <SignOutButton variant="outline" fullWidth className="mb-2">
+                    <SignOutButton variant="outline" fullwidth className="mb-2">
                       Sign Out
                     </SignOutButton>
                   ) : (
                     <SignInButton
                       redirectUrl="/sign-in"
                       variant="outline"
-                      fullWidth
+                      fullwidth
                       className="mb-2"
                     >
                       Sign In
                     </SignInButton>
                   )
                 ) : (
-                  <SignInButton redirectUrl="/sign-in" variant="outline" fullWidth className="mb-2">
+                  <SignInButton redirectUrl="/sign-in" variant="outline" fullwidth className="mb-2">
                     Sign In
                   </SignInButton>
                 )}
@@ -1083,7 +1062,7 @@ export default function Home() {
             <Input
               placeholder="Search FAQs..."
               className="pl-10"
-              onChange={(e) => {
+              onChange={() => {
                 // This would be implemented with actual filtering logic
                 // console.log('Searching for:', e.target.value);
               }}

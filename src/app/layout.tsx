@@ -43,13 +43,10 @@ interface RootLayoutProps {
 export default function RootLayout({ children }: RootLayoutProps): React.JSX.Element {
   console.log('Initializing ClerkProvider');
   
-  // Get the current origin for absolute URLs (for client-side)
-  const origin = typeof window !== 'undefined' ? window.location.origin : '';
   
   return (
     <ClerkProvider
-      frontendApi={process.env.NEXT_PUBLIC_CLERK_FRONTEND_API}
-      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+      frontendApi={process.env.NEXT_PUBLIC_CLERK_FRONTEND_API || ''}
       appearance={{
         baseTheme: undefined,
       }}
