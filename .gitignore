@@ -61,3 +61,4 @@ env-setup*
 
 # clerk configuration (can include secrets)
 /.clerk/
+.vercel

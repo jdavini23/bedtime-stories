@@ -7,7 +7,17 @@
   "env": {
     "NODE_OPTIONS": "--max_old_space_size=4096",
     "GENERATE_SOURCEMAP": "false",
-    "NEXT_TELEMETRY_DISABLED": "1"
+    "NEXT_TELEMETRY_DISABLED": "1",
+    "GEMINI_API_KEY": "${GEMINI_API_KEY}",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "${NEXT_PUBLIC_SUPABASE_ANON_KEY}",
+    "NEXT_PUBLIC_SUPABASE_URL": "${NEXT_PUBLIC_SUPABASE_URL}",
+    "Upstash_KV_REST_API_URL": "${Upstash_KV_REST_API_URL}",
+    "Upstash_KV_REST_API_TOKEN": "${Upstash_KV_REST_API_TOKEN}",
+    "Upstash_KV_REST_API_READ_ONLY_TOKEN": "${Upstash_KV_REST_API_READ_ONLY_TOKEN}",
+    "Upstash_KV_URL": "${Upstash_KV_URL}",
+    "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}",
+    "CLERK_SECRET_KEY": "${CLERK_SECRET_KEY}",
+    "NEXT_PUBLIC_APP_URL": "${NEXT_PUBLIC_APP_URL}"
   },
   "regions": ["iad1"],
   "headers": [
@@ -86,18 +96,16 @@
   "outputDirectory": ".next",
   "build": {
     "env": {
+      "GEMINI_API_KEY": "@gemini_api_key",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@next_public_supabase_anon_key",
+      "NEXT_PUBLIC_SUPABASE_URL": "@next_public_supabase_url",
+      "Upstash_KV_REST_API_URL": "@upstash_kv_rest_api_url",
+      "Upstash_KV_REST_API_TOKEN": "@upstash_kv_rest_api_token",
+      "Upstash_KV_REST_API_READ_ONLY_TOKEN": "@upstash_kv_rest_api_read_only_token",
+      "Upstash_KV_URL": "@upstash_kv_url",
       "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "@next_public_clerk_publishable_key",
       "CLERK_SECRET_KEY": "@clerk_secret_key",
-      "NEXT_PUBLIC_CLERK_SIGN_IN_URL": "/sign-in",
-      "NEXT_PUBLIC_CLERK_SIGN_UP_URL": "/sign-up",
-      "NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL": "/",
-      "NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL": "/",
-      "NEXT_PUBLIC_SUPABASE_URL": "@next_public_supabase_url",
-      "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@next_public_supabase_anon_key",
-      "UPSTASH_REDIS_REST_URL": "@upstash_redis_rest_url",
-      "UPSTASH_REDIS_REST_TOKEN": "@upstash_redis_rest_token",
-      "GEMINI_API_KEY": "@gemini_api_key",
-      "OPENAI_API_KEY": "@openai_api_key"
+      "NEXT_PUBLIC_APP_URL": "@next_public_app_url"
     }
   }
 }
