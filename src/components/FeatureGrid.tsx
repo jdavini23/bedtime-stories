@@ -12,7 +12,12 @@ interface FeatureCardProps {
 }
 
 // Simple feature card component
-const FeatureCard: React.FC<FeatureCardProps> = ({ title, description, icon, color = '#FFB6C1' }) => {
+const FeatureCard: React.FC<FeatureCardProps> = ({
+  title,
+  description,
+  icon,
+  color = '#FFB6C1',
+}) => {
   return (
     <motion.div
       initial={{ scale: 0.9, opacity: 0 }}
@@ -24,9 +29,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ title, description, icon, col
       )}
       style={{ borderColor: color }}
     >
-      <div className="relative h-20 w-20 mx-auto mb-4 flex items-center justify-center">
-        {icon}
-      </div>
+      <div className="relative h-20 w-20 mx-auto mb-4 flex items-center justify-center">{icon}</div>
 
       <h3 className="text-xl font-bold text-center mb-2 text-white">{title}</h3>
       <p className="text-sm text-center text-text-primary/80">{description}</p>

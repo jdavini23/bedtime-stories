@@ -1,5 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
-import { getAuth } from '@clerk/nextjs/server';
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 import { logger } from '@/utils/logger';
 
 /**
@@ -9,7 +9,7 @@ import { logger } from '@/utils/logger';
 export async function createAuthenticatedSupabaseClient(request = null) {
   try {
     // Get auth session
-    const session = getAuth(request);
+    const session = await getServerSession();
 
     if (!session?.userId) {
       throw new Error('No authenticated session available');
@@ -22,7 +22,7 @@ export async function createAuthenticatedSupabaseClient(request = null) {
       sessionKeys: Object.keys(session),
     });
 
-    // Get the Supabase JWT from Clerk
+    // Get the Supabase JWT from the session
     let supabaseAccessToken: string | null = null;
     try {
       // Try getting token with debug info
@@ -31,7 +31,7 @@ export async function createAuthenticatedSupabaseClient(request = null) {
         sessionMethods: Object.getOwnPropertyNames(Object.getPrototypeOf(session)),
       });
 
-      supabaseAccessToken = await session.getToken({
+      supabaseAccessToken = await session.getAccessToken({
         template: 'supabase-auth',
       });
 
@@ -69,15 +69,10 @@ export async function createAuthenticatedSupabaseClient(request = null) {
     }
 
     // Create authenticated client
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-        detectSessionInUrl: false,
-      },
-      global: {
-        headers: {
-          Authorization: `Bearer ${supabaseAccessToken}`,
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+      cookies: {
+        get(name: string) {
+          return cookies().get(name)?.value;
         },
       },
     });
@@ -94,6 +89,74 @@ export async function createAuthenticatedSupabaseClient(request = null) {
             }
           : error,
     });
+    throw error;
+  }
+}
+
+export async function getServerSession() {
+  const cookieStore = cookies();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value;
+        },
+      },
+    }
+  );
+
+  const {
+    data: { session },
+    error,
+  } = await supabase.auth.getSession();
+  if (error) {
+    logger.error('Error getting session:', error as Record<string, unknown>);
+    return null;
+  }
+
+  return session;
+}
+
+export async function getServerUser() {
+  const session = await getServerSession();
+  return session?.user || null;
+}
+
+export async function isUserAdmin() {
+  const user = await getServerUser();
+  return user?.user_metadata?.role === 'admin';
+}
+
+export async function getSupabaseClient(request: Request) {
+  try {
+    const session = await getServerSession();
+
+    if (!session?.user) {
+      logger.warn('No authenticated user found');
+      throw new Error('Not authenticated');
+    }
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      logger.error('Missing Supabase environment variables');
+      throw new Error('Missing required environment variables');
+    }
+
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+      cookies: {
+        get(name: string) {
+          return cookies().get(name)?.value;
+        },
+      },
+    });
+
+    return supabase;
+  } catch (error) {
+    logger.error('Error creating Supabase client:', error as Record<string, unknown>);
     throw error;
   }
 }

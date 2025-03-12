@@ -1,75 +1,62 @@
-import { useEffect, useCallback, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import { useUser } from '@clerk/nextjs';
+'use client';
+
+import { useEffect, useState } from 'react';
+import { createBrowserClient } from '@supabase/ssr';
 
 interface SecurityEvent {
   type: 'warning' | 'error' | 'info';
   message: string;
-  details?: Record<string, unknown>;
+  timestamp: string;
 }
 
 export function useSecurityMonitor() {
-  const router = useRouter();
-  const { user, isLoaded, isSignedIn } = useUser();
-  const lastSignInRef = useRef<Date | null>(null);
+  const [events, setEvents] = useState<SecurityEvent[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
 
-  const logSecurityEvent = useCallback(
-    async (event: SecurityEvent) => {
-      try {
-        await fetch('/api/security/log', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            ...event,
-            userId: user?.id,
-            timestamp: new Date().toISOString(),
-          }),
-        });
-      } catch (error) {
-        console.error('Failed to log security event:', error);
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
+
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
+
+      if (!error && session) {
+        setIsAdmin(session.user.user_metadata.role === 'admin');
       }
-    },
-    [user]
-  );
+    };
 
-  // Monitor for authentication state changes
+    checkAdminStatus();
+  }, []);
+
   useEffect(() => {
-    if (!isLoaded || !user) return;
+    if (!isAdmin) return;
 
-    const currentSignInTime = user.lastSignInAt;
-    const lastSignInTime = lastSignInRef.current;
+    // Fetch security events from your API
+    const fetchEvents = async () => {
+      try {
+        const response = await fetch('/api/security/events');
+        if (response.ok) {
+          const data = await response.json();
+          setEvents(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch security events:', error);
+      }
+    };
 
-    // Check if there's a new sign-in
-    if (currentSignInTime && (!lastSignInTime || currentSignInTime > lastSignInTime)) {
-      lastSignInRef.current = currentSignInTime;
-      logSecurityEvent({
-        type: 'info',
-        message: 'User authentication state changed',
-        details: {
-          userId: user.id,
-          lastSignInAt: currentSignInTime.toISOString(),
-          isSignedIn,
-        },
-      });
-    }
-  }, [isLoaded, user, isSignedIn, logSecurityEvent]);
+    fetchEvents();
+    const interval = setInterval(fetchEvents, 60000); // Refresh every minute
 
-  // Monitor for session expiration
-  useEffect(() => {
-    if (!isLoaded) return;
-
-    if (!isSignedIn && user === null) {
-      logSecurityEvent({
-        type: 'warning',
-        message: 'Session expired or user signed out',
-      });
-      router.push('/sign-in');
-    }
-  }, [isLoaded, isSignedIn, user, router, logSecurityEvent]);
+    return () => clearInterval(interval);
+  }, [isAdmin]);
 
   return {
-    logSecurityEvent,
+    events,
+    isAdmin,
   };
 }

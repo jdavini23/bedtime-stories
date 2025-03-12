@@ -19,7 +19,7 @@
 
 ### Authentication & Security
 
-- Secure user authentication via Clerk
+- Secure user authentication via Supabase Auth
 - Parent/guardian and admin roles
 - Protected routes and content
 - User profile management

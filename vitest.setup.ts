@@ -1,56 +1,58 @@
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
+import type { User, Session } from '@supabase/supabase-js';
 
-// Define mockUser for use in tests
-let mockUser = {
-  id: 'mock-user-id',
-  publicMetadata: {
-    preferences: {},
+// Mock user data
+const mockUser: User = {
+  id: 'test-user-id',
+  email: 'test@example.com',
+  user_metadata: {
+    full_name: 'Test User',
+    role: 'user',
   },
+  app_metadata: {},
+  aud: 'authenticated',
+  created_at: new Date().toISOString(),
+  role: 'authenticated',
+  updated_at: new Date().toISOString(),
 };
 
-// Mock Clerk dependencies
-vi.mock('@clerk/nextjs/server', () => ({
-  clerkClient: {
-    users: {
-      getUser: vi.fn().mockResolvedValue(mockUser),
-      updateUser: vi.fn().mockImplementation(({ publicMetadata }) => {
-        // Simulate updating user preferences
-        mockUser = {
-          ...mockUser,
-          publicMetadata: {
-            preferences: {
-              ...(mockUser.publicMetadata?.preferences || {}),
-              ...(publicMetadata.preferences || {}),
-            },
-          },
-        };
-        this.getUser.mockResolvedValue(mockUser);
-        return Promise.resolve(mockUser);
+// Mock session data
+const mockSession: Session = {
+  access_token: 'test-access-token',
+  refresh_token: 'test-refresh-token',
+  expires_in: 3600,
+  expires_at: Math.floor(Date.now() / 1000) + 3600,
+  token_type: 'bearer',
+  user: mockUser,
+};
+
+// Mock Supabase client
+vi.mock('@supabase/ssr', () => ({
+  createServerClient: vi.fn(() => ({
+    auth: {
+      getSession: vi.fn().mockResolvedValue({
+        data: { session: mockSession },
+        error: null,
+      }),
+      getUser: vi.fn().mockResolvedValue({
+        data: { user: mockUser },
+        error: null,
       }),
     },
-  },
-  getAuth: vi.fn().mockReturnValue({ userId: 'mock-user-id' }),
+  })),
 }));
 
-// Mock OpenAI to prevent actual API calls during testing
-vi.mock('openai', () => ({
-  default: vi.fn().mockImplementation(() => ({
-    chat: {
-      completions: {
-        create: vi.fn().mockResolvedValue({
-          choices: [
-            {
-              message: {
-                content: 'Mocked story content',
-              },
-            },
-          ],
-          model: 'gpt-3.5-turbo',
-          usage: { total_tokens: 100 },
-        }),
-      },
-    },
+// Mock Next.js headers
+vi.mock('next/headers', () => ({
+  cookies: vi.fn(() => ({
+    get: vi.fn(),
+    set: vi.fn(),
+    remove: vi.fn(),
+  })),
+  headers: vi.fn(() => ({
+    get: vi.fn(),
+    set: vi.fn(),
   })),
 }));
 

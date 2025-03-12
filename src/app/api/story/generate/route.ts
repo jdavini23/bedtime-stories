@@ -1,172 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { StoryGenerator } from '@/services/personalization';
-import { StoryInput } from '@/types/story';
-import { generateStory } from '@/lib/storyGenerator';
-import { logger } from '@/utils/logger';
-import { env } from '@/lib/env';
-import { createSupabaseClient } from '@/lib/supabase';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
+import { logger } from '@/utils/loggerInstance';
+import { generateStory } from '@/lib/openai';
 
-// Add CORS headers to all responses
-function addCorsHeaders(response: NextResponse): NextResponse {
-  response.headers.set('Access-Control-Allow-Origin', '*');
-  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  response.headers.set(
-    'Access-Control-Allow-Headers',
-    'Content-Type, Authorization, x-clerk-auth-token'
-  );
-  return response;
-}
+export const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
 
-// Handle OPTIONS requests for CORS preflight
 export async function OPTIONS() {
-  return addCorsHeaders(
-    new NextResponse(null, {
-      status: 200,
-    })
-  );
+  return NextResponse.json({}, { headers: corsHeaders });
 }
 
 export async function POST(req: NextRequest) {
-  logger.info('Story Generation Route: Received Request');
-  logger.info('Request Headers:', Object.fromEntries(req.headers));
-  logger.info('Environment:', { environment: env.NODE_ENV });
-
   try {
-    // Get user ID from request headers (set by middleware)
-    let userId = req.headers.get('x-clerk-auth-user-id') || 'anonymous-user';
-    logger.info('User ID for story generation', { userId });
+    const supabase = createRouteHandlerClient({ cookies });
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
 
-    let input: StoryInput;
-    try {
-      const jsonData = await req.json();
-      input = jsonData as StoryInput;
-    } catch (jsonError) {
-      logger.error('JSON Parsing Error:', { error: jsonError });
-
-      return addCorsHeaders(
-        NextResponse.json(
-          {
-            message: 'Invalid input',
-            error: 'Failed to parse request body',
-            ...(env.NODE_ENV === 'development' && {
-              fullError: jsonError instanceof Error ? jsonError.stack : 'No stack trace',
-            }),
-          } as { message: string; error: string; fullError?: string },
-          { status: 400 }
-        )
-      );
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: corsHeaders });
     }
 
-    // Create a new instance of StoryGenerator with user ID
-    const generator = new StoryGenerator(userId);
+    const userId = session.user.id;
+    const body = await req.json();
 
-    // Attempt personalized story generation
-    let story;
-    try {
-      logger.info('Attempting personalized story generation...');
-      story = await generator.generatePersonalizedStory(input);
-      logger.info('Personalized Story Generated:', { success: !!story });
-    } catch (personalizationError) {
-      logger.error('Personalization Error:', { error: personalizationError });
-      story = null;
-    }
+    const story = await generateStory(body, userId);
 
-    // If personalization fails, use fallback generation
-    if (!story) {
-      logger.info('Falling back to basic story generation...');
-      try {
-        story = await generateStory(input, userId);
-        logger.info('Fallback Story Generated:', { success: !!story });
-      } catch (fallbackError) {
-        logger.error('Fallback Generation Error:', { error: fallbackError });
-
-        return addCorsHeaders(
-          NextResponse.json(
-            {
-              message: 'Failed to generate story after multiple attempts',
-              error: fallbackError instanceof Error ? fallbackError.message : 'Unknown error',
-              ...(env.NODE_ENV === 'development' && {
-                fullError: fallbackError instanceof Error ? fallbackError.stack : 'No stack trace',
-                input: JSON.stringify(input),
-                userId,
-              }),
-            } as {
-              message: string;
-              error: string;
-              fullError?: string;
-              input?: string;
-              userId?: string;
-            },
-            { status: 500 }
-          )
-        );
-      }
-    }
-
-    // Ensure story is valid
-    if (!story) {
-      logger.error('No story generated after all attempts');
-
-      return addCorsHeaders(
-        NextResponse.json(
-          {
-            message: 'Unable to generate a story',
-            ...(env.NODE_ENV === 'development' && {
-              input: JSON.stringify(input),
-              userId,
-            }),
-          } as { message: string; input?: string; userId?: string },
-          { status: 500 }
-        )
-      );
-    }
-
-    // Store the generated story temporarily in Supabase
-    try {
-      if (userId !== 'anonymous-user') {
-        const supabase = createSupabaseClient();
-
-        // Check if user exists in our database
-        const { data: userData } = await supabase
-          .from('users')
-          .select('id')
-          .eq('auth_id', userId)
-          .single();
-
-        if (userData) {
-          // Store the story with temporary flag
-          await supabase.from('stories').insert({
-            title: story.title || 'Untitled Story',
-            content: JSON.stringify(story),
-            user_id: userData.id,
-            // Add any additional metadata as needed
-          });
-
-          logger.info('Story stored in Supabase', { userId });
-        } else {
-          logger.warn('User not found in database, skipping story storage', { userId });
-        }
-      }
-    } catch (storageError) {
-      // Don't fail the request if storage fails
-      logger.error('Error storing story in Supabase:', { error: storageError });
-    }
-
-    return addCorsHeaders(NextResponse.json(story));
+    return NextResponse.json(story, { headers: corsHeaders });
   } catch (error) {
-    logger.error('Unexpected Error:', { error });
-
-    return addCorsHeaders(
-      NextResponse.json(
-        {
-          message: error instanceof Error ? error.message : 'Unexpected error generating story',
-          error: error instanceof Error ? error.toString() : 'Unknown error',
-          ...(env.NODE_ENV === 'development' && {
-            fullError: error instanceof Error ? error.stack : 'No stack trace',
-          }),
-        } as { message: string; error: string; fullError?: string },
-        { status: 500 }
-      )
+    logger.error('Error generating story:', { error });
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500, headers: corsHeaders }
     );
   }
 }

@@ -1,15 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import {
-  type User as SupabaseUser,
-  type AuthChangeEvent,
-  type Session,
-} from '@supabase/supabase-js';
-import { useSupabase } from '@/providers/SupabaseProvider';
+import { createBrowserClient } from '@supabase/ssr';
+import { User as SupabaseUser } from '@supabase/supabase-js';
 
 // Our application's User type
 export interface User {
+  createdAt: number;
+  lastSignInAt: number;
+  emailAddresses: any;
   id: string;
   email?: string;
   firstName?: string;
@@ -19,81 +18,44 @@ export interface User {
 }
 
 /**
- * Custom hook that wraps Clerk's useUser and useAuth hooks
- * to provide a simplified user object with our application's needs
+ * Custom hook that provides user authentication state and methods
  */
 export function useUser() {
-  const { supabase } = useSupabase();
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [isSignedIn, setIsSignedIn] = useState(false);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
   useEffect(() => {
-    const getUser = async () => {
-      try {
-        const {
-          data: { user: supabaseUser },
-          error,
-        } = await supabase.auth.getUser();
-        if (error) {
-          console.error('Error getting user:', error.message);
-          setUser(null);
-          setIsSignedIn(false);
-        } else if (supabaseUser) {
-          const userData: User = {
-            id: supabaseUser.id,
-            email: supabaseUser.email ?? undefined,
-            // These fields would need to be populated from your user metadata or profiles table
-            firstName: supabaseUser.user_metadata?.firstName,
-            lastName: supabaseUser.user_metadata?.lastName,
-            imageUrl: supabaseUser.user_metadata?.avatar_url,
-            isAdmin: supabaseUser.user_metadata?.isAdmin ?? false,
-          };
-          setUser(userData);
-          setIsSignedIn(true);
-        }
-      } catch (error) {
-        console.error('Error in getUser:', error);
-        setUser(null);
-        setIsSignedIn(false);
-      } finally {
-        setIsLoaded(true);
-      }
-    };
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setIsLoading(false);
+    });
 
-    // Get initial user
-    getUser();
-
-    // Subscribe to auth state changes
+    // Listen for auth state changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
-      if (session?.user) {
-        const userData: User = {
-          id: session.user.id,
-          email: session.user.email ?? undefined,
-          firstName: session.user.user_metadata?.firstName,
-          lastName: session.user.user_metadata?.lastName,
-          imageUrl: session.user.user_metadata?.avatar_url,
-          isAdmin: session.user.user_metadata?.isAdmin ?? false,
-        };
-        setUser(userData);
-        setIsSignedIn(true);
-      } else {
-        setUser(null);
-        setIsSignedIn(false);
-      }
-      setIsLoaded(true);
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      setIsLoading(false);
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [supabase]);
+  }, []);
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+  };
 
   return {
     user,
-    isLoaded,
-    isSignedIn,
+    isLoading,
+    signOut,
   };
 }

@@ -1,185 +1,167 @@
-import { createSupabaseClient } from '@/lib/supabase';
-import { Story } from '@/types/supabase';
-import { logger } from '@/utils/logger';
-import { SupabaseUserService } from './supabaseUserService';
+import { createClient } from '@supabase/supabase-js';
+import { logger } from '@/utils/loggerInstance';
+import { Database } from '@/types/supabase';
 
 /**
  * Service for handling story operations with Supabase
  */
-export class SupabaseStoryService {
+export class StoryService {
+  private static supabase = createClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
   /**
-   * Get a story by its ID
-   * @param storyId The story ID
-   * @returns The story or null if not found
+   * Get all stories for a user
+   * @param userId The Supabase user ID
+   * @returns Array of stories or null if fetch failed
    */
-  static async getStoryById(storyId: string): Promise<Story | null> {
+  static async getUserStories(userId: string) {
     try {
-      const supabase = createSupabaseClient();
-      const { data, error } = await supabase.from('stories').select('*').eq('id', storyId).single();
+      const { data: stories, error } = await this.supabase
+        .from('stories')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
 
       if (error) {
-        logger.error('Error fetching story by ID', { error, storyId });
+        logger.error('Error fetching user stories', { error, userId });
         return null;
       }
 
-      return data as Story;
+      return stories;
     } catch (error) {
-      logger.error('Exception fetching story by ID', { error, storyId });
+      logger.error('Exception fetching user stories', { error, userId });
       return null;
     }
   }
 
   /**
-   * Get all stories for a user
-   * @param authId The Clerk auth ID
-   * @returns Array of stories or empty array if none found
+   * Get a story by ID
+   * @param storyId The story ID
+   * @param userId The Supabase user ID (for authorization)
+   * @returns The story or null if not found
    */
-  static async getStoriesByUser(authId: string): Promise<Story[]> {
+  static async getStoryById(storyId: string, userId: string) {
     try {
-      const user = await SupabaseUserService.getUserByAuthId(authId);
-      if (!user) {
-        logger.warn('User not found when fetching stories', { authId });
-        return [];
-      }
-
-      const supabase = createSupabaseClient();
-      const { data, error } = await supabase
+      const { data: story, error } = await this.supabase
         .from('stories')
         .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+        .eq('id', storyId)
+        .eq('user_id', userId)
+        .single();
 
       if (error) {
-        logger.error('Error fetching stories for user', { error, authId });
-        return [];
+        logger.error('Error fetching story by ID', { error, storyId, userId });
+        return null;
       }
 
-      return data as Story[];
+      return story;
     } catch (error) {
-      logger.error('Exception fetching stories for user', { error, authId });
-      return [];
+      logger.error('Exception fetching story by ID', { error, storyId, userId });
+      return null;
     }
   }
 
   /**
-   * Save a story to Supabase
-   * @param authId The Clerk auth ID
+   * Create a new story
+   * @param userId The Supabase user ID
    * @param title The story title
    * @param content The story content
-   * @returns The saved story or null if saving failed
+   * @param metadata Optional metadata
+   * @returns The created story or null if creation failed
    */
-  static async saveStory(authId: string, title: string, content: string): Promise<Story | null> {
+  static async createStory(
+    userId: string,
+    title: string,
+    content: string,
+    metadata: Record<string, unknown> = {}
+  ) {
     try {
-      const user = await SupabaseUserService.getUserByAuthId(authId);
-      if (!user) {
-        logger.warn('User not found when saving story', { authId });
-        return null;
-      }
-
-      const supabase = createSupabaseClient();
-      const { data, error } = await supabase
+      const { data: story, error } = await this.supabase
         .from('stories')
-        .insert({
-          title,
-          content,
-          user_id: user.id,
-        })
+        .insert([
+          {
+            user_id: userId,
+            title,
+            content,
+            metadata,
+          },
+        ])
         .select()
         .single();
 
       if (error) {
-        logger.error('Error saving story', { error, authId });
+        logger.error('Error creating story', { error, userId });
         return null;
       }
 
-      return data as Story;
+      return story;
     } catch (error) {
-      logger.error('Exception saving story', { error, authId });
+      logger.error('Exception creating story', { error, userId });
       return null;
     }
   }
 
   /**
-   * Update a story in Supabase
+   * Update a story
    * @param storyId The story ID
-   * @param authId The Clerk auth ID (for authorization)
-   * @param updates The story updates
+   * @param userId The Supabase user ID (for authorization)
+   * @param updates The fields to update
    * @returns The updated story or null if update failed
    */
   static async updateStory(
     storyId: string,
-    authId: string,
-    updates: Partial<Pick<Story, 'title' | 'content'>>
-  ): Promise<Story | null> {
+    userId: string,
+    updates: {
+      title?: string;
+      content?: string;
+      metadata?: Record<string, unknown>;
+    }
+  ) {
     try {
-      const user = await SupabaseUserService.getUserByAuthId(authId);
-      if (!user) {
-        logger.warn('User not found when updating story', { authId });
-        return null;
-      }
-
-      // Verify the story belongs to the user
-      const story = await this.getStoryById(storyId);
-      if (!story || story.user_id !== user.id) {
-        logger.warn('Story not found or not owned by user', { storyId, authId });
-        return null;
-      }
-
-      const supabase = createSupabaseClient();
-      const { data, error } = await supabase
+      const { data: story, error } = await this.supabase
         .from('stories')
-        .update({
-          ...updates,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updates)
         .eq('id', storyId)
+        .eq('user_id', userId)
         .select()
         .single();
 
       if (error) {
-        logger.error('Error updating story', { error, storyId, authId });
+        logger.error('Error updating story', { error, storyId, userId });
         return null;
       }
 
-      return data as Story;
+      return story;
     } catch (error) {
-      logger.error('Exception updating story', { error, storyId, authId });
+      logger.error('Exception updating story', { error, storyId, userId });
       return null;
     }
   }
 
   /**
-   * Delete a story from Supabase
+   * Delete a story
    * @param storyId The story ID
-   * @param authId The Clerk auth ID (for authorization)
-   * @returns True if deletion was successful, false otherwise
+   * @param userId The Supabase user ID (for authorization)
+   * @returns true if deletion was successful, false otherwise
    */
-  static async deleteStory(storyId: string, authId: string): Promise<boolean> {
+  static async deleteStory(storyId: string, userId: string) {
     try {
-      const user = await SupabaseUserService.getUserByAuthId(authId);
-      if (!user) {
-        logger.warn('User not found when deleting story', { authId });
-        return false;
-      }
-
-      // Verify the story belongs to the user
-      const story = await this.getStoryById(storyId);
-      if (!story || story.user_id !== user.id) {
-        logger.warn('Story not found or not owned by user', { storyId, authId });
-        return false;
-      }
-
-      const supabase = createSupabaseClient();
-      const { error } = await supabase.from('stories').delete().eq('id', storyId);
+      const { error } = await this.supabase
+        .from('stories')
+        .delete()
+        .eq('id', storyId)
+        .eq('user_id', userId);
 
       if (error) {
-        logger.error('Error deleting story', { error, storyId, authId });
+        logger.error('Error deleting story', { error, storyId, userId });
         return false;
       }
 
       return true;
     } catch (error) {
-      logger.error('Exception deleting story', { error, storyId, authId });
+      logger.error('Exception deleting story', { error, storyId, userId });
       return false;
     }
   }

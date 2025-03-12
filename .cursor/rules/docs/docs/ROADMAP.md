@@ -5,7 +5,7 @@
 - [x] Set up project infrastructure
   - [x] Next.js 14 setup with TypeScript
   - [x] Tailwind CSS configuration
-  - [x] Clerk Authentication integration
+  - [x] Supabase Authentication integration
   - [x] Basic folder structure
   - [x] ESLint and Prettier setup
   - [x] Husky pre-commit hooks

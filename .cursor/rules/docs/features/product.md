@@ -18,7 +18,7 @@ children alike.
 
 ## 3. Functional Requirements
 
-- **User Authentication**: Sign-up/Login via Clerk (Google, GitHub, Email, etc.).
+- **User Authentication**: Sign-up/Login via Supabase Auth (Google, GitHub, Email, etc.).
 - **Story Generation**: AI-powered storytelling based on child's name, interests, and chosen themes.
 - **Theme Selection**: Users can choose from a variety of themes (e.g., Adventure, Fantasy, Science,
   Friendship, etc.).
@@ -43,16 +43,16 @@ children alike.
 
 ### As a parent:
 
-- I want to enter my child’s name, interests, and theme to generate a unique bedtime story.
-- I want to choose from different storytelling themes to match my child’s mood or preferences.
-- I want to save my child’s favorite stories for easy access later.
+- I want to enter my child's name, interests, and theme to generate a unique bedtime story.
+- I want to choose from different storytelling themes to match my child's mood or preferences.
+- I want to save my child's favorite stories for easy access later.
 - I want to download and print personalized stories as PDFs (Premium feature).
 - I want to share the generated story with family and friends.
 - I want to hear an AI-generated narration of the story (Future feature).
 
 ### As a new user:
 
-- I want to create an account using Clerk authentication to track my story history.
+- I want to create an account using Supabase authentication to track my story history.
 - I want a simple onboarding process that guides me on how to generate my first story.
 
 ### As a returning user:
@@ -64,13 +64,13 @@ children alike.
 
 ### Home Page:
 
-- **Hero Section**: Brief introduction with a “Generate Story” CTA button.
+- **Hero Section**: Brief introduction with a "Generate Story" CTA button.
 - **Features Overview**: Highlighting personalization, ease of use, and AI-powered storytelling.
 
 ### Story Generation Page:
 
-- Input fields for child’s name, interests, and theme selection.
-- “Generate Story” button with a loading indicator.
+- Input fields for child's name, interests, and theme selection.
+- "Generate Story" button with a loading indicator.
 - Display area for the generated story with options to copy, share, or save.
 
 ### Saved Stories Page:

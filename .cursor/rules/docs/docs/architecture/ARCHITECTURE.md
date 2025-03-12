@@ -25,7 +25,7 @@ creation wizard, personalize preferences, and retrieve saved stories from their 
 2. Data is sent to **Next.js API routes**.
 3. API processes request and calls **OpenAI GPT** to generate a story.
 4. The generated story is stored **temporarily in Vercel KV**.
-5. If saved, the story is stored in **PostgreSQL** under the user’s account.
+5. If saved, the story is stored in **PostgreSQL** under the user's account.
 6. User can retrieve and modify saved stories from their dashboard.
 
 ## Technical Stack
@@ -33,14 +33,14 @@ creation wizard, personalize preferences, and retrieve saved stories from their 
 - **Frontend:** Next.js 14 (App Router), Tailwind CSS, Framer Motion
 - **Backend:** Next.js API Routes (Serverless), Vercel Edge Functions
 - **Database:** PostgreSQL (Prisma ORM)
-- **Authentication:** Clerk
+- **Authentication:** Supabase Auth
 - **State Management:** React Query, Zustand/Context API
 - **Hosting & Deployment:** Vercel
 - **Caching:** Vercel KV, React Query Caching
 
 ## Authentication Process
 
-- Uses **Clerk** for user authentication and session management.
+- Uses **Supabase Auth** for user authentication and session management.
 - Users can sign up/login via email, Google, or other OAuth providers.
 - Authentication tokens are used for API access and personalization.
 
@@ -76,7 +76,7 @@ creation wizard, personalize preferences, and retrieve saved stories from their 
 - Implement the Next.js frontend with the wizard flow.
 - Develop API routes for story generation and retrieval.
 - Set up the PostgreSQL database with Prisma migrations.
-- Integrate Clerk authentication.
+- Integrate Supabase authentication.
 - Deploy to Vercel.
 
 This SRS document will serve as a foundational guide for development. Let me know if you need any

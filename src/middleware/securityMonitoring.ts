@@ -46,7 +46,7 @@ const securityConfig: SecurityConfig = {
     /[;|&`']/, // Command injection
     /<script>/i, // XSS attempt
   ],
-  requiredHeaders: ['x-clerk-auth-token'],
+  requiredHeaders: ['authorization'],
 };
 
 // Rate limiting storage

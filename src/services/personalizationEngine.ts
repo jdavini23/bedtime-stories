@@ -363,11 +363,8 @@ export class UserPersonalizationEngine {
         theme: input.theme,
         createdAt: new Date().toISOString(),
         input,
-        metadata: {
-          pronouns,
-          possessivePronouns,
-          generatedAt: new Date().toISOString(),
-        },
+        fallback: false,
+        timestamp: Date.now(),
         userId: this.userId,
         pronouns,
         possessivePronouns,
@@ -443,7 +440,7 @@ export class UserPersonalizationEngine {
         theme: input.theme,
         hasUserPrefs: !!userPrefs,
       });
-      
+
       // Prepare the request body
       const requestBody = {
         operation: 'generateStory',
@@ -453,29 +450,27 @@ export class UserPersonalizationEngine {
           ageGroup: userPrefs?.ageGroup || '6-8',
         },
       };
-      
       // Use circuit breaker pattern for the API call
-      return await openAICircuitBreaker.execute(
+      return await openAICircuitBreaker.fire(
         async () => {
           // Set timeout for the fetch request
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout (increased from 15s)
-          
+
           try {
             // Make the API request with timeout, including credentials for auth cookies
-            const response = await fetch('/api/openai', {
+            const response = await fetch('/api/story/generate', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
               },
-              credentials: 'include', // Important for Clerk authentication cookies
               body: JSON.stringify(requestBody),
-              signal: controller.signal,
+              credentials: 'include', // Important for Supabase authentication cookies
             });
-            
+
             // Clear the timeout
             clearTimeout(timeoutId);
-            
+
             // Check for HTTP errors
             if (!response.ok) {
               let errorData;
@@ -484,24 +479,24 @@ export class UserPersonalizationEngine {
               } catch (e) {
                 errorData = { message: 'Failed to parse error response' };
               }
-              
+
               logger.error('OpenAI API HTTP error', {
                 status: response.status,
                 statusText: response.statusText,
                 errorData,
               });
-              
+
               // If we got a fallback story from the API despite the error, use it
               if (errorData && errorData.content) {
                 logger.info('Using fallback story from API despite error');
                 return errorData.content;
               }
-              
+
               if (response.status === 401) {
                 logger.error('Authentication failed when calling OpenAI API endpoint');
                 throw new Error('Authentication failed: You may need to sign in again');
               }
-              
+
               // Throw an error with details
               throw new Error(
                 `OpenAI API error: ${response.status} ${response.statusText}. ${
@@ -509,10 +504,10 @@ export class UserPersonalizationEngine {
                 }`
               );
             }
-            
+
             // Parse the response
             const data = await response.json();
-            
+
             // Check if we got a fallback response
             if (data.fallback) {
               logger.warn('Received fallback story from API', {
@@ -520,13 +515,13 @@ export class UserPersonalizationEngine {
                 message: data.message,
               });
             }
-            
+
             // Return the content (even if it's a fallback)
             return data.content || this.createFallbackStory(input);
           } catch (fetchError) {
             // Clear the timeout if it's an error
             clearTimeout(timeoutId);
-            
+
             // Handle fetch-specific errors
             if ((fetchError as Error).name === 'AbortError') {
               logger.error('OpenAI API request timeout', {
@@ -535,14 +530,14 @@ export class UserPersonalizationEngine {
               });
               throw new Error('OpenAI API request timed out after 30 seconds');
             }
-            
+
             // Re-throw other fetch errors
             logger.error('Fetch error in OpenAI API call', serializeError(fetchError));
             throw fetchError;
           }
         },
         // Fallback function that generates a story when the API call fails
-        () => {
+        (error) => {
           logger.info('Using circuit breaker fallback for story generation');
           return this.createFallbackStory(input);
         }
@@ -559,7 +554,7 @@ export class UserPersonalizationEngine {
         },
       };
       logger.error('Error calling OpenAI API', errorDetails);
-      
+
       // Return a fallback story
       return this.createFallbackStory(input);
     }
@@ -593,7 +588,8 @@ export class UserPersonalizationEngine {
     character: string = 'friend',
     challenge: string = 'challenge'
   ): string {
-    const { childName, interests, theme } = input;
+    const { childName, theme } = input;
+    const interests = (input as any).interests || ['learning'];
 
     return `As ${pronouns} explored with excitement, ${childName} met a ${character} who needed help with ${challenge}. 
     Together, they used ${childName}'s knowledge of ${interests.join(' and ')} to solve the problem. 

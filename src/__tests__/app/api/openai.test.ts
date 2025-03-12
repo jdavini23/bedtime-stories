@@ -1,11 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuth } from '@clerk/nextjs/server';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { POST } from '@/app/api/openai/route';
+import { Mock } from 'vitest';
 
 // Mock the external dependencies
-vi.mock('@clerk/nextjs/server', () => ({
-  getAuth: vi.fn(),
+vi.mock('@supabase/auth-helpers-nextjs', () => ({
+  createRouteHandlerClient: vi.fn(),
 }));
 
 vi.mock('@/utils/logger', () => ({
@@ -32,7 +33,7 @@ vi.mock('openai', () => {
   }));
 
   // Create a function that can be used to simulate errors
-  const mockWithError = (errorStatus, errorMessage) => {
+  const mockWithError = (errorStatus: number, errorMessage: string) => {
     return vi.fn().mockImplementation(() => ({
       chat: {
         completions: {
@@ -48,7 +49,7 @@ vi.mock('openai', () => {
   };
 
   // Return the default mock but expose methods to change its behavior
-  const mock = successfulMock;
+  const mock = successfulMock as Mock & { mockWithError: typeof mockWithError };
   mock.mockWithError = mockWithError;
 
   return {
@@ -58,6 +59,12 @@ vi.mock('openai', () => {
 
 describe('OpenAI API Route', () => {
   const mockUserId = 'user_123';
+  const mockSession = {
+    user: {
+      id: mockUserId,
+      email: 'test@example.com',
+    },
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -75,11 +82,22 @@ describe('OpenAI API Route', () => {
         },
       },
     }));
+
+    // Mock Supabase auth
+    vi.mocked(createRouteHandlerClient).mockReturnValue({
+      auth: {
+        getSession: vi.fn().mockResolvedValue({ data: { session: mockSession }, error: null }),
+      },
+    } as any);
   });
 
   it('should return 401 when user is not authenticated', async () => {
     // Mock unauthenticated user
-    vi.mocked(getAuth).mockReturnValue({ userId: null } as any);
+    vi.mocked(createRouteHandlerClient).mockReturnValue({
+      auth: {
+        getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
+      },
+    } as any);
 
     const request = new NextRequest('http://localhost/api/openai', {
       method: 'POST',
@@ -90,8 +108,10 @@ describe('OpenAI API Route', () => {
     });
 
     const response = await POST(request);
-    const data = await response.json();
+    expect(response).toBeDefined();
+    if (!response) throw new Error('Response should be defined');
 
+    const data = await response.json();
     expect(response.status).toBe(401);
     expect(data).toEqual({
       error: 'Unauthorized',
@@ -100,9 +120,6 @@ describe('OpenAI API Route', () => {
   });
 
   it('should handle generateStory operation successfully', async () => {
-    // Mock authenticated user
-    vi.mocked(getAuth).mockReturnValue({ userId: mockUserId } as any);
-
     const request = new NextRequest('http://localhost/api/openai', {
       method: 'POST',
       body: JSON.stringify({
@@ -117,8 +134,10 @@ describe('OpenAI API Route', () => {
     });
 
     const response = await POST(request);
-    const data = await response.json();
+    expect(response).toBeDefined();
+    if (!response) throw new Error('Response should be defined');
 
+    const data = await response.json();
     expect(response.status).toBe(200);
     expect(data).toHaveProperty('content', 'Test story content');
     expect(data).toHaveProperty('model', 'gpt-3.5-turbo');
@@ -126,9 +145,6 @@ describe('OpenAI API Route', () => {
   });
 
   it('should handle OpenAI authentication errors gracefully', async () => {
-    // Mock authenticated user
-    vi.mocked(getAuth).mockReturnValue({ userId: mockUserId } as any);
-
     // Mock OpenAI authentication error
     const OpenAI = require('openai').default;
     vi.mocked(OpenAI).mockImplementation(() => ({
@@ -156,17 +172,16 @@ describe('OpenAI API Route', () => {
     });
 
     const response = await POST(request);
-    const data = await response.json();
+    expect(response).toBeDefined();
+    if (!response) throw new Error('Response should be defined');
 
+    const data = await response.json();
     expect(response.status).toBe(500);
     expect(data).toHaveProperty('error', 'OpenAI API authentication error');
     expect(data).toHaveProperty('message', 'Invalid API key or unauthorized access');
   });
 
   it('should handle OpenAI rate limit errors gracefully', async () => {
-    // Mock authenticated user
-    vi.mocked(getAuth).mockReturnValue({ userId: mockUserId } as any);
-
     // Mock OpenAI rate limit error
     const OpenAI = require('openai').default;
     vi.mocked(OpenAI).mockImplementation(() => ({
@@ -194,17 +209,16 @@ describe('OpenAI API Route', () => {
     });
 
     const response = await POST(request);
-    const data = await response.json();
+    expect(response).toBeDefined();
+    if (!response) throw new Error('Response should be defined');
 
+    const data = await response.json();
     expect(response.status).toBe(429);
     expect(data).toHaveProperty('error', 'OpenAI API rate limit exceeded');
     expect(data).toHaveProperty('message', 'Too many requests, please try again later');
   });
 
   it('should handle chatCompletion operation successfully', async () => {
-    // Mock authenticated user
-    vi.mocked(getAuth).mockReturnValue({ userId: mockUserId } as any);
-
     const request = new NextRequest('http://localhost/api/openai', {
       method: 'POST',
       body: JSON.stringify({
@@ -216,8 +230,10 @@ describe('OpenAI API Route', () => {
     });
 
     const response = await POST(request);
-    const data = await response.json();
+    expect(response).toBeDefined();
+    if (!response) throw new Error('Response should be defined');
 
+    const data = await response.json();
     expect(response.status).toBe(200);
     expect(data).toHaveProperty('content');
     expect(data).toHaveProperty('model');
@@ -225,17 +241,16 @@ describe('OpenAI API Route', () => {
   });
 
   it('should return 400 for missing operation', async () => {
-    // Mock authenticated user
-    vi.mocked(getAuth).mockReturnValue({ userId: mockUserId } as any);
-
     const request = new NextRequest('http://localhost/api/openai', {
       method: 'POST',
       body: JSON.stringify({}),
     });
 
     const response = await POST(request);
-    const data = await response.json();
+    expect(response).toBeDefined();
+    if (!response) throw new Error('Response should be defined');
 
+    const data = await response.json();
     expect(response.status).toBe(400);
     expect(data).toEqual({
       error: 'Missing required parameter: operation',
@@ -243,43 +258,74 @@ describe('OpenAI API Route', () => {
   });
 
   it('should return 400 for invalid operation', async () => {
-    // Mock authenticated user
-    vi.mocked(getAuth).mockReturnValue({ userId: mockUserId } as any);
-
     const request = new NextRequest('http://localhost/api/openai', {
       method: 'POST',
       body: JSON.stringify({
         operation: 'invalidOperation',
-      }),
-    });
-
-    const response = await POST(request);
-    const data = await response.json();
-
-    expect(response.status).toBe(400);
-    expect(data).toEqual({
-      error: 'Unsupported operation: invalidOperation',
-    });
-  });
-
-  it('should handle generateStory validation errors', async () => {
-    // Mock authenticated user
-    vi.mocked(getAuth).mockReturnValue({ userId: mockUserId } as any);
-
-    const request = new NextRequest('http://localhost/api/openai', {
-      method: 'POST',
-      body: JSON.stringify({
-        operation: 'generateStory',
         params: {},
       }),
     });
 
     const response = await POST(request);
-    const data = await response.json();
+    expect(response).toBeDefined();
+    if (!response) throw new Error('Response should be defined');
 
+    const data = await response.json();
     expect(response.status).toBe(400);
     expect(data).toEqual({
-      error: 'Missing required parameters for story generation',
+      error: 'Invalid operation: invalidOperation',
+    });
+  });
+
+  it('should return 400 for missing parameters', async () => {
+    const request = new NextRequest('http://localhost/api/openai', {
+      method: 'POST',
+      body: JSON.stringify({
+        operation: 'generateStory',
+      }),
+    });
+
+    const response = await POST(request);
+    expect(response).toBeDefined();
+    if (!response) throw new Error('Response should be defined');
+
+    const data = await response.json();
+    expect(response.status).toBe(400);
+    expect(data).toEqual({
+      error: 'Missing required parameter: params',
+    });
+  });
+
+  it('should handle Supabase auth errors gracefully', async () => {
+    // Mock Supabase auth error
+    vi.mocked(createRouteHandlerClient).mockReturnValue({
+      auth: {
+        getSession: vi
+          .fn()
+          .mockResolvedValue({ data: { session: null }, error: new Error('Auth error') }),
+      },
+    } as any);
+
+    const request = new NextRequest('http://localhost/api/openai', {
+      method: 'POST',
+      body: JSON.stringify({
+        operation: 'generateStory',
+        params: {
+          childName: 'Test Child',
+          theme: 'adventure',
+        },
+      }),
+    });
+
+    const response = await POST(request);
+    expect(response).toBeDefined();
+    if (!response) throw new Error('Response should be defined');
+
+    const data = await response.json();
+    expect(response.status).toBe(401);
+    expect(data).toEqual({
+      error: 'Unauthorized',
+      message: 'Authentication required',
     });
   });
 });

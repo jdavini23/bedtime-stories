@@ -1,5 +1,4 @@
-import { AuthError } from '@clerk/nextjs';
-import { logSecurityEvent } from '@/middleware/securityMonitoring';
+import { AuthError } from '@supabase/supabase-js';
 
 export class AuthenticationError extends Error {
   constructor(
@@ -12,37 +11,39 @@ export class AuthenticationError extends Error {
   }
 }
 
-export function handleAuthError(error: unknown): AuthenticationError {
+export function handleAuthError(error: unknown): string {
   if (error instanceof AuthError) {
-    const message = getAuthErrorMessage(error);
-    const code = error.code || 'unknown_auth_error';
-
-    logSecurityEvent('error', 'Authentication error occurred', {
-      code,
-      message,
-      type: error.name,
-    });
-
-    return new AuthenticationError(message, code);
+    switch (error.status) {
+      case 400:
+        return 'Invalid request. Please check your input and try again.';
+      case 401:
+        return 'Authentication failed. Please sign in again.';
+      case 403:
+        return 'You do not have permission to perform this action.';
+      case 404:
+        return 'Resource not found.';
+      case 422:
+        return 'Invalid credentials. Please check your email and password.';
+      case 429:
+        return 'Too many requests. Please try again later.';
+      default:
+        return 'An authentication error occurred. Please try again.';
+    }
   }
 
   if (error instanceof Error) {
-    logSecurityEvent('error', 'Unexpected authentication error', {
-      message: error.message,
-      type: error.name,
-    });
-
-    return new AuthenticationError(
-      'An unexpected authentication error occurred',
-      'unexpected_auth_error'
-    );
+    // Handle network errors or other generic errors
+    if (error.message.includes('network')) {
+      return 'Network error. Please check your connection and try again.';
+    }
+    return error.message;
   }
 
-  logSecurityEvent('error', 'Unknown authentication error', {
-    error: String(error),
-  });
+  return 'An unexpected error occurred. Please try again.';
+}
 
-  return new AuthenticationError('An unknown authentication error occurred', 'unknown_error');
+export function isAuthError(error: unknown): error is AuthError {
+  return error instanceof AuthError;
 }
 
 function getAuthErrorMessage(error: AuthError): string {

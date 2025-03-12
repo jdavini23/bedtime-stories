@@ -1,11 +1,11 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { SignOutButton } from '@/components/auth/SignOutButton';
-import { useClerk } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
+import { useSupabase } from '@/providers/SupabaseProvider';
 
 // Mock the hooks
-jest.mock('@clerk/nextjs', () => ({
-  useClerk: jest.fn(),
+jest.mock('@/providers/SupabaseProvider', () => ({
+  useSupabase: jest.fn(),
 }));
 
 jest.mock('next/navigation', () => ({
@@ -19,7 +19,13 @@ describe('SignOutButton', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (useClerk as jest.Mock).mockReturnValue({ signOut: mockSignOut });
+    (useSupabase as jest.Mock).mockReturnValue({
+      supabase: {
+        auth: {
+          signOut: mockSignOut,
+        },
+      },
+    });
     (useRouter as jest.Mock).mockReturnValue({ push: mockPush, refresh: mockRefresh });
   });
 
@@ -28,8 +34,7 @@ describe('SignOutButton', () => {
 
     const button = screen.getByRole('button', { name: 'Sign Out' });
     expect(button).toBeInTheDocument();
-    expect(button.className).toContain('border-primary');
-    expect(button.className).toContain('text-primary');
+    expect(button).toHaveAttribute('data-variant', 'ghost');
   });
 
   it('renders with custom text', () => {
@@ -39,28 +44,17 @@ describe('SignOutButton', () => {
     expect(button).toBeInTheDocument();
   });
 
-  it('applies custom className', () => {
-    render(<SignOutButton className="custom-class" />);
+  it('applies custom variant', () => {
+    render(<SignOutButton variant="primary" />);
 
     const button = screen.getByRole('button');
-    expect(button).toHaveClass('custom-class');
-  });
-
-  it('applies custom variant and size', () => {
-    render(<SignOutButton variant="primary" size="sm" />);
-
-    const button = screen.getByRole('button');
-    expect(button.className).toContain('bg-primary');
-    expect(button.className).toContain('text-sm');
+    expect(button).toHaveAttribute('data-variant', 'primary');
   });
 
   it('calls signOut when clicked', async () => {
-    mockSignOut.mockImplementation((callback) => {
-      if (callback) callback();
-      return Promise.resolve();
-    });
+    mockSignOut.mockResolvedValue({ error: null });
 
-    render(<SignOutButton redirectUrl="/custom-redirect" />);
+    render(<SignOutButton />);
 
     const button = screen.getByRole('button');
     fireEvent.click(button);
@@ -70,14 +64,14 @@ describe('SignOutButton', () => {
 
     await waitFor(() => {
       expect(mockSignOut).toHaveBeenCalled();
-      expect(mockPush).toHaveBeenCalledWith('/custom-redirect');
+      expect(mockPush).toHaveBeenCalledWith('/');
       expect(mockRefresh).toHaveBeenCalled();
     });
   });
 
   it('handles sign out error', async () => {
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    mockSignOut.mockRejectedValue(new Error('Sign out failed'));
+    mockSignOut.mockResolvedValue({ error: new Error('Sign out failed') });
 
     render(<SignOutButton />);
 

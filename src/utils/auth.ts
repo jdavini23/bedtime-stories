@@ -1,66 +1,77 @@
-import type { User as ClerkUser } from '@clerk/nextjs/server';
+import { User } from '@supabase/supabase-js';
 
-// Our application's User type
-interface User {
-  id: string;
-  firstName?: string;
-  lastName?: string;
-  imageUrl?: string;
-  isAdmin?: boolean;
-}
+type AppMetadata = {
+  role?: string;
+  full_name?: string;
+  name?: string;
+  onboarding_completed?: boolean;
+};
 
-/**
- * Check if a user has admin privileges
- * @param user The user object
- * @returns boolean indicating if the user is an admin
- */
-export const isAdmin = (user: ClerkUser | User | null): boolean => {
-  if (!user) return false;
-
-  // Handle our app's User type
-  if ('isAdmin' in user) {
-    return user.isAdmin === true;
-  }
-
-  // Handle Clerk User type - check if publicMetadata exists
-  if ('publicMetadata' in user) {
-    return user.publicMetadata?.isAdmin === true;
-  }
-
-  return false;
+type AppUser = User & {
+  user_metadata: AppMetadata;
 };
 
 /**
- * Get user's display name
- * @param user The user object
- * @returns The user's display name
+ * Check if a user has admin privileges
+ * @param user The user object from Supabase
+ * @returns boolean indicating if the user is an admin
  */
-export const getUserDisplayName = (user: ClerkUser | User | null): string => {
+export const isAdmin = (user: AppUser | null): boolean => {
+  if (!user) return false;
+
+  // Check user metadata for admin role
+  const metadata = user.user_metadata;
+  if (!metadata) return false;
+
+  return metadata.role === 'admin';
+};
+
+/**
+ * Get the display name for a user
+ * @param user The user object from Supabase
+ * @returns string The user's display name or a default value
+ */
+export const getUserDisplayName = (user: AppUser | null): string => {
   if (!user) return 'Guest';
 
-  if (user.firstName && user.lastName) {
-    return `${user.firstName} ${user.lastName}`;
-  }
+  // Try to get the name from user metadata
+  const metadata = user.user_metadata;
+  if (metadata?.full_name) return metadata.full_name;
+  if (metadata?.name) return metadata.name;
 
-  if (user.firstName) {
-    return user.firstName;
-  }
+  // Fall back to email if available
+  if (user.email) return user.email.split('@')[0];
 
-  // Handle Clerk User type
-  if ('username' in user && user.username) {
-    return user.username;
-  }
-
+  // Final fallback
   return 'User';
 };
 
 /**
- * Check if the user has verified their email
- * @param user The Clerk user object
+ * Check if a user has a verified email
+ * @param user The user object from Supabase
  * @returns boolean indicating if the user has a verified email
  */
-export const hasVerifiedEmail = (user: ClerkUser | null): boolean => {
+export const hasVerifiedEmail = (user: AppUser | null): boolean => {
   if (!user) return false;
+  return user.email_confirmed_at !== null;
+};
 
-  return user.emailAddresses.some((email) => email.verification?.status === 'verified');
+/**
+ * Get the user's email address
+ * @param user The user object from Supabase
+ * @returns string The user's email address or null
+ */
+export const getUserEmail = (user: AppUser | null): string | null => {
+  if (!user) return null;
+  return user.email || null;
+};
+
+/**
+ * Check if the user has completed onboarding
+ * @param user The user object from Supabase
+ * @returns boolean indicating if the user has completed onboarding
+ */
+export const hasCompletedOnboarding = (user: AppUser | null): boolean => {
+  if (!user) return false;
+  return user.user_metadata?.onboarding_completed === true;
 };

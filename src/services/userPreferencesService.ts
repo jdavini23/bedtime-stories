@@ -1,4 +1,5 @@
-import { clerkClient } from '@clerk/nextjs';
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 // PreferencesError is now defined locally in this file, so we don't need to import it
 
 export type AgeGroup = '3-5' | '6-8' | '9-12';
@@ -32,6 +33,7 @@ export interface UserPreferences {
   notifications: NotificationPreferences;
   createdAt?: Date;
   updatedAt?: Date;
+  fontSize?: 'small' | 'medium' | 'large';
 }
 
 class PreferencesError extends Error {
@@ -128,8 +130,31 @@ class UserPreferencesService {
         return cached;
       }
 
-      const user = await this.retry(() => clerkClient.users.getUser(userId));
-      const preferences = user.publicMetadata.preferences as UserPreferences | undefined;
+      const cookieStore = cookies();
+      const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          cookies: {
+            get(name: string) {
+              return cookieStore.get(name)?.value;
+            },
+          },
+        }
+      );
+
+      const { data, error } = await supabase
+        .from('user_preferences')
+        .select('preferences')
+        .eq('user_id', userId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching user preferences:', error);
+        return null;
+      }
+
+      const preferences = data?.preferences as UserPreferences | undefined;
 
       if (!preferences) {
         return null;
@@ -140,6 +165,7 @@ class UserPreferencesService {
 
       return preferences;
     } catch (error) {
+      console.error('Error in getUserPreferences:', error);
       throw new PreferencesError('Failed to fetch user preferences', 'FETCH_ERROR', userId);
     }
   }
@@ -151,25 +177,40 @@ class UserPreferencesService {
     try {
       this.validatePreferences(updates);
 
-      const user = await this.retry(() => clerkClient.users.getUser(userId));
-      const currentPreferences =
-        (user.publicMetadata.preferences as UserPreferences) || this.getDefaultPreferences(userId);
+      const cookieStore = cookies();
+      const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          cookies: {
+            get(name: string) {
+              return cookieStore.get(name)?.value;
+            },
+          },
+        }
+      );
+
+      const { error } = await supabase.from('user_preferences').upsert({
+        user_id: userId,
+        preferences: updates,
+        updated_at: new Date().toISOString(),
+      });
+
+      if (error) {
+        console.error('Error updating user preferences:', error);
+        throw new Error('Failed to update user preferences');
+      }
+
+      const userPreferences = await this.getUserPreferences(userId);
+      if (!userPreferences) {
+        throw new PreferencesError('User preferences not found', 'NOT_FOUND', userId);
+      }
 
       const updatedPreferences: UserPreferences = {
-        ...currentPreferences,
+        ...userPreferences,
         ...updates,
-        userId,
         updatedAt: new Date(),
       };
-
-      await this.retry(() =>
-        clerkClient.users.updateUser(userId, {
-          publicMetadata: {
-            ...user.publicMetadata,
-            preferences: updatedPreferences,
-          },
-        })
-      );
 
       this.cache.set(userId, updatedPreferences);
       setTimeout(() => this.cache.delete(userId), this.cacheTimeout);
@@ -204,15 +245,26 @@ class UserPreferencesService {
 
   async deleteUserPreferences(userId: string): Promise<void> {
     try {
-      const user = await this.retry(() => clerkClient.users.getUser(userId));
-      await this.retry(() =>
-        clerkClient.users.updateUser(userId, {
-          publicMetadata: {
-            ...user.publicMetadata,
-            preferences: undefined,
+      const cookieStore = cookies();
+      const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          cookies: {
+            get(name: string) {
+              return cookieStore.get(name)?.value;
+            },
           },
-        })
+        }
       );
+
+      const { error } = await supabase.from('user_preferences').delete().eq('user_id', userId);
+
+      if (error) {
+        console.error('Error deleting user preferences:', error);
+        throw new PreferencesError('Failed to delete user preferences', 'DELETE_ERROR', userId);
+      }
+
       this.cache.delete(userId);
     } catch (error) {
       throw new PreferencesError('Failed to delete user preferences', 'DELETE_ERROR', userId);

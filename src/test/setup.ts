@@ -23,8 +23,9 @@ vi.mock('next/image', () => ({
 }));
 
 // Mock environment variables
-process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = 'test_key';
-process.env.CLERK_SECRET_KEY = 'test_secret';
+process.env.NEXT_PUBLIC_SUPABASE_URL = 'http://localhost:54321';
+process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key';
+process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key';
 process.env.UPSTASH_REDIS_REST_URL = 'https://test-redis-url.upstash.io';
 process.env.UPSTASH_REDIS_REST_TOKEN = 'test_redis_token';
 

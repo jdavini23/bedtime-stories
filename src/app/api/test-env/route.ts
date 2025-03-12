@@ -1,22 +1,19 @@
 import { NextResponse } from 'next/server';
 
 export async function GET() {
-  // Only return masked/partial information for security
-  const openaiKey = process.env.OPENAI_API_KEY || 'not-set';
-  const maskedKey =
-    openaiKey !== 'not-set'
-      ? `${openaiKey.substring(0, 7)}...${openaiKey.substring(openaiKey.length - 3)}`
-      : 'not-set';
-
   return NextResponse.json({
+    environment: process.env.NODE_ENV,
     openai: {
       keyExists: !!process.env.OPENAI_API_KEY,
-      keyFormat: maskedKey,
     },
-    clerk: {
-      publishableKeyExists: !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
-      secretKeyExists: !!process.env.CLERK_SECRET_KEY,
+    supabase: {
+      urlExists: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+      anonKeyExists: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      serviceRoleKeyExists: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
     },
-    nodeEnv: process.env.NODE_ENV || 'not-set',
+    upstash: {
+      urlExists: !!process.env.UPSTASH_REDIS_REST_URL,
+      tokenExists: !!process.env.UPSTASH_REDIS_REST_TOKEN,
+    },
   });
 }

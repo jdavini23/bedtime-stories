@@ -15,9 +15,9 @@ A Next.js application that generates personalized bedtime stories for children u
 - **Framework**: Next.js 15
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
-- **Authentication**: Clerk
-- **Database**: Vercel KV (Redis)
-- **AI**: OpenAI GPT-3.5 Turbo
+- **Authentication**: Supabase Auth
+- **Database**: Supabase + Vercel KV (Redis)
+- **AI**: OpenAI GPT-4 Turbo
 - **Deployment**: Vercel
 - **Testing**: Vitest
 - **Monitoring**: Sentry
@@ -28,33 +28,48 @@ A Next.js application that generates personalized bedtime stories for children u
 
 - Node.js 22+
 - npm 10+
-- Clerk Account
+- Supabase Account
 - OpenAI API Key (required for AI story generation)
 - Sentry Account (for error tracking and monitoring)
 
 ## Environment Variables
 
-Create a `.env.local` file with the following variables:
+Copy `.env.example` to `.env.local` and fill in the following required environment variables:
 
-```
-# OpenAI (server-side only)
+```bash
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+
+# OpenAI
 OPENAI_API_KEY=your_openai_api_key
 
-# Vercel KV
-KV_REST_API_URL=your_kv_url
-KV_REST_API_TOKEN=your_kv_token
-
-# Feature Flags
-ENABLE_MOCK_STORIES=false
-ENABLE_CACHING=true
-
-# Performance
-STORY_CACHE_TTL_SECONDS=86400
-API_TIMEOUT_MS=25000
-
-# Sentry
-NEXT_PUBLIC_SENTRY_DSN=your_sentry_dsn
+# Upstash Redis (for rate limiting)
+UPSTASH_REDIS_REST_URL=your_upstash_redis_url
+UPSTASH_REDIS_REST_TOKEN=your_upstash_redis_token
 ```
+
+### Setting up Supabase
+
+1. Create a new project at [supabase.com](https://supabase.com)
+2. Go to Project Settings > API
+3. Copy the Project URL to `NEXT_PUBLIC_SUPABASE_URL`
+4. Copy the anon public key to `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+5. Copy the service_role key to `SUPABASE_SERVICE_ROLE_KEY`
+
+### Setting up OpenAI
+
+1. Create an account at [platform.openai.com](https://platform.openai.com)
+2. Go to API Keys and create a new secret key
+3. Copy the key to `OPENAI_API_KEY`
+
+### Setting up Upstash Redis
+
+1. Create an account at [upstash.com](https://upstash.com)
+2. Create a new Redis database
+3. Go to REST API and copy the URL to `UPSTASH_REDIS_REST_URL`
+4. Copy the token to `UPSTASH_REDIS_REST_TOKEN`
 
 ## Getting Started
 
@@ -84,18 +99,17 @@ Generates a personalized bedtime story.
 
 **Response:**
 
-- Create a Clerk account at [Clerk.com](https://clerk.com)
-- Create a new application
-- Copy your Publishable and Secret keys into `.env.local`
-
-5. Configure OpenAI (Required for AI story generation)
-
-- Create an OpenAI account at [OpenAI](https://platform.openai.com/)
-- Navigate to the API keys section in your account
-- Generate a new API key
-- Add the key to `.env.local` as `OPENAI_API_KEY=your_key_here` (server-side only for security)
-- The application will use a fallback mock story generator if no API key is provided, but for the
-  full experience, an OpenAI API key is required
+```json
+{
+  "title": "Alex's Space Dinosaur Adventure",
+  "content": "Once upon a time...",
+  "metadata": {
+    "theme": "adventure",
+    "ageRange": "5-8",
+    "readingTime": "5 minutes"
+  }
+}
+```
 
 ## Development Scripts
 
@@ -120,15 +134,15 @@ Generates a personalized bedtime story.
 ## Security and Performance
 
 - Trufflehog for secrets scanning
-- Clerk for secure authentication
+- Supabase Auth for secure authentication
 - Vercel Speed Insights
 - Vercel Analytics
 - Sentry for error tracking and performance monitoring
 
 ## OpenAI Integration
 
-The application uses OpenAI's GPT models to generate personalized stories based on user input. The
-integration works as follows:
+The application uses OpenAI's GPT-4 Turbo model to generate personalized stories based on user
+input. The integration works as follows:
 
 1. User inputs (child name, interests, theme, etc.) are collected through the StoryWizard component
 2. The data is sent to the `/api/generateStory` endpoint
@@ -219,7 +233,7 @@ If you prefer to run the deployment steps individually:
 
 Create a `.env.production` file with the following variables:
 
-```
+```bash
 # Sentry DSN (use environment variable in production)
 NEXT_PUBLIC_SENTRY_DSN=${SENTRY_DSN}
 

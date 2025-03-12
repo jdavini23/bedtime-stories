@@ -17,24 +17,20 @@ dotenv.config();
 // Define required environment variables for different environments
 const requiredVars = {
   development: [
-    'NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY',
-    'CLERK_SECRET_KEY',
+    'NEXT_PUBLIC_SUPABASE_URL',
+    'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+    'SUPABASE_SERVICE_ROLE_KEY',
     'OPENAI_API_KEY',
-    'KV_REST_API_URL',
-    'KV_REST_API_TOKEN',
-    'NEXT_PUBLIC_SENTRY_DSN',
+    'UPSTASH_REDIS_REST_URL',
+    'UPSTASH_REDIS_REST_TOKEN',
   ],
   production: [
-    'NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY',
-    'CLERK_SECRET_KEY',
+    'NEXT_PUBLIC_SUPABASE_URL',
+    'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+    'SUPABASE_SERVICE_ROLE_KEY',
     'OPENAI_API_KEY',
-    'KV_REST_API_URL',
-    'KV_REST_API_TOKEN',
-    'NEXT_PUBLIC_SENTRY_DSN',
-    'SENTRY_AUTH_TOKEN',
-    'SENTRY_ORG',
-    'SENTRY_PROJECT',
-    'NEXT_PUBLIC_APP_URL',
+    'UPSTASH_REDIS_REST_URL',
+    'UPSTASH_REDIS_REST_TOKEN',
   ],
 };
 
@@ -60,63 +56,39 @@ const colors = {
 // Define required variables and their validation rules
 const requiredVariables = {
   // Authentication
-  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: {
+  NEXT_PUBLIC_SUPABASE_URL: {
     required: true,
-    validate: (value) => value.startsWith('pk_'),
-    errorMessage: 'Must start with pk_',
+    validate: (value) => value.startsWith('https://') && value.includes('.supabase.co'),
+    errorMessage: 'Must be a valid Supabase URL',
   },
-  CLERK_SECRET_KEY: {
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: {
     required: true,
-    validate: (value) => value.startsWith('sk_'),
-    errorMessage: 'Must start with sk_',
+    validate: (value) => value.startsWith('eyJ') && value.length >= 100,
+    errorMessage: 'Must be a valid Supabase anon key',
+  },
+  SUPABASE_SERVICE_ROLE_KEY: {
+    required: true,
+    validate: (value) => value.startsWith('eyJ') && value.length >= 100,
+    errorMessage: 'Must be a valid Supabase service role key',
   },
 
   // API Keys
   OPENAI_API_KEY: {
     required: true,
-    validate: (value) => value.startsWith('sk-'),
+    validate: (value) => value.startsWith('sk-') || value === 'mock',
     errorMessage: 'Must be a valid OpenAI API key',
   },
 
   // Database
-  KV_REST_API_URL: {
+  UPSTASH_REDIS_REST_URL: {
     required: true,
-    validate: (value) => value.startsWith('https://'),
-    errorMessage: 'Must be a valid URL starting with https://',
+    validate: (value) => value.startsWith('https://') && value.includes('.upstash.io'),
+    errorMessage: 'Must be a valid Upstash Redis URL',
   },
-  KV_REST_API_TOKEN: {
+  UPSTASH_REDIS_REST_TOKEN: {
     required: true,
-    validate: (value) => value.length > 20,
-    errorMessage: 'Must be a valid token with sufficient length',
-  },
-
-  // Sentry Configuration
-  NEXT_PUBLIC_SENTRY_DSN: {
-    required: true,
-    validate: (value) => value.startsWith('https://'),
-    errorMessage: 'Must be a valid Sentry DSN',
-  },
-  SENTRY_AUTH_TOKEN: {
-    required: true,
-    validate: (value) => value.length >= 32,
-    errorMessage: 'Must be a valid auth token with sufficient length',
-  },
-  SENTRY_ORG: {
-    required: true,
-    validate: (value) => typeof value === 'string',
-    errorMessage: 'Must be a valid organization name',
-  },
-  SENTRY_PROJECT: {
-    required: true,
-    validate: (value) => typeof value === 'string',
-    errorMessage: 'Must be a valid project name',
-  },
-
-  // App Configuration
-  NEXT_PUBLIC_APP_URL: {
-    required: true,
-    validate: (value) => value.startsWith('https://'),
-    errorMessage: 'Must be a valid URL starting with https://',
+    validate: (value) => value.length >= 50,
+    errorMessage: 'Must be a valid Upstash Redis token',
   },
 };
 
@@ -230,10 +202,7 @@ function checkSecurityIssues(env) {
   // Check for environment variables that should not be exposed to the client
   Object.entries(env).forEach(([key, value]) => {
     if (
-      (key.includes('SECRET') ||
-        key.includes('PASSWORD') ||
-        key === 'OPENAI_API_KEY' ||
-        key === 'CLERK_SECRET_KEY') &&
+      (key.includes('SECRET') || key.includes('PASSWORD') || key === 'OPENAI_API_KEY') &&
       key.startsWith('NEXT_PUBLIC_')
     ) {
       issues.push(`${key} should not be exposed to the client (remove NEXT_PUBLIC_ prefix)`);

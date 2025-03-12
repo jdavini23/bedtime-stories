@@ -21,7 +21,7 @@ export default function ProfilePage() {
       try {
         // First, set the email from the auth user
         setEmail(user.email || '');
-        
+
         // Then fetch additional user data from profiles table
         const { data, error } = await supabase
           .from('profiles')
@@ -47,25 +47,23 @@ export default function ProfilePage() {
 
   const handleSaveProfile = async () => {
     if (!user || !supabase) return;
-    
+
     setIsSaving(true);
     setMessage(null);
 
     try {
       // Save profile data to the profiles table
-      const { error } = await supabase
-        .from('profiles')
-        .upsert({
-          id: user.id,
-          display_name: displayName,
-          updated_at: new Date().toISOString(),
-        });
+      const { error } = await supabase.from('profiles').upsert({
+        id: user.id,
+        display_name: displayName,
+        updated_at: new Date().toISOString(),
+      });
 
       if (error) throw error;
-      
+
       setMessage({
         text: 'Profile updated successfully!',
-        type: 'success'
+        type: 'success',
       });
 
       logger.info('Profile updated successfully', { userId: user.id });
@@ -73,7 +71,7 @@ export default function ProfilePage() {
       logger.error('Error updating profile', { error });
       setMessage({
         text: 'Failed to update profile. Please try again.',
-        type: 'error'
+        type: 'error',
       });
     } finally {
       setIsSaving(false);
@@ -92,13 +90,15 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-gradient-to-b from-cloud to-lavender/20 dark:from-midnight dark:to-primary/20 p-4">
       <div className="container mx-auto py-8">
         <div className="max-w-md mx-auto bg-white dark:bg-gray-900 rounded-xl shadow-dreamy p-8">
-          <h1 className="text-3xl font-bold text-midnight dark:text-text-primary mb-6">Your Profile</h1>
+          <h1 className="text-3xl font-bold text-midnight dark:text-text-primary mb-6">
+            Your Profile
+          </h1>
 
           {message && (
-            <div 
+            <div
               className={`mb-6 p-3 rounded-lg text-sm ${
-                message.type === 'success' 
-                  ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' 
+                message.type === 'success'
+                  ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200'
                   : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
               }`}
             >
@@ -108,7 +108,10 @@ export default function ProfilePage() {
 
           <div className="space-y-6">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
                 Email
               </label>
               <Input
@@ -122,7 +125,10 @@ export default function ProfilePage() {
             </div>
 
             <div>
-              <label htmlFor="displayName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label
+                htmlFor="displayName"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
                 Display Name
               </label>
               <Input

@@ -74,9 +74,8 @@ export default function Footer() {
 
         <div className="border-t border-text-primary/20 pt-6 text-center">
           <p>
-            Made with{' '}
-            <Heart size={16} className="inline text-red-500" />{' '}
-            for parents and kids. © {new Date().getFullYear()} Step Into Story Time
+            Made with <Heart size={16} className="inline text-red-500" /> for parents and kids. ©{' '}
+            {new Date().getFullYear()} Step Into Story Time
           </p>
         </div>
       </div>

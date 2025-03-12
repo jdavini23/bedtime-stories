@@ -1,10 +1,10 @@
 'use client';
 
-import { useUser } from '@clerk/nextjs';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { useUser } from '@/hooks/useUser';
 
 export default function ProfilePage() {
   const { isLoaded, isSignedIn, user } = useUser();
@@ -51,8 +51,8 @@ export default function ProfilePage() {
         <div className="flex items-center mb-6">
           {user.imageUrl ? (
             <Image
-              src={user.imageUrl}
-              alt={`${user.firstName}'s profile`}
+              src={user.publicMetadata?.imageUrl || ''}
+              alt={`${user.publicMetadata?.firstName || 'User'}'s profile`}
               width={80}
               height={80}
               className="rounded-full mr-4"

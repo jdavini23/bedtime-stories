@@ -39,6 +39,7 @@ yarn-error.log*
 # IDE and editor files
 .idea/
 .vscode/
+.history/
 *.swp
 *.swo
 
@@ -46,9 +47,7 @@ yarn-error.log*
 .DS_Store
 Thumbs.db
 
-# Clerk
-.clerk
-clerk.json
+# Browser tools and Perplexity
 browser-tools-mcp/
 perplexity-mcp/
 
@@ -59,6 +58,4 @@ env-setup*
 *.bat
 *.sh
 
-# clerk configuration (can include secrets)
-/.clerk/
 .vercel

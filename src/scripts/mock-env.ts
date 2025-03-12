@@ -1,79 +1,26 @@
 /**
  * Mock environment configuration for testing
  */
-export const env = {
+export const mockEnv = {
+  NEXT_PUBLIC_SUPABASE_URL: 'https://example.supabase.co',
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: 'mock-anon-key',
+  SUPABASE_SERVICE_ROLE_KEY: 'mock-service-role-key',
+  OPENAI_API_KEY: 'sk-mock-openai-key',
+  UPSTASH_REDIS_REST_URL: 'https://example.upstash.io',
+  UPSTASH_REDIS_REST_TOKEN: 'mock-upstash-token',
   NODE_ENV: 'test',
-  OPENAI_API_KEY: 'test-openai-key',
-  GEMINI_API_KEY: 'test-gemini-key',
-  CLERK_SECRET_KEY: 'test-clerk-key',
-  CLERK_PUBLISHABLE_KEY: 'test-clerk-publishable-key',
-  REDIS_URL: 'redis://localhost:6379',
-  REDIS_TOKEN: 'test-token',
-  SUPABASE_URL: 'http://localhost:54321',
-  SUPABASE_ANON_KEY: 'test-anon-key',
-  SUPABASE_SERVICE_ROLE_KEY: 'test-service-role-key',
-  NEXT_PUBLIC_SUPABASE_URL: 'http://localhost:54321',
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: 'test-anon-key',
-  NEXT_PUBLIC_SITE_URL: 'http://localhost:3000',
-  NEXT_PUBLIC_VERCEL_URL: 'localhost:3000',
-  NEXT_PUBLIC_VERCEL_ENV: 'development',
-  NEXT_PUBLIC_VERCEL: '0',
-  VERCEL: '0',
-  VERCEL_ENV: 'development',
-  VERCEL_URL: 'localhost:3000',
-  SITE_URL: 'http://localhost:3000',
-  STRIPE_SECRET_KEY: 'test-stripe-key',
-  STRIPE_WEBHOOK_SECRET: 'test-webhook-secret',
-  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: 'test-publishable-key',
-  NEXT_PUBLIC_STRIPE_PRO_PRICE_ID: 'test-price-id',
-  NEXT_PUBLIC_STRIPE_PREMIUM_PRICE_ID: 'test-premium-price-id',
-  NEXT_PUBLIC_STRIPE_BASIC_PRICE_ID: 'test-basic-price-id',
-  NEXT_PUBLIC_STRIPE_PORTAL_LINK: 'http://localhost:3000/portal',
-  NEXT_PUBLIC_STRIPE_SUCCESS_URL: 'http://localhost:3000/success',
-  NEXT_PUBLIC_STRIPE_CANCEL_URL: 'http://localhost:3000/cancel',
-  NEXT_PUBLIC_STRIPE_PAYMENT_LINK_PRO: 'http://localhost:3000/payment/pro',
-  NEXT_PUBLIC_STRIPE_PAYMENT_LINK_PREMIUM: 'http://localhost:3000/payment/premium',
-  NEXT_PUBLIC_STRIPE_PAYMENT_LINK_BASIC: 'http://localhost:3000/payment/basic',
-  NEXT_PUBLIC_STRIPE_PORTAL_LINK_PRO: 'http://localhost:3000/portal/pro',
-  NEXT_PUBLIC_STRIPE_PORTAL_LINK_PREMIUM: 'http://localhost:3000/portal/premium',
-  NEXT_PUBLIC_STRIPE_PORTAL_LINK_BASIC: 'http://localhost:3000/portal/basic',
-  NEXT_PUBLIC_STRIPE_PAYMENT_MODE: 'payment',
-  NEXT_PUBLIC_STRIPE_ALLOW_PROMOTION_CODES: 'true',
-  NEXT_PUBLIC_STRIPE_SUBMIT_TYPE: 'pay',
-  NEXT_PUBLIC_STRIPE_BILLING_ADDRESS_COLLECTION: 'auto',
-  NEXT_PUBLIC_STRIPE_TAX_RATES: 'test-tax-rate',
-  NEXT_PUBLIC_STRIPE_SHIPPING_RATES: 'test-shipping-rate',
-  NEXT_PUBLIC_STRIPE_CUSTOMER_EMAIL: 'test@example.com',
-  NEXT_PUBLIC_STRIPE_CUSTOMER_DESCRIPTION: 'Test Customer',
-  NEXT_PUBLIC_STRIPE_CUSTOMER_NAME: 'Test Customer',
-  NEXT_PUBLIC_STRIPE_CUSTOMER_PHONE: '+1234567890',
-  NEXT_PUBLIC_STRIPE_CUSTOMER_ADDRESS: '123 Test St',
-  NEXT_PUBLIC_STRIPE_CUSTOMER_CITY: 'Test City',
-  NEXT_PUBLIC_STRIPE_CUSTOMER_STATE: 'Test State',
-  NEXT_PUBLIC_STRIPE_CUSTOMER_POSTAL_CODE: '12345',
-  NEXT_PUBLIC_STRIPE_CUSTOMER_COUNTRY: 'US',
-  NEXT_PUBLIC_STRIPE_CUSTOMER_SHIPPING_NAME: 'Test Customer',
-  NEXT_PUBLIC_STRIPE_CUSTOMER_SHIPPING_PHONE: '+1234567890',
-  NEXT_PUBLIC_STRIPE_CUSTOMER_SHIPPING_ADDRESS: '123 Test St',
-  NEXT_PUBLIC_STRIPE_CUSTOMER_SHIPPING_CITY: 'Test City',
-  NEXT_PUBLIC_STRIPE_CUSTOMER_SHIPPING_STATE: 'Test State',
-  NEXT_PUBLIC_STRIPE_CUSTOMER_SHIPPING_POSTAL_CODE: '12345',
-  NEXT_PUBLIC_STRIPE_CUSTOMER_SHIPPING_COUNTRY: 'US',
-  NEXT_PUBLIC_STRIPE_CUSTOMER_TAX_EXEMPT: 'none',
-  NEXT_PUBLIC_STRIPE_CUSTOMER_TAX_ID_TYPE: 'us_ein',
-  NEXT_PUBLIC_STRIPE_CUSTOMER_TAX_ID_VALUE: '000000000',
-  NEXT_PUBLIC_STRIPE_CUSTOMER_CURRENCY: 'usd',
-  NEXT_PUBLIC_STRIPE_CUSTOMER_LOCALE: 'en',
-  NEXT_PUBLIC_STRIPE_CUSTOMER_METADATA: '{}',
-  NEXT_PUBLIC_STRIPE_CUSTOMER_DESCRIPTION_PREFIX: 'Test',
-  NEXT_PUBLIC_STRIPE_CUSTOMER_STATEMENT_DESCRIPTOR: 'Test',
-  NEXT_PUBLIC_STRIPE_CUSTOMER_STATEMENT_DESCRIPTOR_SUFFIX: 'Test',
-  NEXT_PUBLIC_STRIPE_CUSTOMER_RECEIPT_EMAIL: 'test@example.com',
-  NEXT_PUBLIC_STRIPE_CUSTOMER_SETUP_FUTURE_USAGE: 'off_session',
-  NEXT_PUBLIC_STRIPE_CUSTOMER_PAYMENT_METHOD_TYPES: 'card',
-  NEXT_PUBLIC_STRIPE_CUSTOMER_PAYMENT_METHOD_OPTIONS: '{}',
-  NEXT_PUBLIC_STRIPE_CUSTOMER_PAYMENT_INTENT_DATA: '{}',
-  NEXT_PUBLIC_STRIPE_CUSTOMER_SUBSCRIPTION_DATA: '{}',
-  NEXT_PUBLIC_STRIPE_CUSTOMER_TRIAL_FROM_PLAN: 'true',
-  NEXT_PUBLIC_STRIPE_CUSTOMER_TRIAL_PERIOD_DAYS: '0',
-};
+} as const;
+
+export type MockEnv = typeof mockEnv;
+
+export function setupMockEnv(): void {
+  Object.entries(mockEnv).forEach(([key, value]) => {
+    process.env[key] = value;
+  });
+}
+
+export function clearMockEnv(): void {
+  Object.keys(mockEnv).forEach((key) => {
+    delete process.env[key];
+  });
+}

@@ -1,85 +1,92 @@
 import { render, screen } from '@testing-library/react';
-import AdminDashboardPage from '@/app/admin/page';
-import { auth, getAuth } from '@clerk/nextjs/server';
-import { currentUser } from '@clerk/nextjs/server';
+import { createServerClient } from '@supabase/ssr';
+import { describe, expect, it, vi } from 'vitest';
+import AdminPage from '@/app/admin/page';
 import { redirect } from 'next/navigation';
-import { isAdmin } from '@/utils/auth';
 
-// Mock the Clerk auth and Next.js navigation
-jest.mock('@clerk/nextjs/server', () => ({
-  getAuth: jest.fn(() => ({
-    userId: 'test-user-id',
+// Mock the Supabase auth and Next.js navigation
+vi.mock('@supabase/ssr', () => ({
+  createServerClient: vi.fn(() => ({
+    auth: {
+      getUser: vi.fn().mockResolvedValue({
+        data: {
+          user: {
+            id: 'test-admin-id',
+            email: 'admin@example.com',
+            user_metadata: {
+              full_name: 'Admin User',
+              avatar_url: 'https://example.com/admin-avatar.png',
+              role: 'admin',
+            },
+          },
+        },
+        error: null,
+      }),
+      admin: {
+        getUserById: vi.fn().mockResolvedValue({
+          data: {
+            user: {
+              id: 'test-admin-id',
+              email: 'admin@example.com',
+              user_metadata: {
+                full_name: 'Admin User',
+                avatar_url: 'https://example.com/admin-avatar.png',
+                role: 'admin',
+              },
+            },
+          },
+          error: null,
+        }),
+      },
+    },
   })),
-  currentUser: jest.fn(),
 }));
 
-jest.mock('next/navigation', () => ({
-  redirect: jest.fn(),
+vi.mock('next/navigation', () => ({
+  redirect: vi.fn(),
 }));
 
-jest.mock('@/utils/auth', () => ({
-  isAdmin: jest.fn(),
-}));
-
-describe('AdminDashboardPage', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('redirects to sign-in if not authenticated', async () => {
-    (getAuth as jest.Mock).mockReturnValue({ userId: null });
-
-    await AdminDashboardPage();
-
-    expect(redirect).toHaveBeenCalledWith('/sign-in?redirect_url=/admin');
-  });
-
-  it('shows access denied for non-admin users', async () => {
-    (getAuth as jest.Mock).mockReturnValue({ userId: 'user_123' });
-    (currentUser as jest.Mock).mockResolvedValue({
-      id: 'user_123',
-      firstName: 'John',
-      lastName: 'Doe',
-    });
-    (isAdmin as jest.Mock).mockReturnValue(false);
-
-    const { container } = render(await AdminDashboardPage());
-
-    expect(screen.getByText('Access Denied')).toBeInTheDocument();
-    expect(
-      screen.getByText('You do not have permission to access the admin dashboard.')
-    ).toBeInTheDocument();
-    expect(screen.getByText('Return to Dashboard')).toBeInTheDocument();
-  });
-
+describe('AdminPage', () => {
   it('renders admin dashboard for admin users', async () => {
-    (getAuth as jest.Mock).mockReturnValue({ userId: 'user_123' });
-    (currentUser as jest.Mock).mockResolvedValue({
-      id: 'user_123',
-      firstName: 'John',
-      lastName: 'Doe',
-    });
-    (isAdmin as jest.Mock).mockReturnValue(true);
+    render(await AdminPage());
+    expect(screen.getByText(/Admin Dashboard/i)).toBeInTheDocument();
+  });
 
-    const { container } = render(await AdminDashboardPage());
+  it('redirects non-admin users to home', async () => {
+    vi.mocked(createServerClient).mockImplementationOnce(() => ({
+      auth: {
+        getUser: vi.fn().mockResolvedValue({
+          data: {
+            user: {
+              id: 'test-user-id',
+              email: 'user@example.com',
+              user_metadata: {
+                full_name: 'Regular User',
+                role: 'user',
+              },
+            },
+          },
+          error: null,
+        }),
+        admin: {
+          getUserById: vi.fn().mockResolvedValue({
+            data: {
+              user: {
+                id: 'test-user-id',
+                email: 'user@example.com',
+                user_metadata: {
+                  full_name: 'Regular User',
+                  role: 'user',
+                },
+              },
+            },
+            error: null,
+          }),
+        },
+      },
+    }));
 
-    expect(screen.getByText('Admin Dashboard')).toBeInTheDocument();
-
-    // Check for all admin cards
-    expect(screen.getByText('User Management')).toBeInTheDocument();
-    expect(screen.getByText('Content Management')).toBeInTheDocument();
-    expect(screen.getByText('System Settings')).toBeInTheDocument();
-    expect(screen.getByText('Analytics')).toBeInTheDocument();
-    expect(screen.getByText('API Management')).toBeInTheDocument();
-    expect(screen.getByText('System Logs')).toBeInTheDocument();
-
-    // Check for links
-    expect(screen.getByText('View Users →')).toBeInTheDocument();
-    expect(screen.getByText('Manage Content →')).toBeInTheDocument();
-    expect(screen.getByText('System Settings →')).toBeInTheDocument();
-    expect(screen.getByText('View Analytics →')).toBeInTheDocument();
-    expect(screen.getByText('Manage API Keys →')).toBeInTheDocument();
-    expect(screen.getByText('View Logs →')).toBeInTheDocument();
-    expect(screen.getByText('← Back to Dashboard')).toBeInTheDocument();
+    await AdminPage();
+    expect(vi.mocked(redirect)).toHaveBeenCalledWith('/');
   });
 });

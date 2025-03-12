@@ -1,6 +1,7 @@
 # Supabase Authentication Integration Guide
 
-This document provides a comprehensive guide on how Supabase authentication is integrated into the Bedtime Stories application.
+This document provides a comprehensive guide on how Supabase authentication is integrated into the
+Bedtime Stories application.
 
 ## Overview
 
@@ -14,7 +15,9 @@ The application uses Supabase for both authentication and database functionality
 
 ### 1. Authentication Provider
 
-Located at `src/providers/SupabaseAuthProvider.tsx`, this provider creates and manages the Supabase client, handles user authentication state, and provides authentication methods throughout the application:
+Located at `src/providers/SupabaseAuthProvider.tsx`, this provider creates and manages the Supabase
+client, handles user authentication state, and provides authentication methods throughout the
+application:
 
 - `signIn(email, password)`: Sign in existing users
 - `signUp(email, password)`: Register new users
@@ -22,8 +25,10 @@ Located at `src/providers/SupabaseAuthProvider.tsx`, this provider creates and m
 
 ### 2. Client-Side Hooks
 
-- **useSupabase** (`src/providers/SupabaseAuthProvider.tsx`): Hook to access the Supabase client and authentication methods
-- **useSupabaseClient** (`src/hooks/useSupabaseClient.ts`): Hook to create and manage a Supabase client
+- **useSupabase** (`src/providers/SupabaseAuthProvider.tsx`): Hook to access the Supabase client and
+  authentication methods
+- **useSupabaseClient** (`src/hooks/useSupabaseClient.ts`): Hook to create and manage a Supabase
+  client
 - **useSession** (`src/hooks/useSession.ts`): Hook to manage user session state
 
 ### 3. Server-Side Utilities
@@ -38,21 +43,25 @@ Located at `src/utils/supabase-server.ts`, these utilities help with server-side
 
 ### 4. Middleware
 
-Located at `src/middleware.ts`, this middleware protects routes that require authentication and redirects users based on their authentication state.
+Located at `src/middleware.ts`, this middleware protects routes that require authentication and
+redirects users based on their authentication state.
 
 ## Authentication Flow
 
 1. **User Registration**:
+
    - User submits email and password through the signup form
    - Supabase creates a new user and sends verification email (if configured)
    - User is redirected to login or home page (depending on email verification settings)
 
 2. **User Login**:
+
    - User submits credentials through the login form
    - Supabase authenticates the user and creates a new session
    - User is redirected to the home page or protected route
 
 3. **Session Management**:
+
    - Session is stored in cookies and automatically refreshed
    - `SupabaseAuthProvider` listens for auth state changes
    - Protected routes check for valid sessions using middleware
@@ -93,16 +102,16 @@ CREATE TABLE profiles (
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 
 -- Create policies
-CREATE POLICY "Users can read their own profile" 
-  ON profiles FOR SELECT 
+CREATE POLICY "Users can read their own profile"
+  ON profiles FOR SELECT
   USING (auth.uid() = id);
 
-CREATE POLICY "Users can update their own profile" 
-  ON profiles FOR UPDATE 
+CREATE POLICY "Users can update their own profile"
+  ON profiles FOR UPDATE
   USING (auth.uid() = id);
 
 -- Create a trigger to create a profile when a user is created
-CREATE OR REPLACE FUNCTION public.handle_new_user() 
+CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
   INSERT INTO public.profiles (id)
@@ -146,6 +155,7 @@ To test the authentication flow locally:
 ### Accessing Protected Routes
 
 Routes under these paths require authentication:
+
 - `/story` - Creating stories
 - `/profile` - User profile
 - `/admin` - Admin functions

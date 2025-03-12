@@ -1,64 +1,124 @@
-import { UserPreferences } from '@/services/userPreferencesService';
-import { clerkClient } from '@clerk/nextjs';
-import { logger } from '@/utils/loggerInstance';
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
+import { logger } from '@/utils/logger';
+import { PostgrestError } from '@supabase/supabase-js';
 
-export async function getUserPreferences(userId: string | null): Promise<UserPreferences | null> {
-  try {
-    if (!userId) {
-      throw new Error('User ID is required');
+interface UserPreferences {
+  theme?: 'light' | 'dark';
+  fontSize?: 'small' | 'medium' | 'large';
+  language?: string;
+  notifications?: {
+    email?: boolean;
+    push?: boolean;
+  };
+}
+
+export class UserPreferencesService {
+  private static instance: UserPreferencesService;
+  private cache = new Map<string, UserPreferences>();
+
+  private constructor() {}
+
+  static getInstance(): UserPreferencesService {
+    if (!UserPreferencesService.instance) {
+      UserPreferencesService.instance = new UserPreferencesService();
     }
-    const user = await clerkClient.users.getUser(userId);
-    const preferences = user.publicMetadata.preferences as UserPreferences | undefined;
+    return UserPreferencesService.instance;
+  }
 
-    if (!preferences) {
+  private async getSupabaseClient() {
+    const cookieStore = cookies();
+    return createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value;
+          },
+        },
+      }
+    );
+  }
+
+  async getUserPreferences(userId: string): Promise<UserPreferences | null> {
+    try {
+      // Check cache first
+      const cachedPreferences = this.cache.get(userId);
+      if (cachedPreferences) {
+        return cachedPreferences;
+      }
+
+      const supabase = await this.getSupabaseClient();
+      const { data, error } = await supabase
+        .from('user_preferences')
+        .select('preferences')
+        .eq('user_id', userId)
+        .single();
+
+      if (error) {
+        logger.error('Error fetching user preferences:', { error: error.message });
+        return null;
+      }
+
+      const preferences = data?.preferences as UserPreferences;
+      if (preferences) {
+        this.cache.set(userId, preferences);
+      }
+
+      return preferences || null;
+    } catch (error) {
+      logger.error('Error in getUserPreferences:', { error: String(error) });
       return null;
     }
-
-    return {
-      ...preferences,
-      userId,
-    } as UserPreferences;
-  } catch (error) {
-    logger.error('Error fetching user preferences:', { error });
-    return null;
   }
-}
 
-export async function updateUserPreferences(
-  userId: string | null,
-  preferences: Partial<UserPreferences>
-): Promise<UserPreferences | null> {
-  try {
-    const user = await clerkClient.users.getUser(userId as string);
-    const currentPreferences = user.publicMetadata.preferences as UserPreferences | undefined;
+  async updateUserPreferences(
+    userId: string,
+    updates: Partial<UserPreferences>
+  ): Promise<UserPreferences | null> {
+    try {
+      const supabase = await this.getSupabaseClient();
+      const { error } = await supabase.from('user_preferences').upsert({
+        user_id: userId,
+        preferences: updates,
+        updated_at: new Date().toISOString(),
+      });
 
-    const updatedPreferences = {
-      ...currentPreferences,
-      ...preferences,
-      userId,
-    };
+      if (error) {
+        logger.error('Error updating user preferences:', { error: error.message });
+        return null;
+      }
 
-    await clerkClient.users.updateUser(userId as string, {
-      publicMetadata: {
-        ...user.publicMetadata,
-        preferences: updatedPreferences,
-      },
-    });
+      // Update cache
+      const currentPreferences = await this.getUserPreferences(userId);
+      const updatedPreferences = {
+        ...currentPreferences,
+        ...updates,
+      };
+      this.cache.set(userId, updatedPreferences);
 
-    return updatedPreferences as UserPreferences;
-  } catch (error) {
-    logger.error('Error updating user preferences:', { error });
-    return null;
+      return updatedPreferences;
+    } catch (error) {
+      logger.error('Error in updateUserPreferences:', { error: String(error) });
+      return null;
+    }
   }
-}
 
-export async function createDefaultUserPreferences(
-  userId: string | null
-): Promise<UserPreferences | null> {
-  const defaultPreferences: Partial<UserPreferences> = {
-    userId,
-    theme: 'light',
-  };
+  async deleteUserPreferences(userId: string): Promise<void> {
+    try {
+      const supabase = await this.getSupabaseClient();
+      const { error } = await supabase.from('user_preferences').delete().eq('user_id', userId);
 
-  return updateUserPreferences(userId, defaultPreferences);
+      if (error) {
+        logger.error('Error deleting user preferences:', { error: error.message });
+        throw error;
+      }
+
+      this.cache.delete(userId);
+    } catch (error) {
+      logger.error('Error in deleteUserPreferences:', { error: String(error) });
+      throw error;
+    }
+  }
 }

@@ -9,8 +9,9 @@ production.
 
 - [ ] Verify all required environment variables are set in `.env.production`
 - [ ] Ensure Sentry DSN is configured correctly
-- [ ] Check that Clerk authentication keys are valid
+- [ ] Check that Supabase authentication keys are valid
 - [ ] Verify OpenAI API key is valid and has sufficient quota
+- [ ] Verify Redis connection string is valid
 - [ ] Run environment verification: `npm run verify:env`
 
 ### 2. Build Configuration
@@ -47,11 +48,12 @@ production.
 
 1. Make sure your `.env.local` file contains all required variables:
 
-   - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
-   - CLERK_SECRET_KEY
+   - NEXT_PUBLIC_SUPABASE_URL
+   - NEXT_PUBLIC_SUPABASE_ANON_KEY
+   - SUPABASE_SERVICE_ROLE_KEY
    - OPENAI_API_KEY
-   - KV_REST_API_URL
-   - KV_REST_API_TOKEN
+   - UPSTASH_REDIS_REST_URL
+   - UPSTASH_REDIS_REST_TOKEN
    - NEXT_PUBLIC_SENTRY_DSN
 
 2. For Sentry configuration, also add:
@@ -81,8 +83,12 @@ To set up environment variables in Vercel:
 2. Follow the instructions to add each environment variable to Vercel using the Vercel CLI:
 
    ```bash
-   vercel env add NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
-   # Enter the value when prompted
+   vercel env add NEXT_PUBLIC_SUPABASE_URL
+   vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY
+   vercel env add SUPABASE_SERVICE_ROLE_KEY
+   vercel env add OPENAI_API_KEY
+   vercel env add UPSTASH_REDIS_REST_URL
+   vercel env add UPSTASH_REDIS_REST_TOKEN
    ```
 
 3. Repeat for all required environment variables.

@@ -6,12 +6,12 @@ import { StoryInput } from '@/types/story';
  */
 export function generateFallbackStory(input: any): string {
   const { childName, theme, gender, mainCharacterTraits = '', interests = [] } = input;
-  
+
   // Determine pronouns based on gender
   const pronouns = gender === 'boy' ? 'he' : gender === 'girl' ? 'she' : 'they';
   const possessive = gender === 'boy' ? 'his' : gender === 'girl' ? 'her' : 'their';
   const reflexive = gender === 'boy' ? 'himself' : gender === 'girl' ? 'herself' : 'themselves';
-  
+
   // Create settings and characters based on theme
   const settings: Record<string, string> = {
     adventure: 'magical forest',
@@ -23,9 +23,9 @@ export function generateFallbackStory(input: any): string {
     courage: 'challenging mountain',
     kindness: 'village in need',
     curiosity: 'mysterious cave',
-    creativity: 'artist workshop'
+    creativity: 'artist workshop',
   };
-  
+
   const companions: Record<string, string> = {
     adventure: 'brave explorer',
     fantasy: 'friendly dragon',
@@ -36,7 +36,7 @@ export function generateFallbackStory(input: any): string {
     courage: 'loyal companion',
     kindness: 'grateful squirrel',
     curiosity: 'curious rabbit',
-    creativity: 'colorful bird'
+    creativity: 'colorful bird',
   };
 
   const setting = settings[theme] || 'magical land';

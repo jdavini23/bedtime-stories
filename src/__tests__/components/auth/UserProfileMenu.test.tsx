@@ -1,6 +1,6 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { UserProfileMenu } from '@/components/auth/UserProfileMenu';
-import { useUser } from '@/hooks/useUser';
+import { useUser, type User } from '@/hooks/useUser';
 import { getUserDisplayName } from '@/utils/auth';
 
 // Mock the hooks and utilities
@@ -19,6 +19,16 @@ jest.mock('@/components/auth/SignOutButton', () => ({
 }));
 
 describe('UserProfileMenu', () => {
+  const createMockUser = (overrides = {}): User => ({
+    id: 'user_123',
+    email: 'john@example.com',
+    firstName: 'John',
+    lastName: 'Doe',
+    imageUrl: 'https://example.com/avatar.jpg',
+    isAdmin: false,
+    ...overrides,
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
     (getUserDisplayName as jest.Mock).mockReturnValue('John Doe');
@@ -50,12 +60,7 @@ describe('UserProfileMenu', () => {
   });
 
   it('renders user profile with image when signed in and image available', () => {
-    const mockUser = {
-      id: 'user_123',
-      firstName: 'John',
-      lastName: 'Doe',
-      imageUrl: 'https://example.com/avatar.jpg',
-    };
+    const mockUser = createMockUser();
 
     (useUser as jest.Mock).mockReturnValue({
       isLoaded: true,
@@ -68,16 +73,13 @@ describe('UserProfileMenu', () => {
     const profileImage = screen.getByAltText('Profile');
     expect(profileImage).toBeInTheDocument();
     expect(profileImage).toHaveAttribute('src', mockUser.imageUrl);
-    // Use getAllByText since the name appears multiple times
     expect(screen.getAllByText('John Doe')[0]).toBeInTheDocument();
   });
 
   it('renders user profile with initials when signed in but no image', () => {
-    const mockUser = {
-      id: 'user_123',
-      firstName: 'John',
-      lastName: 'Doe',
-    };
+    const mockUser = createMockUser({
+      imageUrl: undefined,
+    });
 
     (useUser as jest.Mock).mockReturnValue({
       isLoaded: true,
@@ -89,17 +91,11 @@ describe('UserProfileMenu', () => {
 
     const initialsAvatar = screen.getByText('J');
     expect(initialsAvatar).toBeInTheDocument();
-    // Use getAllByText since the name appears multiple times
     expect(screen.getAllByText('John Doe')[0]).toBeInTheDocument();
   });
 
   it('shows dropdown menu on hover', () => {
-    const mockUser = {
-      id: 'user_123',
-      firstName: 'John',
-      lastName: 'Doe',
-      isAdmin: false,
-    };
+    const mockUser = createMockUser();
 
     (useUser as jest.Mock).mockReturnValue({
       isLoaded: true,
@@ -109,26 +105,16 @@ describe('UserProfileMenu', () => {
 
     render(<UserProfileMenu />);
 
-    // Get the dropdown element
     const dropdown = screen.getByTestId('user-dropdown');
-
-    // Initially it should have the invisible class
     expect(dropdown).toHaveClass('invisible');
-
-    // We can't actually test the hover state with testing-library
-    // since it's CSS-based with group-hover. Instead, we'll verify
-    // the dropdown exists and has the right classes for hover behavior
     expect(dropdown).toHaveClass('group-hover:opacity-100');
     expect(dropdown).toHaveClass('group-hover:visible');
   });
 
   it('includes admin panel link for admin users', () => {
-    const mockUser = {
-      id: 'user_123',
-      firstName: 'John',
-      lastName: 'Doe',
+    const mockUser = createMockUser({
       isAdmin: true,
-    };
+    });
 
     (useUser as jest.Mock).mockReturnValue({
       isLoaded: true,
@@ -142,12 +128,7 @@ describe('UserProfileMenu', () => {
   });
 
   it('does not include admin panel link for non-admin users', () => {
-    const mockUser = {
-      id: 'user_123',
-      firstName: 'John',
-      lastName: 'Doe',
-      isAdmin: false,
-    };
+    const mockUser = createMockUser();
 
     (useUser as jest.Mock).mockReturnValue({
       isLoaded: true,
@@ -161,11 +142,7 @@ describe('UserProfileMenu', () => {
   });
 
   it('includes sign out button in dropdown', () => {
-    const mockUser = {
-      id: 'user_123',
-      firstName: 'John',
-      lastName: 'Doe',
-    };
+    const mockUser = createMockUser();
 
     (useUser as jest.Mock).mockReturnValue({
       isLoaded: true,

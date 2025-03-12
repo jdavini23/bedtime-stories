@@ -3,6 +3,7 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { logger } from '@/utils/logger';
 import { handleOpenAIError, validateApiKey, serializeError } from '@/utils/error-handlers';
+import { generateFallbackStory } from '@/utils/fallback-generator';
 
 // OpenAI API configuration
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
@@ -217,7 +218,7 @@ async function handleGenerateStory(params: any, userId: string) {
       logger.error('OpenAI API call failed after retries', serializeError(apiError));
 
       // Generate fallback content
-      const fallbackContent = generateFallbackStoryUtil(params);
+      const fallbackContent = generateFallbackStory(params);
 
       // Return error with fallback content
       return NextResponse.json(
@@ -241,9 +242,8 @@ async function handleGenerateStory(params: any, userId: string) {
       status: errorResponse.status,
       originalError: serializeError(error),
     });
-
     // Generate fallback story for the user
-    const fallbackContent = generateFallbackStoryUtil(params);
+    const fallbackContent = await generateFallbackStory(params);
 
     // Return error with fallback content
     return NextResponse.json(

@@ -90,39 +90,39 @@ CREATE POLICY "Users can delete their own stories" ON public.stories
     )
   );
 
--- Create a function to handle user creation from Clerk
-CREATE OR REPLACE FUNCTION public.handle_clerk_user_creation()
+-- Create a function to handle user creation from Supabase Auth
+CREATE OR REPLACE FUNCTION public.handle_user_creation()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.users (auth_id, email)
-  VALUES (NEW.id, NEW.email)
-  ON CONFLICT (auth_id) DO NOTHING;
+  INSERT INTO public.users (id, email, created_at, updated_at)
+  VALUES (NEW.id, NEW.email, NEW.created_at, NEW.updated_at);
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Create a function to update user metadata from Clerk
-CREATE OR REPLACE FUNCTION public.handle_clerk_metadata_update()
+-- Create a function to update user metadata
+CREATE OR REPLACE FUNCTION public.handle_metadata_update()
 RETURNS TRIGGER AS $$
-DECLARE
-  user_record RECORD;
 BEGIN
-  -- Find the user by auth_id
-  SELECT id INTO user_record FROM public.users WHERE auth_id = NEW.id;
-  
-  -- If user exists, update their metadata
-  IF FOUND THEN
-    INSERT INTO public.user_metadata (user_id, metadata)
-    VALUES (user_record.id, NEW.raw_app_metadata::jsonb)
-    ON CONFLICT (user_id) 
-    DO UPDATE SET 
-      metadata = NEW.raw_app_metadata::jsonb,
-      updated_at = NOW();
-  END IF;
-  
+  UPDATE public.users
+  SET metadata = NEW.raw_user_meta_data,
+      updated_at = NOW()
+  WHERE id = NEW.id;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Create a trigger for user creation
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_user_creation();
+
+-- Create a trigger for metadata updates
+CREATE TRIGGER on_auth_user_updated
+  AFTER UPDATE ON auth.users
+  FOR EACH ROW
+  WHEN (OLD.raw_user_meta_data IS DISTINCT FROM NEW.raw_user_meta_data)
+  EXECUTE FUNCTION public.handle_metadata_update();
 
 -- Grant necessary permissions
 GRANT ALL ON public.users TO anon, authenticated;

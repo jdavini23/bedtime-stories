@@ -1,287 +1,132 @@
-import { createSupabaseClient } from '@/lib/supabase';
-import { createAuthenticatedSupabaseClient } from '@/lib/supabase-auth';
-import { User } from '@/types/supabase';
-import { logger } from '@/utils/logger';
+import { createClient } from '@supabase/supabase-js';
+import { logger } from '@/utils/loggerInstance';
+import { Database } from '@/types/supabase';
 
 /**
  * Service for handling user operations with Supabase
  */
-export class SupabaseUserService {
-  /**
-   * Get a user by their Clerk auth ID
-   * @param authId The Clerk auth ID
-   * @returns The user or null if not found
-   */
-  static async getUserByAuthId(authId: string): Promise<User | null> {
-    try {
-      // Try to use authenticated client first (for server components)
-      let supabase;
-      try {
-        supabase = await createAuthenticatedSupabaseClient();
-      } catch (error) {
-        // Fall back to unauthenticated client
-        supabase = createSupabaseClient();
-        logger.warn('Using unauthenticated client for getUserByAuthId', { authId });
-      }
+export class UserService {
+  private static supabase = createClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
 
-      const { data, error } = await supabase
+  /**
+   * Get a user by their Supabase auth ID
+   * @param userId The Supabase user ID
+   * @returns The user record or null if not found
+   */
+  static async getUserById(userId: string) {
+    try {
+      const { data: user, error } = await this.supabase
         .from('users')
         .select('*')
-        .eq('auth_id', authId)
+        .eq('id', userId)
         .single();
 
       if (error) {
-        logger.error('Error fetching user by auth ID', { error, authId });
+        logger.error('Error fetching user by ID', { error, userId });
         return null;
       }
 
-      return data as User;
+      return user;
     } catch (error) {
-      logger.error('Exception fetching user by auth ID', { error, authId });
+      logger.error('Exception fetching user by ID', { error, userId });
       return null;
     }
   }
 
   /**
-   * Create a new user in Supabase
-   * @param authId The Clerk auth ID
+   * Create a new user
+   * @param userId The Supabase user ID
    * @param email The user's email
-   * @returns The created user or null if creation failed
+   * @returns The created user record or null if creation failed
    */
-  static async createUser(authId: string, email: string): Promise<User | null> {
+  static async createUser(userId: string, email: string) {
     try {
-      // Try to use authenticated client first (for server components)
-      let supabase;
-      try {
-        supabase = await createAuthenticatedSupabaseClient();
-      } catch (error) {
-        // Fall back to unauthenticated client
-        supabase = createSupabaseClient();
-        logger.warn('Using unauthenticated client for createUser', { authId });
-      }
-
-      // Check if user already exists
-      const existingUser = await this.getUserByAuthId(authId);
-      if (existingUser) {
-        return existingUser;
-      }
-
-      // Create new user
-      const { data, error } = await supabase
+      const { data: user, error } = await this.supabase
         .from('users')
-        .insert({
-          auth_id: authId,
-          email: email,
-        })
+        .insert([{ id: userId, email }])
         .select()
         .single();
 
       if (error) {
-        logger.error('Error creating user', { error, authId, email });
+        logger.error('Error creating user', { error, userId, email });
         return null;
       }
 
-      return data as User;
+      return user;
     } catch (error) {
-      logger.error('Exception creating user', { error, authId, email });
+      logger.error('Exception creating user', { error, userId, email });
       return null;
     }
   }
 
   /**
-   * Get or create a user in Supabase
-   * @param authId The Clerk auth ID
-   * @param email The user's email
-   * @returns The user or null if not found/created
+   * Update a user's metadata
+   * @param userId The Supabase user ID
+   * @param metadata The user metadata to update
+   * @returns The updated user record or null if update failed
    */
-  static async getOrCreateUser(authId: string, email: string): Promise<User | null> {
-    const user = await this.getUserByAuthId(authId);
-    if (user) {
+  static async updateUserMetadata(userId: string, metadata: Record<string, unknown>) {
+    try {
+      const { data: user, error } = await this.supabase
+        .from('users')
+        .update({ metadata })
+        .eq('id', userId)
+        .select()
+        .single();
+
+      if (error) {
+        logger.error('Error updating user metadata', { error, userId });
+        return null;
+      }
+
       return user;
+    } catch (error) {
+      logger.error('Exception updating user metadata', { error, userId });
+      return null;
     }
-
-    return await this.createUser(authId, email);
   }
 
   /**
-   * Delete a user from Supabase
-   * @param authId The Clerk auth ID
-   * @returns True if deletion was successful, false otherwise
+   * Delete a user and all their associated data
+   * @param userId The Supabase user ID
+   * @returns true if deletion was successful, false otherwise
    */
-  static async deleteUser(authId: string): Promise<boolean> {
+  static async deleteUser(userId: string) {
     try {
-      // Try to use authenticated client first (for server components)
-      let supabase;
-      try {
-        supabase = await createAuthenticatedSupabaseClient();
-      } catch (error) {
-        // Fall back to unauthenticated client
-        supabase = createSupabaseClient();
-        logger.warn('Using unauthenticated client for deleteUser', { authId });
-      }
-
-      const { error } = await supabase.from('users').delete().eq('auth_id', authId);
+      const { error } = await this.supabase.from('users').delete().eq('id', userId);
 
       if (error) {
-        logger.error('Error deleting user', { error, authId });
+        logger.error('Error deleting user', { error, userId });
         return false;
       }
 
       return true;
     } catch (error) {
-      logger.error('Exception deleting user', { error, authId });
+      logger.error('Exception deleting user', { error, userId });
       return false;
     }
   }
 
   /**
-   * Sync user metadata from Clerk to Supabase
-   * @param authId The Clerk auth ID
-   * @param metadata The user metadata from Clerk
-   * @returns True if sync was successful, false otherwise
+   * Get all users (admin only)
+   * @returns Array of user records or null if fetch failed
    */
-  static async syncUserMetadata(authId: string, metadata: Record<string, any>): Promise<boolean> {
+  static async getAllUsers() {
     try {
-      // Try to use authenticated client first (for server components)
-      let supabase;
-      try {
-        supabase = await createAuthenticatedSupabaseClient();
-      } catch (error) {
-        // Fall back to unauthenticated client
-        supabase = createSupabaseClient();
-        logger.warn('Using unauthenticated client for syncUserMetadata', { authId });
-      }
-
-      // Get the user
-      const user = await this.getUserByAuthId(authId);
-      if (!user) {
-        logger.error('User not found for metadata sync', { authId });
-        return false;
-      }
-
-      // Update user metadata in a separate table or column
-      // This example assumes you have a user_metadata table with a user_id foreign key
-      const { error } = await supabase.from('user_metadata').upsert(
-        {
-          user_id: user.id,
-          metadata: metadata,
-          updated_at: new Date().toISOString(),
-        },
-        {
-          onConflict: 'user_id',
-        }
-      );
+      const { data: users, error } = await this.supabase.from('users').select('*');
 
       if (error) {
-        logger.error('Error syncing user metadata', { error, authId });
-        return false;
+        logger.error('Error fetching all users', { error });
+        return null;
       }
 
-      return true;
+      return users;
     } catch (error) {
-      logger.error('Exception syncing user metadata', { error, authId });
-      return false;
-    }
-  }
-
-  /**
-   * Verify the connection between Clerk and Supabase
-   * @param authId The Clerk auth ID
-   * @returns An object with connection status and details
-   */
-  static async verifyClerkSupabaseConnection(authId: string): Promise<{
-    success: boolean;
-    userExists: boolean;
-    authStatus: string;
-    details?: string;
-    error?: any;
-  }> {
-    try {
-      // Try to use authenticated client
-      let supabase;
-      let authStatus = 'unauthenticated';
-
-      try {
-        supabase = await createAuthenticatedSupabaseClient();
-        authStatus = 'authenticated';
-      } catch (error) {
-        // Fall back to unauthenticated client
-        supabase = createSupabaseClient();
-        logger.warn('Using unauthenticated client for verification', { authId });
-      }
-
-      // First, check if the users table exists
-      try {
-        // Check if user exists - handle case where table might not exist
-        const { data, error } = await supabase
-          .from('users')
-          .select('*')
-          .eq('auth_id', authId)
-          .single();
-
-        if (error) {
-          // If error is not "no rows returned", it might be a table doesn't exist error
-          if (error.code !== 'PGRST116') {
-            // PGRST116 is "no rows returned"
-            logger.warn('Error querying users table, it might not exist yet', {
-              error,
-              code: error.code,
-              message: error.message,
-            });
-
-            return {
-              success: true, // Still consider this a success for connection testing
-              userExists: false,
-              authStatus,
-              details: 'Supabase connection successful, but users table may not exist yet',
-              tableStatus: 'Users table may need to be created',
-            };
-          }
-        }
-
-        // Test RLS by trying to access another table, but handle case where it might not exist
-        try {
-          const { error: rlsError } = await supabase.from('stories').select('count').limit(1);
-
-          return {
-            success: true,
-            userExists: !!data,
-            authStatus,
-            details: rlsError
-              ? 'User exists but RLS may be preventing access'
-              : 'Connection successful and RLS is working correctly',
-            error: rlsError,
-          };
-        } catch (storiesError) {
-          // Stories table might not exist, but connection is still successful
-          return {
-            success: true,
-            userExists: !!data,
-            authStatus,
-            details: 'Connection successful, but stories table may not exist yet',
-            error: null,
-          };
-        }
-      } catch (tableError) {
-        // This might happen if there's a more serious connection issue
-        logger.error('Exception querying Supabase tables', { tableError });
-        return {
-          success: false,
-          userExists: false,
-          authStatus,
-          details: 'Error accessing Supabase tables',
-          error: tableError,
-        };
-      }
-    } catch (error) {
-      logger.error('Exception verifying Clerk-Supabase connection', { error, authId });
-      return {
-        success: false,
-        userExists: false,
-        authStatus: 'error',
-        details: 'Exception occurred during verification',
-        error,
-      };
+      logger.error('Exception fetching all users', { error });
+      return null;
     }
   }
 }

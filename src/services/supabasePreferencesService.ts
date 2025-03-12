@@ -1,167 +1,93 @@
-import { createSupabaseClient } from '@/lib/supabase';
-import { Preference } from '@/types/supabase';
-import { logger } from '@/utils/logger';
-import { SupabaseUserService } from './supabaseUserService';
+import { createClient } from '@supabase/supabase-js';
+import { logger } from '@/utils/loggerInstance';
+import { Database } from '@/types/supabase';
 
 /**
  * Service for handling user preferences with Supabase
  */
-export class SupabasePreferencesService {
+export class PreferencesService {
+  private static supabase = createClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
   /**
-   * Get preferences for a user
-   * @param authId The Clerk auth ID
+   * Get user preferences
+   * @param userId The Supabase user ID
    * @returns The user preferences or null if not found
    */
-  static async getPreferences(authId: string): Promise<Preference | null> {
+  static async getUserPreferences(userId: string) {
     try {
-      const user = await SupabaseUserService.getUserByAuthId(authId);
-      if (!user) {
-        logger.warn('User not found when fetching preferences', { authId });
-        return null;
-      }
-
-      const supabase = createSupabaseClient();
-      const { data, error } = await supabase
-        .from('preferences')
+      const { data: preferences, error } = await this.supabase
+        .from('user_preferences')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .single();
 
       if (error) {
-        // If no preferences found, return null but don't log as error
-        if (error.code === 'PGRST116') {
-          logger.info('No preferences found for user', { authId });
-          return null;
-        }
-
-        logger.error('Error fetching preferences', { error, authId });
+        logger.error('Error fetching user preferences', { error, userId });
         return null;
       }
 
-      return data as Preference;
+      return preferences;
     } catch (error) {
-      logger.error('Exception fetching preferences', { error, authId });
+      logger.error('Exception fetching user preferences', { error, userId });
       return null;
     }
   }
 
   /**
-   * Save or update preferences for a user
-   * @param authId The Clerk auth ID
-   * @param preferences The preferences object
-   * @returns The saved preferences or null if saving failed
-   */
-  static async savePreferences(
-    authId: string,
-    preferences: Record<string, any>
-  ): Promise<Preference | null> {
-    try {
-      const user = await SupabaseUserService.getUserByAuthId(authId);
-      if (!user) {
-        logger.warn('User not found when saving preferences', { authId });
-        return null;
-      }
-
-      const supabase = createSupabaseClient();
-
-      // Check if preferences already exist
-      const existingPrefs = await this.getPreferences(authId);
-
-      if (existingPrefs) {
-        // Update existing preferences
-        const { data, error } = await supabase
-          .from('preferences')
-          .update({
-            preferences: preferences,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', existingPrefs.id)
-          .select()
-          .single();
-
-        if (error) {
-          logger.error('Error updating preferences', { error, authId });
-          return null;
-        }
-
-        return data as Preference;
-      } else {
-        // Create new preferences
-        const { data, error } = await supabase
-          .from('preferences')
-          .insert({
-            preferences: preferences,
-            user_id: user.id,
-          })
-          .select()
-          .single();
-
-        if (error) {
-          logger.error('Error creating preferences', { error, authId });
-          return null;
-        }
-
-        return data as Preference;
-      }
-    } catch (error) {
-      logger.error('Exception saving preferences', { error, authId });
-      return null;
-    }
-  }
-
-  /**
-   * Update specific preference values for a user
-   * @param authId The Clerk auth ID
-   * @param key The preference key to update
-   * @param value The new value
+   * Update user preferences
+   * @param userId The Supabase user ID
+   * @param preferences The preferences to update
    * @returns The updated preferences or null if update failed
    */
-  static async updatePreference(
-    authId: string,
-    key: string,
-    value: any
-  ): Promise<Preference | null> {
+  static async updateUserPreferences(userId: string, preferences: Record<string, unknown>) {
     try {
-      // Get current preferences
-      const currentPrefs = await this.getPreferences(authId);
+      const { data: updatedPreferences, error } = await this.supabase
+        .from('user_preferences')
+        .upsert(
+          {
+            user_id: userId,
+            preferences,
+            updated_at: new Date().toISOString(),
+          },
+          {
+            onConflict: 'user_id',
+          }
+        )
+        .select()
+        .single();
 
-      // Create or update preferences
-      const newPrefs = {
-        ...(currentPrefs?.preferences || {}),
-        [key]: value,
-      };
+      if (error) {
+        logger.error('Error updating user preferences', { error, userId });
+        return null;
+      }
 
-      return await this.savePreferences(authId, newPrefs);
+      return updatedPreferences;
     } catch (error) {
-      logger.error('Exception updating preference', { error, authId, key });
+      logger.error('Exception updating user preferences', { error, userId });
       return null;
     }
   }
 
   /**
-   * Delete preferences for a user
-   * @param authId The Clerk auth ID
-   * @returns True if deletion was successful, false otherwise
+   * Delete user preferences
+   * @param userId The Supabase user ID
+   * @returns true if deletion was successful, false otherwise
    */
-  static async deletePreferences(authId: string): Promise<boolean> {
+  static async deleteUserPreferences(userId: string) {
     try {
-      const user = await SupabaseUserService.getUserByAuthId(authId);
-      if (!user) {
-        logger.warn('User not found when deleting preferences', { authId });
-        return false;
-      }
-
-      const supabase = createSupabaseClient();
-      const { error } = await supabase.from('preferences').delete().eq('user_id', user.id);
+      const { error } = await this.supabase.from('user_preferences').delete().eq('user_id', userId);
 
       if (error) {
-        logger.error('Error deleting preferences', { error, authId });
+        logger.error('Error deleting user preferences', { error, userId });
         return false;
       }
 
       return true;
     } catch (error) {
-      logger.error('Exception deleting preferences', { error, authId });
+      logger.error('Exception deleting user preferences', { error, userId });
       return false;
     }
   }

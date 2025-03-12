@@ -23,6 +23,7 @@ export type StoryMetadata = {
 };
 
 export interface StoryInput {
+  gender: string;
   childName: string;
   childAge: number;
   theme: string;

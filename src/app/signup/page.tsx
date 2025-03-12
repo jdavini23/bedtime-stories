@@ -47,7 +47,7 @@ export default function SignupPage() {
 
     try {
       const { user, session } = await signUp(email, password);
-      
+
       if (user) {
         if (user.identities?.length === 0) {
           // User already exists
@@ -59,7 +59,9 @@ export default function SignupPage() {
             router.push('/');
           } else {
             logger.info('User signed up successfully, email confirmation required');
-            setSuccessMessage('Registration successful! Please check your email to confirm your account.');
+            setSuccessMessage(
+              'Registration successful! Please check your email to confirm your account.'
+            );
           }
         }
       }
@@ -97,7 +99,10 @@ export default function SignupPage() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
               Email
             </label>
             <Input
@@ -112,7 +117,10 @@ export default function SignupPage() {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
               Password
             </label>
             <Input
@@ -128,7 +136,10 @@ export default function SignupPage() {
           </div>
 
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label
+              htmlFor="confirmPassword"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
               Confirm Password
             </label>
             <Input

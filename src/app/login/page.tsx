@@ -44,9 +44,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gradient-to-b from-cloud to-lavender/20 dark:from-midnight dark:to-primary/20 flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md bg-white dark:bg-gray-900 rounded-xl shadow-dreamy p-8">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-midnight dark:text-text-primary">
-            Welcome Back
-          </h1>
+          <h1 className="text-3xl font-bold text-midnight dark:text-text-primary">Welcome Back</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
             Sign in to continue creating magical stories
           </p>
@@ -60,7 +58,10 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
               Email
             </label>
             <Input
@@ -76,7 +77,10 @@ export default function LoginPage() {
 
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
                 Password
               </label>
               <Link href="/forgot-password" className="text-sm text-primary hover:text-primary/80">

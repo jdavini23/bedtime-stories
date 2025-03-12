@@ -1,7 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import { ProtectedRoute, AdminRoute } from '@/components/auth/ProtectedRoute';
-import { useUser } from '@/hooks/useUser';
+import { useUser, type User } from '@/hooks/useUser';
 import { useRouter } from 'next/navigation';
+import { describe, beforeEach, it, expect } from 'vitest';
 
 // Mock the hooks
 jest.mock('@/hooks/useUser');
@@ -14,6 +15,16 @@ describe('ProtectedRoute', () => {
   const mockRouter = { push: mockPush };
   const mockChildren = <div data-testid="protected-content">Protected Content</div>;
   const mockFallback = <div data-testid="fallback-content">Fallback Content</div>;
+
+  const createMockUser = (overrides = {}): User => ({
+    id: 'user_123',
+    email: 'john@example.com',
+    firstName: 'John',
+    lastName: 'Doe',
+    imageUrl: 'https://example.com/avatar.jpg',
+    isAdmin: false,
+    ...overrides,
+  });
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -50,7 +61,7 @@ describe('ProtectedRoute', () => {
     (useUser as jest.Mock).mockReturnValue({
       isLoaded: true,
       isSignedIn: true,
-      user: { id: 'user_123' },
+      user: createMockUser(),
     });
 
     render(<ProtectedRoute>{mockChildren}</ProtectedRoute>);
@@ -76,7 +87,7 @@ describe('ProtectedRoute', () => {
     (useUser as jest.Mock).mockReturnValue({
       isLoaded: true,
       isSignedIn: true,
-      user: { id: 'user_123', isAdmin: false },
+      user: createMockUser({ isAdmin: false }),
     });
 
     render(<ProtectedRoute adminOnly>{mockChildren}</ProtectedRoute>);
@@ -89,7 +100,7 @@ describe('ProtectedRoute', () => {
     (useUser as jest.Mock).mockReturnValue({
       isLoaded: true,
       isSignedIn: true,
-      user: { id: 'user_123', isAdmin: true },
+      user: createMockUser({ isAdmin: true }),
     });
 
     render(<ProtectedRoute adminOnly>{mockChildren}</ProtectedRoute>);
@@ -104,16 +115,25 @@ describe('AdminRoute', () => {
   const mockRouter = { push: mockPush };
   const mockChildren = <div data-testid="admin-content">Admin Content</div>;
 
+  const createMockUser = (overrides = {}): User => ({
+    id: 'user_123',
+    email: 'john@example.com',
+    firstName: 'John',
+    lastName: 'Doe',
+    imageUrl: 'https://example.com/avatar.jpg',
+    isAdmin: false,
+    ...overrides,
+  });
   beforeEach(() => {
-    jest.clearAllMocks();
-    (useRouter as jest.Mock).mockReturnValue(mockRouter);
+    jest.resetAllMocks();
+    (useRouter as jest.Mocked<typeof useRouter>).mockReturnValue(mockRouter);
   });
 
   it('should render admin content for admin users', () => {
-    (useUser as jest.Mock).mockReturnValue({
+    (useUser as jest.Mocked<typeof useUser>).mockReturnValue({
       isLoaded: true,
       isSignedIn: true,
-      user: { id: 'user_123', isAdmin: true },
+      user: createMockUser({ isAdmin: true }),
     });
 
     render(<AdminRoute>{mockChildren}</AdminRoute>);
@@ -122,10 +142,10 @@ describe('AdminRoute', () => {
   });
 
   it('should show admin access denied message for non-admin users', () => {
-    (useUser as jest.Mock).mockReturnValue({
+    (useUser as jest.Mocked<typeof useUser>).mockReturnValue({
       isLoaded: true,
       isSignedIn: true,
-      user: { id: 'user_123', isAdmin: false },
+      user: createMockUser({ isAdmin: false }),
     });
 
     render(<AdminRoute>{mockChildren}</AdminRoute>);

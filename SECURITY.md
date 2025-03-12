@@ -42,7 +42,7 @@ The application implements security monitoring through the `securityMonitoring` 
 
 ## Authentication
 
-- Clerk authentication is used to secure user accounts
+- Supabase authentication is used to secure user accounts
 - Protected routes require authentication
 - API routes return 401 for unauthenticated requests
 

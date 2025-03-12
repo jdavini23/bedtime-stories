@@ -1,8 +1,9 @@
-import { clerkClient } from '@clerk/nextjs/server';
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 import { logger } from '@/utils/loggerInstance';
 
-// See https://clerk.com/docs/nextjs/middleware for more information about configuring your middleware
-export const publicRoutes = ['/', '/sign-in', '/sign-up', '/api/story', '/api/webhook/clerk'];
+// See https://supabase.com/docs/guides/auth/auth-helpers/nextjs for more information about configuring your middleware
+export const publicRoutes = ['/', '/sign-in', '/sign-up', '/api/story'];
 
 export const ignoredRoutes = ['/about', '/contact', '/_next/static', '/favicon.ico'];
 
@@ -10,17 +11,7 @@ export const config = {
   matcher: ['/((?!.+\\.[\\w]+$|_next).*)', '/', '/(api|trpc)(.*)'],
 };
 
-// Helper functions for Clerk authentication
-interface UserMetadata {
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  preferences?: {
-    theme?: string;
-    notifications?: boolean;
-  };
-}
-
+// Helper functions for Supabase authentication
 export interface AuthError extends Error {
   code?: string;
   statusCode?: number;
@@ -33,8 +24,24 @@ export const getUser = async (userId: string | null) => {
       return null;
     }
 
-    const user = await clerkClient.users.getUser(userId);
-    if (!user) {
+    const cookieStore = cookies();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value;
+          },
+        },
+      }
+    );
+
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.admin.getUserById(userId);
+    if (error || !user) {
       logger.warn('User not found:', { userId });
       return null;
     }
@@ -64,7 +71,26 @@ export const handleAuthError = (error: unknown): AuthError => {
 
 export const getUserList = async () => {
   try {
-    const users = await clerkClient.users.getUserList({});
+    const cookieStore = cookies();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value;
+          },
+        },
+      }
+    );
+
+    const {
+      data: { users },
+      error,
+    } = await supabase.auth.admin.listUsers();
+    if (error) {
+      throw error;
+    }
     return users;
   } catch (error: unknown) {
     logger.error('Error fetching users:', { error });

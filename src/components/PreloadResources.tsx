@@ -11,13 +11,27 @@ import { DynamicFontLoader } from './DynamicFontLoader';
 export function PreloadResources() {
   return (
     <>
+      {/* Preload critical resources */}
+      <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+      <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+      <link rel="dns-prefetch" href="https://api.openai.com" />
+      <link rel="dns-prefetch" href="https://cdn.usefathom.com" />
+
+      {/* Preconnect to critical domains */}
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      <link rel="preconnect" href="https://api.openai.com" crossOrigin="anonymous" />
+      <link rel="preconnect" href="https://cdn.usefathom.com" crossOrigin="anonymous" />
+
       {/* Preload critical fonts */}
       <link
         rel="preload"
-        href="/fonts/inter-var.woff2"
-        as="font"
-        type="font/woff2"
-        crossOrigin="anonymous"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+        as="style"
+      />
+      <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
       />
 
       {/* Preload critical images */}
@@ -28,18 +42,6 @@ export function PreloadResources() {
 
       {/* Load critical CSS */}
       <link rel="stylesheet" href="/styles/critical.css" />
-
-      {/* DNS prefetch for external resources */}
-      <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
-      <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
-      <link rel="dns-prefetch" href="https://clerk.stepintostorytime.com" />
-      <link rel="dns-prefetch" href="https://zwnnxqvfavkzupmucbhk.supabase.co" />
-
-      {/* Preconnect to critical domains */}
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-      <link rel="preconnect" href="https://clerk.stepintostorytime.com" />
-      <link rel="preconnect" href="https://zwnnxqvfavkzupmucbhk.supabase.co" />
 
       {/* Load fonts with display swap to prevent FOUC */}
       <style

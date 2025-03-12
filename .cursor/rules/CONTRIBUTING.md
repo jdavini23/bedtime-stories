@@ -124,7 +124,7 @@ development environment.
 - Run `npm run secrets:scan` before committing to check for leaked secrets
 - Follow OWASP security best practices
 - Validate all user inputs
-- Use Clerk authentication for user management
+- Use Supabase Auth for user management
 - Report security vulnerabilities privately to the maintainers
 
 ## Performance Considerations
