@@ -1,47 +1,47 @@
 import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
 import { NextResponse } from 'next/server';
-
 import type { NextRequest } from 'next/server';
 
-// Routes that require authentication
-const PROTECTED_ROUTES = ['/story', '/profile', '/admin', '/account'];
-// Routes that should redirect to dashboard if user is authenticated
-const AUTH_ROUTES = ['/login', '/signup', '/forgot-password'];
+// Protected routes
+const protectedPaths = ['/dashboard', '/admin', '/api/story'];
+// Auth routes
+const authPaths = ['/sign-in', '/sign-up'];
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
   const supabase = createMiddlewareClient({ req, res });
-  
-  // Check auth status
+
   const {
     data: { session },
   } = await supabase.auth.getSession();
-  
-  const isAuthenticated = !!session;
-  const path = req.nextUrl.pathname;
-  
-  // Redirect authenticated users away from auth pages
-  if (isAuthenticated && AUTH_ROUTES.some(route => path.startsWith(route))) {
-    return NextResponse.redirect(new URL('/', req.url));
+
+  // Protected routes
+  const isProtectedPath = protectedPaths.some((path) => req.nextUrl.pathname.startsWith(path));
+  // Auth routes
+  const isAuthPath = authPaths.some((path) => req.nextUrl.pathname.startsWith(path));
+
+  // Redirect if accessing auth routes while logged in
+  if (isAuthPath && session) {
+    return NextResponse.redirect(new URL('/dashboard', req.url));
   }
-  
-  // Redirect unauthenticated users away from protected routes
-  if (!isAuthenticated && PROTECTED_ROUTES.some(route => path.startsWith(route))) {
-    return NextResponse.redirect(new URL('/login', req.url));
+
+  // Redirect if accessing protected routes while logged out
+  if (isProtectedPath && !session) {
+    return NextResponse.redirect(new URL('/sign-in', req.url));
   }
-  
+
   return res;
 }
 
 export const config = {
   matcher: [
     /*
-     * Match all request paths except:
+     * Match all request paths except for the ones starting with:
      * - _next/static (static files)
      * - _next/image (image optimization files)
-     * - favicon.ico, manifest.json, robots.txt (public files)
-     * - public files with extensions (static assets)
+     * - favicon.ico (favicon file)
+     * - public (public files)
      */
-    '/((?!_next/static|_next/image|favicon.ico|manifest.json|robots.txt|.*\\.(?:jpg|jpeg|gif|png|svg|webp)).*)',
+    '/((?!_next/static|_next/image|favicon.ico|public).*)',
   ],
 };

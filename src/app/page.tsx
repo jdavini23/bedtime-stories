@@ -6,14 +6,12 @@ import { Input } from '@/components/ui/input';
 import Link from 'next/link';
 import Image from 'next/image';
 import React, { useState, useEffect, useRef, useMemo, Suspense } from 'react';
-import { Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ThemeToggleWrapper from '@/components/ThemeToggleWrapper';
 import { TypedText } from '@/components/TypedText';
 import FeatureGrid from '@/components/FeatureGrid';
 import Footer from '@/components/Footer';
-import SignIn from '@/components/auth/SignIn';
-import SignUp from '@/components/auth/SignUp';
+import Navigation from '@/components/Navigation';
 
 // Custom hook for Intersection Observer
 function useIntersectionObserver(options = {}) {
@@ -99,33 +97,24 @@ export default function Home() {
   const [activeStoryIndex, setActiveStoryIndex] = useState(0);
   const [childName, setChildName] = useState('Joey');
   const [showPreview, setShowPreview] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0); // Used to force re-render of typing animations
+  const [refreshKey, setRefreshKey] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
-
-  const stickyNavClassName = useMemo(() => {
-    return `fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-      isScrolled ? 'bg-white/90 dark:bg-midnight/90 shadow-md backdrop-blur-sm' : 'bg-transparent'
-    }`;
-  }, [isScrolled]);
   const [isCarouselPaused] = useState(false);
-  const [selectedTheme, setSelectedTheme] = useState('fantasy'); // Default theme
+  const [selectedTheme, setSelectedTheme] = useState('fantasy');
   const carouselRef = useRef<HTMLDivElement>(null);
 
-  // Handle scroll events for sticky header and progress bar
+  // Handle scroll events
   useEffect(() => {
-    // Avoid memory leaks by using a ref to track if component is mounted
     const isMounted = { current: true };
 
     const handleScroll = () => {
       if (!isMounted.current) return;
 
-      // For sticky header
       const scrollPosition = window.scrollY;
       setIsScrolled(scrollPosition > 50);
 
-      // For progress indicator
       const windowHeight = document.documentElement.scrollHeight - window.innerHeight;
       const scrolled = (scrollPosition / windowHeight) * 100;
       setScrollProgress(scrolled);
@@ -201,10 +190,6 @@ export default function Home() {
     []
   );
 
-  // Function to navigate to the next story with circular navigation
-
-  // Function to navigate to the previous story with circular navigation
-
   // Sample story preview text that uses the child's name
   const getStoryPreview = (name: string) => {
     return [
@@ -244,12 +229,6 @@ export default function Home() {
     return getThemePreview(selectedTheme, name).join('\n\n');
   };
 
-  // Toggle carousel pause state
-
-  // Handle carousel dot navigation
-
-  // Handle carousel mouse events
-
   // Memoize the carousel items to prevent unnecessary re-renders
   const carouselItems = useMemo(() => {
     return sampleStories.map((story, index) => (
@@ -276,7 +255,6 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gradient-to-b from-cloud to-sky-50 dark:from-midnight dark:to-teal-900">
       <Navigation
-        stickyNavClassName={stickyNavClassName}
         isScrolled={isScrolled}
         mobileMenuOpen={mobileMenuOpen}
         setMobileMenuOpen={setMobileMenuOpen}
@@ -475,142 +453,6 @@ export default function Home() {
             <div className="hidden md:block absolute top-1/2 left-0 right-0 h-1 bg-gradient-to-r from-lavender via-primary to-golden transform -translate-y-1/2 z-0"></div>
 
             <div className="grid md:grid-cols-3 gap-12 relative z-10">
-              {/* Step 1 */}
-              <div className="flex flex-col items-center"></div>
-                <div className="w-20 h-20 bg-gradient-to-br from-lavender to-primary rounded-full flex items-center justify-center mb-6 shadow-dreamy">
-                  <span className="text-2xl text-white font-bold">1</span>
-                </div>
-                <Card
-                  hover
-                  className="w-full space-y-4 text-center p-6 bg-sky-50 dark:bg-midnight border-t-4 border-lavender"
-                >
-                  <h3 className="text-primary">Choose Your Adventure</h3>
-                  <p className="text-text-secondary dark:text-text-primary/80">
-                    Select from magical worlds like enchanted forests, space odysseys, or underwater
-                    kingdoms.
-                  </p>
-                  <div className="flex gap-2 flex-wrap mt-4 justify-center">
-                    <Button
-                      variant={selectedTheme === 'space' ? 'primary' : 'outline'}
-                      size="sm"
-                      onClick={() => setSelectedTheme('space')}
-                      className={selectedTheme === 'space' ? 'bg-primary' : ''}
-                    >
-                      <Image
-                        src="/images/illustrations/space-rocket.svg"
-                        alt="Space"
-                        width={20}
-                        height={20}
-                        className="mr-1"
-                      />
-                      Space
-                    </Button>
-                    <Button
-                      variant={selectedTheme === 'fantasy' ? 'primary' : 'outline'}
-                      size="sm"
-                      onClick={() => setSelectedTheme('fantasy')}
-                      className={selectedTheme === 'fantasy' ? 'bg-primary' : ''}
-                    >
-                      <Image
-                        src="/images/illustrations/fairy.svg"
-                        alt="Fantasy"
-                        width={20}
-                        height={20}
-                        className="mr-1"
-                      />
-                      Fantasy
-                    </Button>
-                    <Button
-                      variant={selectedTheme === 'pirates' ? 'primary' : 'outline'}
-                      size="sm"
-                      onClick={() => setSelectedTheme('pirates')}
-                      className={selectedTheme === 'pirates' ? 'bg-primary' : ''}
-                    >
-                      <Image
-                        src="/images/illustrations/pirate.svg"
-                        alt="Pirates"
-                        width={20}
-                        height={20}
-                        className="mr-1"
-                      />
-                      Pirates
-                    </Button>
-                  </div>
-                </Card>
-              </div>
-
-              {/* Step 2 */}
-              <div className="flex flex-col items-center md:mt-12">
-                <div className="w-20 h-20 bg-gradient-to-br from-primary to-dreamy rounded-full flex items-center justify-center mb-6 shadow-dreamy">
-                  <span className="text-2xl text-white font-bold">2</span>
-                </div>
-                <Card
-                  hover
-                  className="w-full space-y-4 text-center p-6 bg-sky-50 dark:bg-midnight border-t-4 border-dreamy"
-                >
-                  <h3 className="text-primary">Create Your Hero</h3>
-                  <p className="text-text-secondary dark:text-text-primary/80">
-                    Personalize with your child&apos;s name, age, and favorite things to make them
-                    the star.
-                  </p>
-                  <div className="flex flex-col gap-2 mt-4">
-                    <Input
-                      placeholder="Child's name"
-                      className="text-center text-midnight dark:text-text-primary"
-                      value={childName}
-                      onChange={(e) => setChildName(e.target.value)}
-                    />
-                    <div className="flex gap-2 justify-center mt-2">
-                      <Button variant="outline" size="sm">
-                        <Image
-                          src="/images/illustrations/superhero.svg"
-                          alt="Brave"
-                          width={20}
-                          height={20}
-                          className="mr-1"
-                        />
-                        Brave
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Image
-                          src="/images/illustrations/brain.svg"
-                          alt="Clever"
-                          width={20}
-                          height={20}
-                          className="mr-1"
-                        />
-                        Clever
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-              </div>
-
-              {/* Step 3 */}
-              <div className="flex flex-col items-center">
-                <div className="w-20 h-20 bg-gradient-to-br from-dreamy to-golden rounded-full flex items-center justify-center mb-6 shadow-dreamy">
-                  <span className="text-2xl text-white font-bold">3</span>
-                </div>
-                <Card
-                  hover
-                  className="w-full space-y-4 text-center p-6 bg-sky-50 dark:bg-midnight border-t-4 border-golden"
-                >
-                  <h3 className="text-primary">Watch the Magic Happen</h3>
-                  <p className="text-text-secondary dark:text-text-primary/80">
-                    Our AI crafts a unique tale in seconds. Save, print, or read it together at
-                    bedtime.
-                  </p>
-                  <div className="relative h-48 mt-4 overflow-hidden rounded-lg bg-white/50 dark:bg-midnight-light/50 shadow-sm">
-                    {/* Story Generation Process - Interactive Preview */}
-                    <div className="h-full flex items-center justify-center">
-                      <div className="text-center px-4 w-full">
-                        {/* Theme-specific icon */}
-                        <Image
-                          src={
-                            selectedTheme === 'space'
-                              ? '/images/illustrations/space-rocket.svg'
-                              : selectedTheme === 'pirates'
-                                ?
               {/* Step 1 */}
               <div className="flex flex-col items-center">
                 <div className="w-20 h-20 bg-gradient-to-br from-lavender to-primary rounded-full flex items-center justify-center mb-6 shadow-dreamy">
@@ -1094,13 +936,13 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <Suspense fallback={
-        <div className="h-40 bg-lavender/10 dark:bg-midnight/30 animate-pulse rounded-t-lg"></div>
-      }>
+      <Suspense
+        fallback={
+          <div className="h-40 bg-lavender/10 dark:bg-midnight/30 animate-pulse rounded-t-lg"></div>
+        }
+      >
         <Footer />
       </Suspense>
-      <SignIn />
-      <SignUp />
     </main>
   );
 }

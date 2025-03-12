@@ -1,18 +1,30 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { SignInButton } from '@/components/auth/SignInButton';
-import { useAuth } from '@clerk/nextjs';
+import { useSupabase } from '@/providers/SupabaseAuthProvider';
 import { useIntersectionObserver } from '../hooks/useIntersectionObserver';
 import { trackSectionVisibility, trackInteraction } from '../utils/analytics';
 import { measureRenderTime } from '../utils/performance';
-
 export function CallToAction() {
-  const { isSignedIn } = useAuth();
+  const { supabase } = useSupabase();
+  const [session, setSession] = useState<Session | null>(null);
+  const [isSignedIn, setIsSignedIn] = useState(false);
   const { ref, isIntersecting } = useIntersectionObserver({
     threshold: 0.1,
   });
+
+  useEffect(() => {
+    const getSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      setSession(session);
+      setIsSignedIn(!!session?.user);
+    };
+    getSession();
+  }, [supabase.auth]);
 
   useEffect(() => {
     const startTime = performance.now();
@@ -49,7 +61,7 @@ export function CallToAction() {
                 className="bg-primary hover:bg-primary/90 text-white dark:bg-primary-light dark:hover:bg-primary-light/90"
                 onClick={handleGetStartedClick}
               >
-                Start Your Free Trial
+                Get Started Now
               </Button>
             </SignInButton>
           ) : (
@@ -58,7 +70,7 @@ export function CallToAction() {
               className="bg-primary hover:bg-primary/90 text-white dark:bg-primary-light dark:hover:bg-primary-light/90"
               onClick={handleGetStartedClick}
             >
-              Create Your First Story
+              Create a Story
             </Button>
           )}
 

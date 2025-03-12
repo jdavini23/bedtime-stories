@@ -7,11 +7,11 @@ import { StoryInput, Story } from '@/types/story';
 import Link from 'next/link';
 import { Button } from '@/components/common/Button';
 import { StoryGenerator } from '@/services/personalization/storyGeneration';
-import { useSession } from '@/hooks/useSession';
+import { useSupabase } from '@/providers/SupabaseAuthProvider';
 import { useRouter } from 'next/navigation';
 
 export default function StoryPage() {
-  const { session, user, isAuthenticated, isLoading } = useSession();
+  const { user, loading } = useSupabase();
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedStory, setGeneratedStory] = useState<Story | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -19,10 +19,10 @@ export default function StoryPage() {
 
   useEffect(() => {
     // Only redirect if we've finished loading and the user isn't authenticated
-    if (!isLoading && !isAuthenticated) {
-      router.push('/login');
+    if (!loading && !user) {
+      router.push('/sign-in');
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [user, loading, router]);
 
   const handleStoryGeneration = async (storyInput: StoryInput) => {
     setIsGenerating(true);
@@ -35,7 +35,7 @@ export default function StoryPage() {
       // Log authentication status for debugging
       console.log('[StoryPage] Starting story generation', {
         storyInput,
-        isAuthenticated,
+        isAuthenticated: !!user,
         userId: user?.id || 'anonymous-user',
       });
 
@@ -74,7 +74,7 @@ export default function StoryPage() {
   };
 
   // Show loading state while checking authentication
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-cloud to-lavender/20 dark:from-midnight dark:to-primary/20 p-4 flex flex-col justify-center items-center">
         <div className="text-xl">Loading...</div>

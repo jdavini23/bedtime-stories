@@ -1,75 +1,91 @@
 'use client';
 
 import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
-import { createClient, User } from '@supabase/supabase-js';
+import { createClient, User, Session, SupabaseClient } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
 import { logger } from '@/utils/logger';
 
 // Define the context types
 type SupabaseContextType = {
-  supabase: ReturnType<typeof createClient> | null;
+  supabase: SupabaseClient;
   user: User | null;
-  signIn: (email: string, password: string) => Promise<{ user: User | null; session: Session | null; error: Error | null }>;
-  signUp: (email: string, password: string) => Promise<{ user: User | null; session: Session | null; error: Error | null }>;
+  signIn: (
+    email: string,
+    password: string
+  ) => Promise<{ user: User | null; session: Session | null; error: Error | null }>;
+  signUp: (
+    email: string,
+    password: string
+  ) => Promise<{ user: User | null; session: Session | null; error: Error | null }>;
   signOut: () => Promise<void>;
   loading: boolean;
   error: Error | null;
 };
 
+// Initialize Supabase client
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables');
+}
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+  },
+});
+
 // Create the context with default values
 const SupabaseContext = createContext<SupabaseContextType>({
-  supabase: null,
+  supabase,
   user: null,
-  signIn: async () => ({}),
-  signUp: async () => ({}),
+  signIn: async () => ({ user: null, session: null, error: null }),
+  signUp: async () => ({ user: null, session: null, error: null }),
   signOut: async () => {},
   loading: true,
   error: null,
 });
 
 // Hook to use the Supabase context
-export const useSupabase = () => useContext(SupabaseContext);
+export const useSupabase = () => {
+  const context = useContext(SupabaseContext);
+  logger.info('useSupabase hook called', {
+    hasContext: !!context,
+    loading: context.loading,
+    hasUser: !!context.user,
+  });
+  return context;
+};
 
 // Provider component
 export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
-  const [supabase, setSupabase] = useState<ReturnType<typeof createClient> | null>(null);
+  logger.info('SupabaseAuthProvider initializing');
+
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const router = useRouter();
 
-  // Initialize Supabase client
+  // Setup auth state listener
   useEffect(() => {
     try {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-      if (!supabaseUrl || !supabaseAnonKey) {
-        throw new Error('Missing Supabase environment variables');
-      }
-
-      const client = createClient(supabaseUrl, supabaseAnonKey, {
-        auth: {
-          autoRefreshToken: true,
-          persistSession: true,
-        },
-      });
-
-      setSupabase(client);
+      logger.info('Setting up auth state listener');
 
       // Setup auth state listener
-      const { data: { subscription } } = client.auth.onAuthStateChange(
-        async (event, session) => {
-          setUser(session?.user || null);
-          setLoading(false);
-
-          // Refresh page data when auth state changes
-          router.refresh();
-        }
-      );
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange(async (event, session) => {
+        logger.info('Auth state changed', { event, hasSession: !!session });
+        setUser(session?.user || null);
+        setLoading(false);
+        router.refresh();
+      });
 
       // Get initial session
-      client.auth.getSession().then(({ data: { session } }) => {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        logger.info('Initial session retrieved', { hasSession: !!session });
         setUser(session?.user || null);
         setLoading(false);
       });
@@ -92,52 +108,58 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
 
   // Authentication methods
   async function signIn(email: string, password: string) {
-    if (!supabase) throw new Error('Supabase client not initialized');
-    
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-      
-      if (error) throw error;
-      return data;
+
+      return {
+        user: data?.user || null,
+        session: data?.session || null,
+        error: authError ? new Error(authError.message) : null,
+      };
     } catch (err) {
       logger.error('Sign in error', { error: err });
-      throw err;
+      return {
+        user: null,
+        session: null,
+        error: err instanceof Error ? err : new Error('Unknown error during sign in'),
+      };
     }
   }
 
   async function signUp(email: string, password: string) {
-    if (!supabase) throw new Error('Supabase client not initialized');
-    
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { data, error: authError } = await supabase.auth.signUp({
         email,
         password,
       });
-      
-      if (error) throw error;
-      return data;
+
+      return {
+        user: data?.user || null,
+        session: data?.session || null,
+        error: authError ? new Error(authError.message) : null,
+      };
     } catch (err) {
       logger.error('Sign up error', { error: err });
-      throw err;
+      return {
+        user: null,
+        session: null,
+        error: err instanceof Error ? err : new Error('Unknown error during sign up'),
+      };
     }
   }
 
   async function signOut() {
-    if (!supabase) throw new Error('Supabase client not initialized');
-    
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      await supabase.auth.signOut();
     } catch (err) {
       logger.error('Sign out error', { error: err });
-      throw err;
+      throw err instanceof Error ? err : new Error('Unknown error during sign out');
     }
   }
 
-  // Create the context value
   const value = {
     supabase,
     user,
@@ -148,9 +170,5 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
     error,
   };
 
-  return (
-    <SupabaseContext.Provider value={value}>
-      {children}
-    </SupabaseContext.Provider>
-  );
+  return <SupabaseContext.Provider value={value}>{children}</SupabaseContext.Provider>;
 }

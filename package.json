@@ -41,7 +41,8 @@
     "prepare": "node scripts/handle-prepare.js",
     "prepare:vercel": "node scripts/prepare-for-vercel.js",
     "test:circuit-breaker": "ts-node -P tsconfig.scripts.json src/scripts/test-circuit-breaker.ts",
-    "setup:supabase": "node scripts/setup-supabase-env.js"
+    "setup:supabase": "node scripts/setup-supabase-env.js",
+    "migrate:clerk": "node scripts/migrate-from-clerk.js"
   },
   "dependencies": {
     "@agentdeskai/browser-tools-mcp": "^1.0.11",
@@ -71,6 +72,7 @@
     "is-typed-array": "^1.1.15",
     "lucide-react": "^0.477.0",
     "next": "14.1.0",
+    "next-themes": "^0.4.6",
     "opossum": "^8.4.0",
     "pino": "^9.6.0",
     "pino-pretty": "^13.0.0",

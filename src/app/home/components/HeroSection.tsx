@@ -4,14 +4,15 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { TypedText } from '@/components/TypedText';
 import { SignInButton } from '@/components/auth/SignInButton';
-import { useAuth } from '@clerk/nextjs';
+import { useSupabase } from '@/providers/SupabaseAuthProvider';
 import { useAnimations } from '../hooks/useAnimations';
 import { trackInteraction } from '../utils/analytics';
 import { measureRenderTime } from '../utils/performance';
 import { useEffect } from 'react';
 
 export function HeroSection() {
-  const { isSignedIn } = useAuth();
+  const { user } = useSupabase();
+  const isSignedIn = !!user;
   const { fadeInVariant, slideInLeftVariant } = useAnimations();
 
   useEffect(() => {
@@ -48,9 +49,8 @@ export function HeroSection() {
             </motion.div>
 
             <motion.div
-              className="flex justify-center space-x-4"
-              animate={{ opacity: 1 }}
-              initial={{ opacity: 0 }}
+              className="flex flex-col sm:flex-row justify-center gap-4 min-[320px]:flex-col md:flex-row"
+              variants={slideInLeftVariant}
             >
               {!isSignedIn ? (
                 <SignInButton>
@@ -59,7 +59,7 @@ export function HeroSection() {
                     className="bg-primary hover:bg-primary/90 text-white dark:bg-primary-light dark:hover:bg-primary-light/90"
                     onClick={handleGetStartedClick}
                   >
-                    Get Started
+                    Get Started Now
                   </Button>
                 </SignInButton>
               ) : (

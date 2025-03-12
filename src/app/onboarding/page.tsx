@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useSession } from '@/hooks/useSession';
+import { useSupabase } from '@/providers/SupabaseAuthProvider';
 import { redirect } from 'next/navigation';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
@@ -10,22 +10,14 @@ import { Select } from '@/components/ui/Select';
 import { logger } from '@/utils/loggerInstance';
 
 export default function OnboardingPage() {
-  const { isAuthenticated, session } = useSession();
-  const userName =
-    (session &&
-      typeof session === 'object' &&
-      'user' in session &&
-      session.user &&
-      typeof session.user === 'object' &&
-      'name' in session.user &&
-      session.user.name) ||
-    'User';
+  const { user } = useSupabase();
+  const userName = user?.user_metadata?.name || 'User';
   const [childName, setChildName] = useState('');
   const [childAge, setChildAge] = useState('');
   const [interests, setInterests] = useState<string[]>([]);
 
   // Redirect if not authenticated
-  if (!isAuthenticated) {
+  if (!user) {
     redirect('/sign-in');
   }
 

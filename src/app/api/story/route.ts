@@ -1,14 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuth } from '@clerk/nextjs/server';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
 import { storyGenerator } from '@/services/personalization';
 import { StoryInput } from '@/types/story';
 import { logger } from '@/utils/logger';
 
 export async function POST(request: NextRequest) {
   try {
-    // Get user ID from Clerk authentication
-    const auth = getAuth(request);
-    const { userId } = auth;
+    // Get user ID from Supabase authentication
+    const supabase = createRouteHandlerClient({ cookies });
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const userId = session?.user?.id;
 
     // Check if user is authenticated
     if (!userId) {

@@ -1,20 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import { useAuth } from '@clerk/nextjs';
+import { useSupabase } from '@/providers/SupabaseAuthProvider';
 
 export default function TestAuth() {
   const [result, setResult] = useState<string>('');
   const [error, setError] = useState<string>('');
-  const { isLoaded, userId, getToken, sessionId } = useAuth();
+  const { user, supabase } = useSupabase();
   const [isLoading, setIsLoading] = useState(false);
 
   const testGeminiAPI = async (useApiKey: boolean = false) => {
     try {
       console.log('🔍 Starting API test:', {
         useApiKey,
-        isAuthenticated: !!userId,
-        sessionId,
+        isAuthenticated: !!user,
+        userId: user?.id,
       });
 
       setError('');
@@ -29,22 +29,23 @@ export default function TestAuth() {
         headers.Authorization = `Bearer ${process.env.NEXT_PUBLIC_GEMINI_API_KEY}`;
         console.log('🔍 Using API key authentication');
       } else {
-        console.log('🔍 Attempting to get Clerk token...');
+        console.log('🔍 Attempting to get Supabase session...');
         try {
-          // Get the session token for authenticated requests
-          const token = await getToken();
-          console.log('🔍 Clerk token details:', {
-            obtained: !!token,
-            length: token?.length,
-            prefix: token?.substring(0, 10) + '...',
+          const {
+            data: { session },
+          } = await supabase.auth.getSession();
+          console.log('🔍 Supabase session details:', {
+            obtained: !!session,
+            userId: session?.user?.id,
           });
 
-          if (!token) {
-            throw new Error('Failed to get authentication token');
+          if (!session) {
+            throw new Error('Failed to get authentication session');
           }
-          headers.Authorization = `Bearer ${token}`;
+          // For this test, we'll just use the user ID as the token
+          headers.Authorization = `Bearer ${session.user.id}`;
         } catch (tokenError) {
-          console.error('🔍 Token error:', tokenError);
+          console.error('🔍 Session error:', tokenError);
           throw tokenError;
         }
       }
@@ -60,76 +61,60 @@ export default function TestAuth() {
         body: JSON.stringify({ test: true }),
       });
 
-      console.log('🔍 Response received:', {
-        status: response.status,
-        statusText: response.statusText,
-        headers: Object.fromEntries(response.headers.entries()),
-      });
-
-      const data = await response.json();
-      console.log('🔍 Response data:', data);
-
       if (!response.ok) {
-        throw new Error(data.error || data.message || 'Request failed');
+        throw new Error(`API request failed with status ${response.status}`);
       }
 
+      const data = await response.json();
       setResult(JSON.stringify(data, null, 2));
     } catch (err) {
-      console.error('🔍 API Error:', {
-        error: err instanceof Error ? err.message : 'Unknown error',
-        stack: err instanceof Error ? err.stack : undefined,
-      });
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      console.error('🔍 Test error:', err);
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (!isLoaded) {
-    return <div>Loading...</div>;
-  }
-
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Authentication Test Page</h1>
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Auth Test Page</h1>
 
       <div className="mb-4">
-        <p className="text-sm text-gray-600 mb-2">
-          Auth Status: {userId ? 'Authenticated' : 'Not Authenticated'}
-        </p>
-        <p className="text-sm text-gray-600">User ID: {userId || 'None'}</p>
-        <p className="text-sm text-gray-600">Session ID: {sessionId || 'None'}</p>
+        <p>Authentication Status:</p>
+        <ul className="list-disc ml-6">
+          <li>User ID: {user?.id || 'Not authenticated'}</li>
+          <li>Email: {user?.email || 'Not available'}</li>
+        </ul>
       </div>
 
-      <div className="space-x-4">
-        <button
-          onClick={() => testGeminiAPI(true)}
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-          disabled={isLoading}
-        >
-          {isLoading ? 'Testing...' : 'Test with API Key'}
-        </button>
-
+      <div className="flex gap-4 mb-4">
         <button
           onClick={() => testGeminiAPI(false)}
-          className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
-          disabled={!userId || isLoading}
+          disabled={isLoading}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
         >
-          {isLoading ? 'Testing...' : 'Test with Clerk Auth'}
+          Test with Auth
+        </button>
+        <button
+          onClick={() => testGeminiAPI(true)}
+          disabled={isLoading}
+          className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50"
+        >
+          Test with API Key
         </button>
       </div>
 
-      {result && (
-        <div className="mt-4">
-          <h2 className="font-bold mb-2">Response:</h2>
-          <pre className="p-4 bg-gray-100 rounded overflow-auto max-h-60">{result}</pre>
+      {isLoading && <p>Loading...</p>}
+
+      {error && (
+        <div className="p-4 mb-4 bg-red-100 border border-red-400 text-red-700 rounded">
+          <pre>{error}</pre>
         </div>
       )}
 
-      {error && (
-        <div className="mt-4">
-          <h2 className="font-bold text-red-600 mb-2">Error:</h2>
-          <div className="p-4 bg-red-100 text-red-700 rounded">{error}</div>
+      {result && (
+        <div className="p-4 bg-gray-100 rounded">
+          <pre>{result}</pre>
         </div>
       )}
     </div>

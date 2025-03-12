@@ -1,11 +1,14 @@
+'use client';
+
 import { useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { useSupabase } from '@/providers/SupabaseAuthProvider';
 
 const SignUp = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { signUp } = useSupabase();
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -13,14 +16,7 @@ const SignUp = () => {
     setError('');
 
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/api/auth/callback/confirm`,
-        },
-      });
-
+      const { error } = await signUp(email, password);
       if (error) {
         setError(error.message);
       }
@@ -42,12 +38,7 @@ const SignUp = () => {
       <form onSubmit={handleSignUp}>
         <label>
           Email:
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
         </label>
         <label>
           Password:

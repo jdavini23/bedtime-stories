@@ -1,15 +1,16 @@
 'use client';
 
+import Link from 'next/link';
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { useUser } from '@/hooks/useUser';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { motion } from 'framer-motion';
 import { TypedText } from '@/components/TypedText';
 import { SignInButton } from '@/components/auth/SignInButton';
-import { useAuth } from '@clerk/nextjs';
-import { useState } from 'react';
 
-export default function HeroSection() {
-  const { isLoaded, isSignedIn } = useAuth();
+export function HeroSection() {
+  const { isLoaded, isSignedIn } = useUser();
   const [childName, setChildName] = useState('Joey');
   const [showPreview, setShowPreview] = useState(false);
 
@@ -61,20 +62,24 @@ export default function HeroSection() {
                   </Button>
                 </SignInButton>
               ) : (
+                <Link href="/dashboard">
+                  <Button
+                    size="lg"
+                    className="bg-primary hover:bg-primary/90 text-white dark:bg-primary-light dark:hover:bg-primary-light/90"
+                  >
+                    Create a Story
+                  </Button>
+                </Link>
+              )}
+              <Link href="/how-it-works">
                 <Button
                   size="lg"
-                  className="bg-primary hover:bg-primary/90 text-white dark:bg-primary-light dark:hover:bg-primary-light/90"
+                  variant="outline"
+                  className="border-primary text-primary hover:bg-primary/10 dark:border-primary-light dark:text-primary-light dark:hover:bg-primary-light/10"
                 >
-                  Start Your Story
+                  See How It Works
                 </Button>
-              )}
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-primary text-primary hover:bg-primary/10 dark:border-primary-light dark:text-primary-light dark:hover:bg-primary-light/10"
-              >
-                See How It Works
-              </Button>
+              </Link>
             </motion.div>
           </motion.div>
 
@@ -94,7 +99,7 @@ export default function HeroSection() {
                   <div className="w-3 h-3 rounded-full bg-green-400"></div>
                 </div>
                 <div className="flex-1 text-center text-sm text-gray-600 dark:text-gray-300">
-                  Joey's Magical Adventure
+                  {childName}'s Magical Adventure
                 </div>
               </div>
 

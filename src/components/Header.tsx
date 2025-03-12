@@ -1,69 +1,54 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Menu, X } from 'lucide-react';
-import ThemeToggleWrapper from '@/components/ThemeToggleWrapper';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useUser } from '@/hooks/useUser';
+import { Button } from '@/components/ui/button';
 import { SignOutButton } from '@/components/auth/SignOutButton';
-import { useAuth } from '@clerk/nextjs';
 
-export default function Header() {
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [scrollProgress, setScrollProgress] = useState(0);
-  const { isLoaded, isSignedIn } = useAuth();
+export function Header() {
+  const pathname = usePathname();
+  const { isLoaded, isSignedIn } = useUser();
 
-  useEffect(() => {
-    const isMounted = { current: true };
-
-    const handleScroll = () => {
-      if (!isMounted.current) return;
-
-      const scrollPosition = window.scrollY;
-      setIsScrolled(scrollPosition > 50);
-
-      const windowHeight = document.documentElement.scrollHeight - window.innerHeight;
-      const scrolled = (scrollPosition / windowHeight) * 100;
-      setScrollProgress(scrolled);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    handleScroll();
-
-    return () => {
-      isMounted.current = false;
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
+  // Don't show header on auth pages
+  if (pathname?.startsWith('/sign-')) {
+    return null;
+  }
 
   return (
-    <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-200 ${
-        isScrolled ? 'bg-background/80 dark:bg-midnight/80 backdrop-blur-sm shadow-sm' : ''
-      }`}
-    >
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <button
-            className="md:hidden"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            {mobileMenuOpen ? <X /> : <Menu />}
-          </button>
-          <span className="text-xl font-bold">Bedtime Stories</span>
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-14 items-center">
+        <div className="mr-4 flex">
+          <Link href="/" className="mr-6 flex items-center space-x-2">
+            <span className="font-bold">Bedtime Stories</span>
+          </Link>
+          <nav className="flex items-center space-x-6 text-sm font-medium">
+            <Link href="/stories">Stories</Link>
+            <Link href="/about">About</Link>
+            {isSignedIn && <Link href="/dashboard">Dashboard</Link>}
+          </nav>
         </div>
-
-        <nav className={`md:flex items-center space-x-8 ${mobileMenuOpen ? 'block' : 'hidden'}`}>
-          <ThemeToggleWrapper />
-          {isLoaded && isSignedIn && <SignOutButton />}
-        </nav>
+        <div className="flex flex-1 items-center justify-end space-x-2">
+          {isLoaded && !isSignedIn && (
+            <>
+              <Link href="/sign-in">
+                <Button variant="ghost">Sign In</Button>
+              </Link>
+              <Link href="/sign-up">
+                <Button>Sign Up</Button>
+              </Link>
+            </>
+          )}
+          {isSignedIn && (
+            <>
+              <Link href="/dashboard">
+                <Button variant="ghost">Dashboard</Button>
+              </Link>
+              <SignOutButton />
+            </>
+          )}
+        </div>
       </div>
-
-      {/* Progress bar */}
-      <div
-        className="h-1 bg-primary dark:bg-primary-light transition-all duration-200"
-        style={{ width: `${scrollProgress}%` }}
-      />
     </header>
   );
 }

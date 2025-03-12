@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
 import { logger } from '@/utils/logger';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { StoryInput } from '@/types/story';
@@ -306,14 +307,20 @@ async function handleChatCompletion(params: any, userId: string) {
 /**
  * Main API route handler
  */
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    // Check if API key is configured
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
+    // Get user ID from Supabase authentication
+    const supabase = createRouteHandlerClient({ cookies });
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const userId = session?.user?.id;
+
+    // Check if user is authenticated
+    if (!userId) {
       return NextResponse.json(
-        { error: 'Server configuration error', message: 'Gemini API key is not configured' },
-        { status: 500 }
+        { error: 'Unauthorized', message: 'Authentication required' },
+        { status: 401 }
       );
     }
 
@@ -327,9 +334,9 @@ export async function POST(request: Request) {
 
     // Route the request based on type
     if (body.type === 'story') {
-      return handleGenerateStory(body.input, 'default-user');
+      return handleGenerateStory(body.input, userId);
     } else if (body.type === 'chat') {
-      return handleChatCompletion(body, 'default-user');
+      return handleChatCompletion(body, userId);
     } else {
       // Handle direct prompt if no specific type
       const { prompt } = body;

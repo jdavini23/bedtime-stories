@@ -8,6 +8,10 @@ import { ErrorBoundary } from '@/components/error-boundaries/ErrorBoundary';
 import { CriticalCSS } from '@/components/CriticalCSS';
 import { PreloadResources } from '@/components/PreloadResources';
 import { ScriptOptimizer } from '@/components/ScriptOptimizer';
+import { SupabaseProvider } from '@/providers/SupabaseProvider';
+import { ThemeProvider } from '@/providers/ThemeProvider';
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -48,16 +52,22 @@ export default function RootLayout({ children }: RootLayoutProps): React.JSX.Ele
         <Script id="critical-script" strategy="beforeInteractive" src="/scripts/critical.js" />
       </head>
       <body className={inter.className}>
-        <ErrorBoundary
-          fallback={
-            <div className="p-4 text-red-500">Something went wrong. Please try again.</div>
-          }
-        >
-          <Providers>
-            {children}
-            <ScriptOptimizer />
-          </Providers>
-        </ErrorBoundary>
+        <SupabaseProvider>
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+            <ErrorBoundary
+              fallback={
+                <div className="p-4 text-red-500">Something went wrong. Please try again.</div>
+              }
+            >
+              <Providers>
+                {children}
+                <ScriptOptimizer />
+                <Analytics />
+                <SpeedInsights />
+              </Providers>
+            </ErrorBoundary>
+          </ThemeProvider>
+        </SupabaseProvider>
       </body>
     </html>
   );

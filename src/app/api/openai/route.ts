@@ -1,13 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuth } from '@clerk/nextjs/server';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
 import { logger } from '@/utils/logger';
-import {
-  handleOpenAIError,
-  generateFallbackStoryUtil,
-  validateApiKey,
-  serializeError,
-  type OpenAIErrorResponse,
-} from '@/utils/error-handlers';
+import { handleOpenAIError, validateApiKey, serializeError } from '@/utils/error-handlers';
 
 // OpenAI API configuration
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
@@ -173,8 +168,7 @@ async function handleGenerateStory(params: any, userId: string) {
           clearTimeout(timeoutId);
 
           // Extract and return the story content
-          const content =
-            response.choices[0]?.message?.content || generateFallbackStoryUtil(params);
+          const content = response.choices[0]?.message?.content || generateFallbackStory(params);
 
           logger.info('Story generated successfully', {
             userId,
@@ -339,30 +333,24 @@ async function handleChatCompletion(params: any, userId: string) {
  */
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication
-    const auth = getAuth(request);
-    const userId = auth.userId;
+    // Get user ID from Supabase authentication
+    const supabase = createRouteHandlerClient({ cookies });
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const userId = session?.user?.id;
 
-    // In development mode, allow unauthenticated requests for easier testing
-    const isDevelopment = process.env.NODE_ENV === 'development';
-    const isAuthenticated = !!userId;
-
-    if (!isAuthenticated && !isDevelopment) {
-      logger.warn('Unauthorized access attempt to OpenAI API');
+    // Check if user is authenticated
+    if (!userId) {
       return NextResponse.json(
         { error: 'Unauthorized', message: 'Authentication required' },
         { status: 401 }
       );
     }
 
-    // Use a default user ID for development if not authenticated
-    const effectiveUserId = userId || 'dev-user-' + Date.now();
-
     // Log the auth state
     logger.info('API request authentication', {
-      isAuthenticated,
-      isDevelopment,
-      userId: effectiveUserId,
+      userId,
     });
 
     // Parse request body
@@ -377,9 +365,9 @@ export async function POST(request: NextRequest) {
     // Route to appropriate handler
     switch (operation) {
       case 'generateStory':
-        return handleGenerateStory(params, effectiveUserId);
+        return handleGenerateStory(params, userId);
       case 'chatCompletion':
-        return handleChatCompletion(params, effectiveUserId);
+        return handleChatCompletion(params, userId);
       default:
         return NextResponse.json({ error: `Unsupported operation: ${operation}` }, { status: 400 });
     }
