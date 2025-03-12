@@ -1,38 +1,83 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSupabaseClient } from './useSupabaseClient';
+import { Session, User } from '@supabase/supabase-js';
+import { logger } from '@/utils/logger';
 
-// Mock session data for development
-const mockSession = {
-  user: {
-    id: '1',
-    name: 'Test User',
-    email: 'test@example.com',
-  },
-  expires: new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString(), // 24 hours from now
-};
-
+/**
+ * Hook to manage authentication session with Supabase
+ * @returns Session data, authentication status and loading state
+ */
 export function useSession() {
-  const [session, setSession] = useState(mockSession);
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
+  const { supabase, loading: clientLoading } = useSupabaseClient();
+  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // In a real app, you would fetch the session from an API or auth provider
   useEffect(() => {
-    // This is just a mock implementation
-    setIsLoading(true);
+    async function getSession() {
+      try {
+        if (!supabase || clientLoading) {
+          return;
+        }
 
-    // Simulate API call
-    setTimeout(() => {
-      setSession(mockSession);
-      setIsAuthenticated(true);
-      setIsLoading(false);
-    }, 500);
-  }, []);
+        setIsLoading(true);
+        
+        // Get the current session
+        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          throw error;
+        }
+
+        if (currentSession) {
+          setSession(currentSession);
+          setUser(currentSession.user);
+          setIsAuthenticated(true);
+          
+          logger.info('User authenticated', { 
+            userId: currentSession.user.id,
+            email: currentSession.user.email
+          });
+        } else {
+          setSession(null);
+          setUser(null);
+          setIsAuthenticated(false);
+        }
+      } catch (error) {
+        logger.error('Error getting session', {
+          error: error instanceof Error ? error.message : String(error)
+        });
+        setSession(null);
+        setUser(null);
+        setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    getSession();
+
+    // Set up auth state listener
+    if (supabase) {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
+        setIsAuthenticated(!!newSession);
+      });
+
+      return () => {
+        subscription.unsubscribe();
+      };
+    }
+  }, [supabase, clientLoading]);
 
   return {
     session,
+    user,
     isAuthenticated,
-    isLoading,
+    isLoading: isLoading || clientLoading,
   };
 }

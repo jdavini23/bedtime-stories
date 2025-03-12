@@ -4,7 +4,6 @@ import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { Providers } from '@/providers/Providers';
-import { ClerkProvider } from '@clerk/nextjs';
 import { ErrorBoundary } from '@/components/error-boundaries/ErrorBoundary';
 import { CriticalCSS } from '@/components/CriticalCSS';
 import { PreloadResources } from '@/components/PreloadResources';
@@ -41,39 +40,25 @@ interface RootLayoutProps {
 }
 
 export default function RootLayout({ children }: RootLayoutProps): React.JSX.Element {
-  console.log('Initializing ClerkProvider');
-  
-  
   return (
-    <ClerkProvider
-      frontendApi={process.env.NEXT_PUBLIC_CLERK_FRONTEND_API || ''}
-      appearance={{
-        baseTheme: undefined,
-      }}
-      signInUrl={`/sign-in`}
-      signUpUrl={`/sign-up`}
-      afterSignInUrl={`/dashboard`}
-      afterSignUpUrl={`/dashboard`}
-    >
-      <html lang="en" suppressHydrationWarning className={inter.variable}>
-        <head>
-          <PreloadResources />
-          <CriticalCSS />
-          <Script id="critical-script" strategy="beforeInteractive" src="/scripts/critical.js" />
-        </head>
-        <body className={inter.className}>
-          <ErrorBoundary
-            fallback={
-              <div className="p-4 text-red-500">Something went wrong. Please try again.</div>
-            }
-          >
-            <Providers>
-              {children}
-              <ScriptOptimizer />
-            </Providers>
-          </ErrorBoundary>
-        </body>
-      </html>
-    </ClerkProvider>
+    <html lang="en" suppressHydrationWarning className={inter.variable}>
+      <head>
+        <PreloadResources />
+        <CriticalCSS />
+        <Script id="critical-script" strategy="beforeInteractive" src="/scripts/critical.js" />
+      </head>
+      <body className={inter.className}>
+        <ErrorBoundary
+          fallback={
+            <div className="p-4 text-red-500">Something went wrong. Please try again.</div>
+          }
+        >
+          <Providers>
+            {children}
+            <ScriptOptimizer />
+          </Providers>
+        </ErrorBoundary>
+      </body>
+    </html>
   );
 }

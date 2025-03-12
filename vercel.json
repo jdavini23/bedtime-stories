@@ -45,7 +45,7 @@
         },
         {
           "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type, Authorization, x-clerk-auth-token"
+          "value": "Content-Type, Authorization"
         },
         {
           "key": "Access-Control-Max-Age",
@@ -88,14 +88,7 @@
       "NEXT_PUBLIC_SUPABASE_URL": "https://zwnnxqvfavkzupmucbhk.supabase.co",
       "Upstash_KV_REST_API_URL": "https://on-foxhound-55066.upstash.io",
       "Upstash_KV_REST_API_TOKEN": "AdcaAAIjcDEzNzU5N2VkNGJkYWI0NzczODgwZmRiYTY3YTYxY2Y0YnAxMA",
-      "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_cmljaC1tYXN0aWZmLTIwLmNsZXJrLmFjY291bnRzLmRldiQ",
-      "CLERK_SECRET_KEY": "sk_test_ADShLaY9enp2qrH5TLBjZXID6OOLQTKwknc4WCd07w",
-      "NEXT_PUBLIC_APP_URL": "http://localhost:3000",
-      "GEMINI_API_KEY": "AIzaSyDinNULHx8UfFTKod8PZ2YWmlminQpokMI",
-      "NEXT_PUBLIC_CLERK_SIGN_IN_URL": "/sign-in",
-      "NEXT_PUBLIC_CLERK_SIGN_UP_URL": "/sign-up",
-      "NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL": "/",
-      "NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL": "/"
+      "GEMINI_API_KEY": "AIzaSyDinNULHx8UfFTKod8PZ2YWmlminQpokMI"
     }
   }
 }

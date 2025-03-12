@@ -1,35 +1,35 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
+import { useSupabase } from '@/providers/SupabaseAuthProvider';
 import DashboardCards from '@/components/dashboard/DashboardCards';
 
 export default function DashboardPage() {
-  const { isLoaded, isSignedIn, user } = useUser();
+  const { user, loading } = useSupabase();
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
+  const [isPageLoading, setIsPageLoading] = useState(true);
 
   useEffect(() => {
     console.log('Dashboard: Starting authentication check');
 
-    if (isLoaded) {
+    if (!loading) {
       console.log(
         'Dashboard: User authentication result:',
-        isSignedIn ? `Authenticated as ${user?.id}` : 'Not authenticated'
+        user ? `Authenticated as ${user.id}` : 'Not authenticated'
       );
 
-      // If no user is found, redirect to sign-in page
-      if (!isSignedIn) {
-        console.log('Dashboard: No user found, redirecting to sign-in');
-        router.push('/sign-in');
+      // If no user is found, redirect to login page
+      if (!user) {
+        console.log('Dashboard: No user found, redirecting to login');
+        router.push('/login');
       } else {
-        setIsLoading(false);
+        setIsPageLoading(false);
       }
     }
-  }, [isLoaded, isSignedIn, user, router]);
+  }, [loading, user, router]);
 
-  if (!isLoaded || isLoading) {
+  if (loading || isPageLoading) {
     return <div className="container mx-auto px-4 py-8">Loading...</div>;
   }
 

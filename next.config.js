@@ -35,7 +35,6 @@ const nextConfig = {
       'framer-motion',
       'lucide-react',
       'react-dom',
-      '@clerk/nextjs',
       'zod',
       'class-variance-authority',
       'tailwind-merge',
@@ -98,16 +97,6 @@ const nextConfig = {
           },
         },
       };
-    }
-
-    if (isServer) {
-      console.log('Server-side environment variables:', {
-        NEXT_PUBLIC_CLERK_FRONTEND_API: process.env.NEXT_PUBLIC_CLERK_FRONTEND_API,
-      });
-    } else {
-      console.log('Client-side environment variables:', {
-        NEXT_PUBLIC_CLERK_FRONTEND_API: process.env.NEXT_PUBLIC_CLERK_FRONTEND_API,
-      });
     }
 
     return config;
@@ -206,7 +195,6 @@ const nextConfig = {
 nextConfig.env = {
   UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
   UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
-  NEXT_PUBLIC_CLERK_FRONTEND_API: process.env.NEXT_PUBLIC_CLERK_FRONTEND_API,
 };
 
 // Export the config without Sentry
