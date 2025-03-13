@@ -1,12 +1,4 @@
-// Try to import from the mock environment first, then fall back to the real environment
-let env;
-try {
-  // This will be used when running the test script
-  env = require('../scripts/mock-env').env;
-} catch (error) {
-  // This will be used in the normal application
-  env = require('@/lib/env').env;
-}
+import { env } from './envConfig';
 
 /**
  * Log levels with numeric severity
@@ -18,56 +10,39 @@ export enum LogLevel {
   DEBUG = 3,
 }
 
-/**
- * Interface for log entry
- */
-export interface LogEntry {
+interface LogConfig {
   level: LogLevel;
-  message: string;
-  context?: Record<string, unknown>;
-  timestamp: number;
+  enableConsole: boolean;
+  enableRemoteLogging: boolean;
 }
 
-/**
- * Configuration interface for logger
- */
-interface LoggerConfig {
-  level?: LogLevel;
-  enableConsole?: boolean;
-  enableRemoteLogging?: boolean;
+interface LogEntry {
+  level: LogLevel;
+  message: string;
+  context?: unknown;
+  timestamp: number;
 }
 
 /**
  * Default logger configuration based on environment
  */
-const DEFAULT_CONFIG: LoggerConfig = {
+const DEFAULT_CONFIG: LogConfig = {
   level: env.NODE_ENV === 'production' ? LogLevel.WARN : LogLevel.DEBUG,
   enableConsole: true,
   enableRemoteLogging: env.NODE_ENV === 'production',
 };
 
 /**
- * Logger class implementing singleton pattern
+ * Logger class implementing singleton pattern with type safety
  */
 class Logger {
-  private config: LoggerConfig;
-  private static instance: Logger;
+  private config: LogConfig;
 
-  private constructor(config?: LoggerConfig) {
+  constructor(config?: Partial<LogConfig>) {
     this.config = {
       ...DEFAULT_CONFIG,
       ...config,
     };
-  }
-
-  /**
-   * Get singleton instance
-   */
-  public static getInstance(config?: LoggerConfig): Logger {
-    if (!Logger.instance) {
-      Logger.instance = new Logger(config);
-    }
-    return Logger.instance;
   }
 
   /**
@@ -77,13 +52,10 @@ class Logger {
     // Only log if the current log level allows
     if (level > (this.config.level ?? LogLevel.INFO)) return;
 
-    // Convert unknown context to Record<string, any> or undefined
-    const safeContext = context ? this.convertToRecord(context) : undefined;
-
     const logEntry: LogEntry = {
       level,
       message,
-      context: safeContext,
+      context,
       timestamp: Date.now(),
     };
 
@@ -94,59 +66,32 @@ class Logger {
   }
 
   /**
-   * Convert unknown value to a safe record
+   * Console logging with color and formatting
    */
-  private convertToRecord(value: unknown): Record<string, unknown> {
-    if (value === null) return { value: null };
-    if (value === undefined) return { value: undefined };
+  private consoleLog(entry: LogEntry): void {
+    const { level, message, context, timestamp } = entry;
+    const formattedTimestamp = new Date(timestamp).toISOString();
+    const levelInfo = this.getLevelInfo(level);
+    const contextString = context ? JSON.stringify(context) : '';
 
-    // Special handling for Error objects
-    if (value instanceof Error) {
-      return {
-        message: value.message,
-        name: value.name,
-        stack: value.stack,
-      };
+    // Get the appropriate console method
+    const consoleMethod =
+      level === LogLevel.ERROR
+        ? console.error
+        : level === LogLevel.WARN
+          ? console.warn
+          : level === LogLevel.INFO
+            ? console.info
+            : console.debug;
+
+    // Format the log message
+    const logPrefix = `${levelInfo.color}[${levelInfo.name}]\x1b[0m ${formattedTimestamp} -`;
+
+    if (contextString) {
+      consoleMethod(`${logPrefix} ${message}`, contextString);
+    } else {
+      consoleMethod(`${logPrefix} ${message}`);
     }
-
-    // Handle empty objects
-    if (typeof value === 'object' && value !== null) {
-      const obj = value as Record<string, unknown>;
-      // Check if object is empty or has empty error property
-      if (Object.keys(obj).length === 0) {
-        return { value: 'Empty object' };
-      }
-
-      // Special handling for objects with error property
-      if (obj.error !== undefined) {
-        if (
-          obj.error === null ||
-          (typeof obj.error === 'object' && Object.keys(obj.error as object).length === 0)
-        ) {
-          return {
-            error: 'Empty error object',
-            originalObject: JSON.stringify(obj),
-          };
-        }
-      }
-
-      return Object.entries(obj).reduce(
-        (acc, [key, val]) => {
-          acc[key] = val;
-          return acc;
-        },
-        {} as Record<string, unknown>
-      );
-    }
-
-    return { value };
-  }
-
-  /**
-   * Format timestamp to ISO string
-   */
-  private formatTimestamp(timestamp: number): string {
-    return new Date(timestamp).toISOString();
   }
 
   /**
@@ -167,126 +112,22 @@ class Logger {
     }
   }
 
-  /**
-   * Safely stringify context with depth limit and circular reference handling
-   */
-  private safeStringify(value: unknown, depth: number = 0): string {
-    // Prevent excessive recursion
-    if (depth > 3) return '[Depth Limit Exceeded]';
-
-    // Handle null and undefined
-    if (value === null) return 'null';
-    if (value === undefined) return 'undefined';
-
-    // Handle primitive types
-    if (['string', 'number', 'boolean'].includes(typeof value)) {
-      return String(value);
-    }
-
-    // Handle Date objects
-    if (value instanceof Date) {
-      return value.toISOString();
-    }
-
-    // Handle arrays
-    if (Array.isArray(value)) {
-      return `[${value.map((item) => this.safeStringify(item, depth + 1)).join(', ')}]`;
-    }
-
-    // Handle objects
-    if (typeof value === 'object') {
-      try {
-        // Prevent circular references
-        const seen = new WeakSet();
-
-        const stringifyObject = (obj: object): string => {
-          if (seen.has(obj)) return '[Circular]';
-          seen.add(obj);
-
-          const entries = Object.entries(obj).map(
-            ([key, val]) => `${key}: ${this.safeStringify(val, depth + 1)}`
-          );
-
-          return `{ ${entries.join(', ')} }`;
-        };
-
-        return stringifyObject(value as object);
-      } catch {
-        return '[Unable to stringify]';
-      }
-    }
-
-    // Fallback for functions or other unhandled types
-    return String(value);
-  }
-
-  /**
-   * Console logging with color and formatting
-   */
-  private consoleLog(entry: LogEntry): void {
-    const { level, message, context, timestamp } = entry;
-    const formattedTimestamp = this.formatTimestamp(timestamp);
-    const { name: levelName, color: levelColor } = this.getLevelInfo(level);
-    const contextString = context ? this.safeStringify(context) : '';
-
-    // Get the appropriate console method
-    const consoleMethod =
-      level === LogLevel.ERROR
-        ? console.error
-        : level === LogLevel.WARN
-          ? console.warn
-          : level === LogLevel.INFO
-            ? console.info
-            : console.debug;
-
-    // Format the log message
-    const logPrefix = `${levelColor}[${levelName}]\x1b[0m ${formattedTimestamp} -`;
-
-    if (contextString) {
-      consoleMethod(`${logPrefix} ${message}`, contextString);
-    } else {
-      consoleMethod(`${logPrefix} ${message}`);
-    }
-  }
-
-  /**
-   * Remote logging implementation (placeholder)
-   */
-  /**
-   * Public logging methods
-   */
-  public error(message: string, context?: Record<string, unknown>): void {
+  error(message: string, context?: unknown): void {
     this.log(LogLevel.ERROR, message, context);
   }
 
-  public warn(message: string, context?: Record<string, unknown>): void {
+  warn(message: string, context?: unknown): void {
     this.log(LogLevel.WARN, message, context);
   }
 
-  public info(message: string, context?: Record<string, unknown>): void {
+  info(message: string, context?: unknown): void {
     this.log(LogLevel.INFO, message, context);
   }
 
-  public debug(message: string, context?: Record<string, unknown>): void {
+  debug(message: string, context?: unknown): void {
     this.log(LogLevel.DEBUG, message, context);
   }
-
-  /**
-   * Set log level dynamically
-   */
-  public setLogLevel(level: LogLevel): void {
-    this.config.level = level;
-  }
 }
 
-/**
- * Export singleton instance
- */
-export const logger = Logger.getInstance();
-
-/**
- * Configure logger with custom settings
- */
-export function configureLogger(config: LoggerConfig): Logger {
-  return Logger.getInstance(config);
-}
+// Create and export singleton instance
+export const logger = new Logger();
