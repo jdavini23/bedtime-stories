@@ -1,125 +1,62 @@
-/* Remove local font face and use Google Fonts */
-/* Google Fonts are imported via link tags in the layout.tsx file */
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  /* Base Colors */
-  --foreground-rgb: 53, 53, 53; /* Deep Charcoal */
-  --background-start-rgb: 245, 245, 245; /* Soft White */
-  --background-end-rgb: 240, 240, 235;
+@layer base {
+  :root {
+    --background: 245 245 245; /* Soft White */
+    --foreground: 53 53 53; /* Deep Charcoal */
+    --card: 255 255 255;
+    --card-foreground: 53 53 53;
+    --popover: 255 255 255;
+    --popover-foreground: 53 53 53;
+    --primary: 60 110 113; /* Forest Teal */
+    --primary-foreground: 253 253 253;
+    --secondary: 242 204 143; /* Honey Gold */
+    --secondary-foreground: 40 75 99;
+    --muted: 245 245 245;
+    --muted-foreground: 115 115 115;
+    --accent: 217 197 178; /* Warm Beige */
+    --accent-foreground: 40 75 99;
+    --destructive: 239 68 68;
+    --destructive-foreground: 253 253 253;
+    --border: 229 229 229;
+    --input: 229 229 229;
+    --ring: 60 110 113;
+    --radius: 0.5rem;
+  }
 
-  /* Primary Colors - Woodland Theme */
-  --midnight-blue: 40, 75, 99; /* #284B63 - Deep Blue */
-  --magical-purple: 60, 110, 113; /* #3C6E71 - Forest Teal */
-  --dreamy-pink: 217, 197, 178; /* #D9C5B2 - Warm Beige */
-  --golden-glow: 242, 204, 143; /* #F2CC8F - Honey Gold */
-  --cloud-white: 245, 245, 245; /* #F5F5F5 - Soft White */
-
-  /* Secondary Colors */
-  --sky-blue: 132, 180, 200; /* #84B4C8 - Soft Sky Blue */
-  --soft-lavender: 165, 165, 141; /* #A5A58D - Sage Green */
-  --misty-teal: 107, 144, 128; /* #6B9080 - Forest Green */
-
-  /* Theme Colors - Light Mode */
-  --color-primary: rgb(60, 110, 113);
-  --color-primary-dark: rgb(44, 81, 82);
-  --color-primary-light: rgb(79, 138, 141);
-
-  --color-secondary: rgb(242, 204, 143);
-  --color-secondary-dark: rgb(229, 185, 110);
-  --color-secondary-light: rgb(247, 220, 172);
-
-  --color-background: rgb(245, 245, 245);
-  --color-card: rgba(255, 255, 255, 0.9);
-  --color-card-hover: rgba(255, 255, 255, 1);
-
-  --color-text: rgb(53, 53, 53);
-  --color-text-muted: rgba(53, 53, 53, 0.8);
-
-  /* Animation Speeds */
-  --transition-slow: 500ms;
-  --transition-medium: 300ms;
-  --transition-fast: 150ms;
-
-  /* Spacing */
-  --space-xs: 0.25rem;
-  --space-sm: 0.5rem;
-  --space-md: 1rem;
-  --space-lg: 1.5rem;
-  --space-xl: 2rem;
-  --space-2xl: 3rem;
-
-  /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
-  --shadow-dreamy: 0 4px 14px 0 rgba(60, 110, 113, 0.2);
-}
-
-.dark {
-  --foreground-rgb: 245, 245, 245; /* Soft White */
-  --background-start-rgb: 40, 75, 99; /* Deep Blue */
-  --background-end-rgb: 30, 45, 60;
-
-  /* Theme Colors - Dark Mode */
-  --color-primary: rgb(79, 138, 141);
-  --color-primary-dark: rgb(60, 110, 113);
-  --color-primary-light: rgb(98, 157, 160);
-
-  --color-secondary: rgb(247, 220, 172);
-  --color-secondary-dark: rgb(242, 204, 143);
-  --color-secondary-light: rgb(250, 231, 196);
-
-  --color-background: rgb(40, 75, 99);
-  --color-card: rgba(30, 45, 60, 0.9);
-  --color-card-hover: rgba(35, 50, 65, 1);
-
-  --color-text: rgb(245, 245, 245);
-  --color-text-muted: rgba(245, 245, 245, 0.8);
-
-  /* Shadows for Dark Mode */
-  --shadow-dreamy: 0 4px 14px 0 rgba(0, 0, 0, 0.3);
-}
-
-/* Keep the media query as a fallback for users who haven't made a choice yet */
-@media (prefers-color-scheme: dark) {
-  .dark-mode-auto {
-    --foreground-rgb: 245, 245, 245; /* Soft White */
-    --background-start-rgb: 40, 75, 99; /* Deep Blue */
-    --background-end-rgb: 30, 45, 60;
-
-    /* Theme Colors - Dark Mode */
-    --color-primary: rgb(79, 138, 141);
-    --color-primary-dark: rgb(60, 110, 113);
-    --color-primary-light: rgb(98, 157, 160);
-
-    --color-secondary: rgb(247, 220, 172);
-    --color-secondary-dark: rgb(242, 204, 143);
-    --color-secondary-light: rgb(250, 231, 196);
-
-    --color-background: rgb(40, 75, 99);
-    --color-card: rgba(30, 45, 60, 0.9);
-    --color-card-hover: rgba(35, 50, 65, 1);
-
-    --color-text: rgb(245, 245, 245);
-    --color-text-muted: rgba(245, 245, 245, 0.8);
-
-    /* Shadows for Dark Mode */
-    --shadow-dreamy: 0 4px 14px 0 rgba(0, 0, 0, 0.3);
+  .dark {
+    --background: 40 75 99; /* Deep Blue */
+    --foreground: 245 245 245;
+    --card: 30 45 60;
+    --card-foreground: 245 245 245;
+    --popover: 30 45 60;
+    --popover-foreground: 245 245 245;
+    --primary: 79 138 141;
+    --primary-foreground: 253 253 253;
+    --secondary: 247 220 172;
+    --secondary-foreground: 40 75 99;
+    --muted: 30 45 60;
+    --muted-foreground: 160 160 160;
+    --accent: 98 157 160;
+    --accent-foreground: 253 253 253;
+    --destructive: 239 68 68;
+    --destructive-foreground: 253 253 253;
+    --border: 50 85 109;
+    --input: 50 85 109;
+    --ring: 79 138 141;
   }
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(to bottom, transparent, rgb(var(--background-end-rgb)))
-    rgb(var(--background-start-rgb));
-  font-family: var(--font-inter), 'Quicksand', sans-serif;
-}
-
 @layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
   h1 {
     @apply text-3xl font-bold md:text-4xl lg:text-5xl;
   }
@@ -136,30 +73,22 @@ body {
 
 @layer components {
   .btn-primary {
-    @apply bg-primary text-text-primary px-6 py-3 rounded-xl font-medium shadow-dreamy 
+    @apply bg-primary text-primary-foreground px-6 py-3 rounded-xl font-medium shadow-dreamy 
     hover:bg-primary-dark transition-colors duration-300;
   }
 
   .btn-secondary {
-    @apply bg-golden text-midnight px-6 py-3 rounded-xl font-medium shadow-dreamy 
-    hover:bg-golden-dark transition-colors duration-300;
+    @apply bg-secondary text-secondary-foreground px-6 py-3 rounded-xl font-medium shadow-dreamy 
+    hover:bg-secondary-dark transition-colors duration-300;
   }
 
   .card {
-    @apply bg-cloud p-6 rounded-2xl shadow-dreamy;
-  }
-
-  .dark .card {
-    @apply bg-midnight-dark text-text-primary;
+    @apply bg-card text-card-foreground p-6 rounded-2xl shadow-dreamy;
   }
 
   .input-field {
-    @apply bg-cloud-light border border-lavender rounded-xl px-4 py-3 w-full focus:outline-none
-    focus:ring-2 focus:ring-primary focus:border-transparent;
-  }
-
-  .dark .input-field {
-    @apply bg-midnight-light border-primary-light text-text-primary;
+    @apply bg-muted border border-input rounded-xl px-4 py-3 w-full 
+    focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent;
   }
 
   .floating-element {
@@ -180,18 +109,10 @@ body {
 }
 
 .high-contrast-mode {
-  --foreground-rgb: 255, 255, 255;
-  --background-start-rgb: 0, 0, 0;
-  --background-end-rgb: 0, 0, 0;
-}
-
-/* Transitions */
-.page-transition {
-  @apply transition-all duration-500 ease-in-out;
-}
-
-.story-text {
-  @apply text-story leading-relaxed;
+  --background: 0 0 0;
+  --foreground: 255 255 255;
+  --card: 20 20 20;
+  --card-foreground: 255 255 255;
 }
 
 /* Custom scrollbar styling */
@@ -200,72 +121,49 @@ body {
 }
 
 .story-text::-webkit-scrollbar-track {
-  background: rgba(var(--cloud-white), 0.3);
-  border-radius: 10px;
+  @apply bg-muted rounded-full;
 }
 
 .story-text::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, rgb(var(--magical-purple)), rgb(var(--dreamy-pink)));
-  border-radius: 10px;
+  @apply bg-primary rounded-full;
 }
 
-.story-text::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, rgb(var(--midnight-blue)), rgb(var(--magical-purple)));
+/* Custom cursor */
+.cursor-book {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='none' stroke='%23F2CC8F' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 19.5A2.5 2.5 0 0 1 6.5 17H20'/%3E%3Cpath d='M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z'/%3E%3C/svg%3E"),
+    pointer;
 }
 
-/* Dark mode scrollbar */
-.dark .story-text::-webkit-scrollbar-track {
-  background: rgba(var(--midnight-blue), 0.5);
+/* Keep the media query as a fallback for users who haven't made a choice yet */
+@media (prefers-color-scheme: dark) {
+  .dark-mode-auto {
+    --background: 40 75 99; /* Deep Blue */
+    --foreground: 245 245 245;
+    --card: 30 45 60;
+    --card-foreground: 245 245 245;
+    --popover: 30 45 60;
+    --popover-foreground: 245 245 245;
+    --primary: 79 138 141;
+    --primary-foreground: 253 253 253;
+    --secondary: 247 220 172;
+    --secondary-foreground: 40 75 99;
+    --muted: 30 45 60;
+    --muted-foreground: 160 160 160;
+    --accent: 98 157 160;
+    --accent-foreground: 253 253 253;
+    --destructive: 239 68 68;
+    --destructive-foreground: 253 253 253;
+    --border: 50 85 109;
+    --input: 50 85 109;
+    --ring: 79 138 141;
+  }
 }
 
-.dark .story-text::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, rgb(var(--dreamy-pink)), rgb(var(--golden-glow)));
-}
-
-.dark .story-text::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, rgb(var(--magical-purple)), rgb(var(--dreamy-pink)));
-}
-
-/* Modern custom scrollbar for chat interface */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(var(--midnight-blue), 0.3);
-  border-radius: 10px;
-  margin: 4px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, rgb(var(--sky-blue)), rgb(var(--magical-purple)));
-  border-radius: 10px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, rgb(var(--sky-blue)), rgb(var(--dreamy-pink)));
-}
-
-/* Dark mode custom scrollbar */
-.dark .custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(var(--midnight-blue), 0.5);
-}
-
-.dark .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, rgb(var(--sky-blue)), rgb(var(--golden-glow)));
-}
-
-.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, rgb(var(--magical-purple)), rgb(var(--dreamy-pink)));
-}
-
-/* Story preview specific styling */
-.story-text .typing-animation {
-  color: #353535 !important; /* Force darker text in light mode */
-}
-
-.dark .story-text .typing-animation {
-  color: #fdfdfd !important; /* Force lighter text in dark mode */
+body {
+  color: rgb(var(--foreground));
+  background: linear-gradient(to bottom, transparent, rgb(var(--background)))
+    rgb(var(--background));
+  font-family: var(--font-inter), 'Quicksand', sans-serif;
 }
 
 /* Typing animation for story generation */

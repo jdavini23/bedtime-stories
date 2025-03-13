@@ -1,14 +1,23 @@
 import type { Config } from 'tailwindcss';
 
-export default {
+const config = {
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
-    './pages/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   darkMode: 'class',
+  future: {
+    hoverOnlyWhenSupported: true,
+  },
   theme: {
+    container: {
+      center: true,
+      padding: '2rem',
+      screens: {
+        '2xl': '1400px',
+      },
+    },
     extend: {
       colors: {
         // Primary Colors - Woodland Theme
@@ -59,19 +68,46 @@ export default {
           secondary: '#353535', // Deep Charcoal
           muted: '#AAAAAA', // Pastel Grey
         },
-        background: 'var(--background)',
-        foreground: 'var(--foreground)',
+        // System Colors
+        border: 'hsl(var(--border))',
+        input: 'hsl(var(--input))',
+        ring: 'hsl(var(--ring))',
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
+        destructive: {
+          DEFAULT: 'hsl(var(--destructive))',
+          foreground: 'hsl(var(--destructive-foreground))',
+        },
+        muted: {
+          DEFAULT: 'hsl(var(--muted))',
+          foreground: 'hsl(var(--muted-foreground))',
+        },
+        accent: {
+          DEFAULT: 'hsl(var(--accent))',
+          foreground: 'hsl(var(--accent-foreground))',
+        },
+        popover: {
+          DEFAULT: 'hsl(var(--popover))',
+          foreground: 'hsl(var(--popover-foreground))',
+        },
+        card: {
+          DEFAULT: 'hsl(var(--card))',
+          foreground: 'hsl(var(--card-foreground))',
+        },
+      },
+      borderRadius: {
+        lg: 'var(--radius)',
+        md: 'calc(var(--radius) - 2px)',
+        sm: 'calc(var(--radius) - 4px)',
+        xl: '1rem',
+        '2xl': '1.5rem',
       },
       fontFamily: {
-        sans: ['Inter', 'Quicksand', 'Poppins', 'sans-serif'],
+        sans: ['var(--font-inter)', 'Quicksand', 'system-ui', 'sans-serif'],
         dyslexic: ['OpenDyslexic', 'Quicksand', 'sans-serif'],
       },
       fontSize: {
         story: ['1.125rem', { lineHeight: '1.75rem' }], // 18px for story text
-      },
-      borderRadius: {
-        xl: '1rem',
-        '2xl': '1.5rem',
       },
       boxShadow: {
         dreamy: '0 4px 14px 0 rgba(60, 110, 113, 0.2)', // Updated to match new primary color
@@ -106,3 +142,5 @@ export default {
   },
   plugins: [],
 } satisfies Config;
+
+export default config;

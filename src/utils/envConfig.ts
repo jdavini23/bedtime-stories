@@ -3,25 +3,33 @@ import { z } from 'zod';
 const envSchema = z.object({
   // Application
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  NEXT_PUBLIC_APP_URL: z.string().url(),
+  NEXT_PUBLIC_APP_URL: z.string().url().default('http://localhost:3000'),
 
   // Supabase
   NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string(),
-  SUPABASE_SERVICE_ROLE_KEY: z.string(),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
 
   // OpenAI
-  OPENAI_API_KEY: z.string(),
+  OPENAI_API_KEY: process.env.NODE_ENV === 'production' 
+    ? z.string()
+    : z.string().optional(),
   OPENAI_ORGANIZATION_ID: z.string().optional(),
 
   // Google AI (Gemini)
-  GOOGLE_AI_API_KEY: z.string(),
+  GOOGLE_AI_API_KEY: process.env.NODE_ENV === 'production'
+    ? z.string()
+    : z.string().optional(),
 
   // Redis/KV
   REDIS_URL: z.string().url().optional(),
   KV_URL: z.string().url().optional(),
-  KV_REST_API_URL: z.string().url(),
-  KV_REST_API_TOKEN: z.string(),
+  KV_REST_API_URL: process.env.NODE_ENV === 'production'
+    ? z.string().url()
+    : z.string().url().optional(),
+  KV_REST_API_TOKEN: process.env.NODE_ENV === 'production'
+    ? z.string()
+    : z.string().optional(),
   KV_REST_API_READ_ONLY_TOKEN: z.string().optional(),
 
   // Sentry
@@ -32,7 +40,7 @@ const envSchema = z.object({
   NEXT_PUBLIC_VERCEL_ANALYTICS_ID: z.string().optional(),
 
   // Feature Flags
-  NEXT_PUBLIC_FEATURE_FLAG_GEMINI: z.boolean().default(true),
+  NEXT_PUBLIC_FEATURE_FLAG_GEMINI: z.boolean().default(false),
   NEXT_PUBLIC_FEATURE_FLAG_OPENAI: z.boolean().default(true),
 });
 
