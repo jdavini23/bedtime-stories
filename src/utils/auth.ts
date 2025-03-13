@@ -1,7 +1,10 @@
 import { User } from '@supabase/supabase-js';
+import { logger } from './logger';
 
+// Our application's User type with comprehensive metadata
 type AppMetadata = {
   role?: string;
+  isAdmin?: boolean;
   full_name?: string;
   name?: string;
   onboarding_completed?: boolean;
@@ -17,43 +20,53 @@ type AppUser = User & {
  * @returns boolean indicating if the user is an admin
  */
 export const isAdmin = (user: AppUser | null): boolean => {
-  if (!user) return false;
-
-  // Check user metadata for admin role
-  const metadata = user.user_metadata;
-  if (!metadata) return false;
-
-  return metadata.role === 'admin';
+  try {
+    if (!user?.user_metadata) return false;
+    return user.user_metadata.isAdmin === true || user.user_metadata.role === 'admin';
+  } catch (error) {
+    logger.error('Error checking admin status', { error });
+    return false;
+  }
 };
 
 /**
  * Get the display name for a user
  * @param user The user object from Supabase
- * @returns string The user's display name or a default value
+ * @returns The user's display name or a default value
  */
 export const getUserDisplayName = (user: AppUser | null): string => {
-  if (!user) return 'Guest';
+  try {
+    if (!user) return 'Guest';
 
-  // Try to get the name from user metadata
-  const metadata = user.user_metadata;
-  if (metadata?.full_name) return metadata.full_name;
-  if (metadata?.name) return metadata.name;
+    const metadata = user.user_metadata;
+    if (!metadata) return user.email?.split('@')[0] || 'User';
 
-  // Fall back to email if available
-  if (user.email) return user.email.split('@')[0];
-
-  // Final fallback
-  return 'User';
+    // Try each possible name field in order of preference
+    return (
+      metadata.full_name ||
+      metadata.name ||
+      user.email?.split('@')[0] ||
+      'User'
+    );
+  } catch (error) {
+    logger.error('Error getting user display name', { error, userId: user?.id });
+    return 'User';
+  }
 };
 
 /**
  * Check if a user has a verified email
  * @param user The user object from Supabase
- * @returns boolean indicating if the user has a verified email
+ * @returns boolean indicating if the user's email is verified
  */
 export const hasVerifiedEmail = (user: AppUser | null): boolean => {
-  if (!user) return false;
-  return user.email_confirmed_at !== null;
+  try {
+    if (!user) return false;
+    return user.email_confirmed_at !== null;
+  } catch (error) {
+    logger.error('Error checking email verification', { error, userId: user?.id });
+    return false;
+  }
 };
 
 /**
@@ -62,8 +75,13 @@ export const hasVerifiedEmail = (user: AppUser | null): boolean => {
  * @returns string The user's email address or null
  */
 export const getUserEmail = (user: AppUser | null): string | null => {
-  if (!user) return null;
-  return user.email || null;
+  try {
+    if (!user) return null;
+    return user.email || null;
+  } catch (error) {
+    logger.error('Error getting user email', { error, userId: user?.id });
+    return null;
+  }
 };
 
 /**
@@ -72,6 +90,11 @@ export const getUserEmail = (user: AppUser | null): string | null => {
  * @returns boolean indicating if the user has completed onboarding
  */
 export const hasCompletedOnboarding = (user: AppUser | null): boolean => {
-  if (!user) return false;
-  return user.user_metadata?.onboarding_completed === true;
+  try {
+    if (!user?.user_metadata) return false;
+    return user.user_metadata.onboarding_completed === true;
+  } catch (error) {
+    logger.error('Error checking onboarding status', { error, userId: user?.id });
+    return false;
+  }
 };

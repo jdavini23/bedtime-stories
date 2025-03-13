@@ -58,4 +58,8 @@ env-setup*
 *.bat
 *.sh
 
+# Clerk configuration (can include secrets)
+.clerk/
+clerk.json
+
 .vercel
