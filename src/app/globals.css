@@ -1,3 +1,9 @@
+@layer components {
+  .text-primary-foreground {
+    color: theme('colors.primary.foreground');
+  }
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -68,35 +74,6 @@
   }
   p {
     @apply text-base md:text-lg;
-  }
-}
-
-@layer components {
-  .btn-primary {
-    @apply bg-primary text-primary-foreground px-6 py-3 rounded-xl font-medium shadow-dreamy 
-    hover:bg-primary-dark transition-colors duration-300;
-  }
-
-  .btn-secondary {
-    @apply bg-secondary text-secondary-foreground px-6 py-3 rounded-xl font-medium shadow-dreamy 
-    hover:bg-secondary-dark transition-colors duration-300;
-  }
-
-  .card {
-    @apply bg-card text-card-foreground p-6 rounded-2xl shadow-dreamy;
-  }
-
-  .input-field {
-    @apply bg-muted border border-input rounded-xl px-4 py-3 w-full 
-    focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent;
-  }
-
-  .floating-element {
-    @apply animate-float;
-  }
-
-  .twinkling-star {
-    @apply animate-twinkle;
   }
 }
 

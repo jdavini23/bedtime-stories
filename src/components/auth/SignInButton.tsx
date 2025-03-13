@@ -37,8 +37,9 @@ export function SignInButton({
 
     if (error) {
       console.error('Error signing in:', error.message);
-      setIsLoading(false);
     }
+    router.push('/');
+    setIsLoading(false);
   };
 
   return (

@@ -25,6 +25,7 @@ const config = {
           DEFAULT: '#3C6E71', // Forest Teal
           dark: '#2C5152',
           light: '#4F8A8D',
+          // foreground: '#FDFDFD', // Adding this for text on primary background
         },
         midnight: {
           DEFAULT: '#284B63', // Deep Blue
