@@ -19,13 +19,13 @@ export function UserProfileMenu() {
     return (
       <div className="flex items-center gap-4">
         <Link
-          href="/auth/sign-in"
+          href="/login"
           className="text-sm font-medium text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100"
         >
           Sign In
         </Link>
         <Link
-          href="/auth/sign-up"
+          href="/signup"
           className="text-sm font-medium text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100"
         >
           Sign Up
@@ -35,9 +35,11 @@ export function UserProfileMenu() {
   }
 
   const displayName = user
-    ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || 'User'
+    ? `${user.user_metadata?.firstName || ''} ${user.user_metadata?.lastName || ''}`.trim() ||
+      user.email ||
+      'User'
     : 'User';
-  const avatarUrl = user?.imageUrl;
+  const avatarUrl = user?.user_metadata?.avatar_url;
   const initials = displayName?.charAt(0) || 'U';
 
   return (
@@ -80,7 +82,7 @@ export function UserProfileMenu() {
           >
             Profile
           </Link>
-          {user?.isAdmin && (
+          {user?.user_metadata?.isAdmin && (
             <Link
               href="/admin"
               className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"

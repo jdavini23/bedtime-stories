@@ -4,119 +4,99 @@
 
 @layer base {
   :root {
-    --background: 245 245 245; /* Soft White */
-    --foreground: 53 53 53; /* Deep Charcoal */
-    --card: 255 255 255;
-    --card-foreground: 53 53 53;
-    --popover: 255 255 255;
-    --popover-foreground: 53 53 53;
-    --primary: 60 110 113; /* Forest Teal */
-    --primary-foreground: 253 253 253;
-    --secondary: 242 204 143; /* Honey Gold */
-    --secondary-foreground: 40 75 99;
-    --muted: 245 245 245;
-    --muted-foreground: 115 115 115;
-    --accent: 217 197 178; /* Warm Beige */
-    --accent-foreground: 40 75 99;
-    --destructive: 239 68 68;
-    --destructive-foreground: 253 253 253;
-    --border: 229 229 229;
-    --input: 229 229 229;
-    --ring: 60 110 113;
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 270 50% 60%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 270 50% 60%;
+
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: 40 75 99; /* Deep Blue */
-    --foreground: 245 245 245;
-    --card: 30 45 60;
-    --card-foreground: 245 245 245;
-    --popover: 30 45 60;
-    --popover-foreground: 245 245 245;
-    --primary: 79 138 141;
-    --primary-foreground: 253 253 253;
-    --secondary: 247 220 172;
-    --secondary-foreground: 40 75 99;
-    --muted: 30 45 60;
-    --muted-foreground: 160 160 160;
-    --accent: 98 157 160;
-    --accent-foreground: 253 253 253;
-    --destructive: 239 68 68;
-    --destructive-foreground: 253 253 253;
-    --border: 50 85 109;
-    --input: 50 85 109;
-    --ring: 79 138 141;
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 270 50% 60%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 270 50% 60%;
   }
 }
 
 @layer base {
   * {
-    border-color: hsl(var(--border));
+    @apply border-border;
   }
   body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
-    font-feature-settings: "rlig" 1, "calt" 1;
+    @apply bg-background text-foreground;
   }
-  h1 {
-    font-size: 1.875rem;
-    line-height: 2.25rem;
-    font-weight: 700;
+}
+
+@layer utilities {
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
   }
-  @media (min-width: 768px) {
-    h1 {
-      font-size: 2.25rem;
-      line-height: 2.5rem;
+
+  .animate-float-slow {
+    animation: float 8s ease-in-out infinite;
+  }
+
+  .animate-float-delay {
+    animation: float 7s ease-in-out infinite 1s;
+  }
+
+  @keyframes float {
+    0% {
+      transform: translateY(0px);
     }
-  }
-  @media (min-width: 1024px) {
-    h1 {
-      font-size: 3rem;
-      line-height: 1;
+    50% {
+      transform: translateY(-20px);
     }
-  }
-  h2 {
-    font-size: 1.5rem;
-    line-height: 2rem;
-    font-weight: 700;
-  }
-  @media (min-width: 768px) {
-    h2 {
-      font-size: 1.875rem;
-      line-height: 2.25rem;
-    }
-  }
-  @media (min-width: 1024px) {
-    h2 {
-      font-size: 2.25rem;
-      line-height: 2.5rem;
-    }
-  }
-  h3 {
-    font-size: 1.25rem;
-    line-height: 1.75rem;
-    font-weight: 700;
-  }
-  @media (min-width: 768px) {
-    h3 {
-      font-size: 1.5rem;
-      line-height: 2rem;
-    }
-  }
-  @media (min-width: 1024px) {
-    h3 {
-      font-size: 1.875rem;
-      line-height: 2.25rem;
-    }
-  }
-  p {
-    font-size: 1rem;
-    line-height: 1.5rem;
-  }
-  @media (min-width: 768px) {
-    p {
-      font-size: 1.125rem;
-      line-height: 1.75rem;
+    100% {
+      transform: translateY(0px);
     }
   }
 }

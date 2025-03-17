@@ -27,12 +27,12 @@ export function ProtectedRoute({
     if (isLoaded) {
       // Redirect if not signed in
       if (!isSignedIn) {
-        router.push(`/sign-in?redirect_url=${encodeURIComponent(window.location.pathname)}`);
+        router.push(`/login?redirect_url=${encodeURIComponent(window.location.pathname)}`);
         return;
       }
 
       // Redirect if admin-only and user is not admin
-      if (adminOnly && user && !user.isAdmin) {
+      if (adminOnly && user && !user.user_metadata?.isAdmin) {
         router.push('/dashboard');
         return;
       }
@@ -40,7 +40,7 @@ export function ProtectedRoute({
   }, [isLoaded, isSignedIn, user, adminOnly, router]);
 
   // Show fallback while loading or if not authenticated
-  if (!isLoaded || !isSignedIn || (adminOnly && user && !user.isAdmin)) {
+  if (!isLoaded || !isSignedIn || (adminOnly && user && !user.user_metadata?.isAdmin)) {
     return <>{fallback}</>;
   }
 

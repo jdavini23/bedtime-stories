@@ -1,58 +1,66 @@
 'use client';
 
 import React from 'react';
-import { Button } from '@/components/common/Button';
+import { cn } from '@/lib/utils';
+import { colorOpacityClasses, textOpacityClasses, borderOpacityClasses } from '@/utils/colors';
 
 interface Option {
   value: string;
   label: string;
-  emoji?: string;
   description?: string;
+  icon?: React.ReactNode;
 }
 
 interface OptionSelectorProps {
   options: Option[];
-  selectedValues: string[];
-  onSelect: (value: string) => void;
-  multiple?: boolean;
-  columns?: 1 | 2;
-  disabled?: boolean;
+  selectedValue?: string;
+  onChange: (value: string) => void;
+  className?: string;
 }
 
-export function OptionSelector({
+const OptionSelector: React.FC<OptionSelectorProps> = ({
   options,
-  selectedValues,
-  onSelect,
-  multiple = false,
-  columns = 2,
-  disabled = false,
-}: OptionSelectorProps) {
-  const handleSelect = (value: string) => {
-    if (disabled) return;
-    onSelect(value);
-  };
-
+  selectedValue,
+  onChange,
+  className,
+}) => {
   return (
-    <div className={`grid grid-cols-${columns} gap-2`}>
+    <div className={cn('space-y-2', className)}>
       {options.map((option) => (
-        <Button
+        <button
           key={option.value}
-          variant={selectedValues.includes(option.value) ? 'primary' : 'outline'}
-          onClick={() => handleSelect(option.value)}
-          disabled={disabled}
-          className="flex items-center justify-start space-x-2 h-auto py-3 px-4 text-left border-sky/20 hover:bg-sky/10 hover:border-sky/40 transition-colors text-cloud"
-          role="option"
-          aria-selected={selectedValues.includes(option.value)}
+          onClick={() => onChange(option.value)}
+          className={cn(
+            'w-full flex items-center justify-start space-x-2 h-auto py-3 px-4 text-left rounded-lg transition-colors',
+            'border',
+            selectedValue === option.value
+              ? cn(
+                  colorOpacityClasses.overlay.primary,
+                  borderOpacityClasses.primary.DEFAULT,
+                  textOpacityClasses.primary.DEFAULT
+                )
+              : cn(
+                  colorOpacityClasses.subtle.primary,
+                  borderOpacityClasses.primary.subtle,
+                  textOpacityClasses.primary.muted
+                ),
+            'hover:' + colorOpacityClasses.overlay.primary,
+            'hover:' + borderOpacityClasses.primary.muted
+          )}
         >
-          {option.emoji && <span className="text-xl">{option.emoji}</span>}
-          <div>
+          {option.icon && <span className="flex-shrink-0">{option.icon}</span>}
+          <div className="flex-1">
             <div className="font-medium">{option.label}</div>
             {option.description && (
-              <div className="text-xs text-cloud/60">{option.description}</div>
+              <div className={cn('text-sm', textOpacityClasses.primary.muted)}>
+                {option.description}
+              </div>
             )}
           </div>
-        </Button>
+        </button>
       ))}
     </div>
   );
-}
+};
+
+export default OptionSelector;

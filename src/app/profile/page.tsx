@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useSupabase } from '@/providers/SupabaseAuthProvider';
-import { Button } from '@/components/common/Button';
-import { Input } from '@/components/common/Input';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/Input';
 import { logger } from '@/utils/logger';
 
 export default function ProfilePage() {

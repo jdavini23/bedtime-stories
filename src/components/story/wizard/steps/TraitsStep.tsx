@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Button } from '@/components/common/Button';
+import { Button } from '@/components/ui/button';
 import { useWizardState } from '../useWizardState';
 import { CHARACTER_TRAITS } from '@/services/personalization';
 

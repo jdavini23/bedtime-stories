@@ -1,122 +1,144 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, FormEvent } from 'react';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { useSupabase } from '@/providers/SupabaseAuthProvider';
-import { AuthError } from '@supabase/supabase-js';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/Input';
+import { logger } from '@/utils/logger';
 
-const SignIn = () => {
+export default function SignIn() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { supabase } = useSupabase();
 
-  const handleSignIn = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setIsLoading(true);
     setError(null);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-
       if (error) throw error;
-
-      // Redirect will be handled by the auth state change listener in SupabaseAuthProvider
-    } catch (err) {
-      setError(err instanceof AuthError ? err.message : 'An unknown error occurred');
+      logger.info('User signed in successfully');
+    } catch (error: any) {
+      logger.error('Sign in error', { error });
+      setError(error?.message || 'Failed to sign in');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   const handleGoogleSignIn = async () => {
-    setLoading(true);
-    setError(null);
-
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          },
         },
       });
-
       if (error) throw error;
-      // Redirect is handled automatically by Supabase
-    } catch (err) {
-      setError(err instanceof AuthError ? err.message : 'An unknown error occurred');
-    } finally {
-      setLoading(false);
+      logger.info('User signed in with Google successfully');
+    } catch (error: any) {
+      logger.error('Google sign in error', { error });
+      setError(error?.message || 'Failed to sign in with Google');
     }
   };
 
   return (
-    <div className="w-full max-w-md mx-auto p-6">
-      <h2 className="text-2xl font-bold text-center mb-6">Sign In</h2>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="w-full max-w-md mx-auto p-8"
+    >
+      <div className="text-center mb-8">
+        <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
+        <p className="text-gray-400">Sign in to continue creating magical stories</p>
+      </div>
+
       {error && (
-        <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-md mb-4">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="mb-6 p-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg text-sm"
+        >
           {error}
-        </div>
+        </motion.div>
       )}
-      <form onSubmit={handleSignIn} className="space-y-4">
+
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label className="block text-sm font-medium mb-1" htmlFor="email">
+          <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
             Email
           </label>
-          <input
+          <Input
             id="email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800"
             required
+            placeholder="your@email.com"
+            className="w-full bg-gray-900/50 border-gray-800 text-white placeholder-gray-500 focus:border-violet-500"
+            disabled={isLoading}
           />
         </div>
+
         <div>
-          <label className="block text-sm font-medium mb-1" htmlFor="password">
-            Password
-          </label>
-          <input
+          <div className="flex items-center justify-between mb-1">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-300">
+              Password
+            </label>
+            <Link
+              href="/auth/forgot-password"
+              className="text-sm text-violet-400 hover:text-violet-300 transition-colors"
+            >
+              Forgot password?
+            </Link>
+          </div>
+          <Input
             id="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800"
             required
+            placeholder="••••••••"
+            className="w-full bg-gray-900/50 border-gray-800 text-white placeholder-gray-500 focus:border-violet-500"
+            disabled={isLoading}
           />
         </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-primary text-white p-2 rounded-md hover:bg-primary/90 disabled:opacity-50"
-        >
-          {loading ? 'Signing in...' : 'Sign In'}
-        </button>
-      </form>
 
-      <div className="mt-4">
-        <div className="relative">
+        <Button
+          type="submit"
+          className="w-full bg-violet-600 hover:bg-violet-700 text-white py-2 rounded-lg transition-colors"
+          disabled={isLoading}
+        >
+          {isLoading ? 'Signing in...' : 'Sign in'}
+        </Button>
+
+        <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300 dark:border-gray-700"></div>
+            <div className="w-full border-t border-gray-800"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white dark:bg-gray-900 text-gray-500">Or continue with</span>
+            <span className="px-2 bg-[#0d1117] text-gray-500">Or continue with</span>
           </div>
         </div>
 
-        <button
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full border-gray-800 text-gray-300 hover:bg-gray-800 hover:text-white"
           onClick={handleGoogleSignIn}
-          disabled={loading}
-          className="mt-4 w-full flex items-center justify-center gap-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white p-2 rounded-md border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
+          disabled={isLoading}
         >
-          <svg className="w-5 h-5" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
             <path
               fill="currentColor"
               d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -134,11 +156,21 @@ const SignIn = () => {
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
             />
           </svg>
-          {loading ? 'Signing in with Google...' : 'Sign in with Google'}
-        </button>
-      </div>
-    </div>
-  );
-};
+          Sign in with Google
+        </Button>
+      </form>
 
-export default SignIn;
+      <div className="mt-6 text-center">
+        <p className="text-sm text-gray-400">
+          Don't have an account?{' '}
+          <Link
+            href="/auth/signup"
+            className="text-violet-400 hover:text-violet-300 transition-colors"
+          >
+            Sign up
+          </Link>
+        </p>
+      </div>
+    </motion.div>
+  );
+}

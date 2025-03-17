@@ -15,14 +15,14 @@ declare global {
       OPENAI_ORGANIZATION_ID?: string;
 
       // Google AI (Gemini)
-      GOOGLE_AI_API_KEY: string;
+      GEMINI_API_KEY: string;
 
       // Redis/KV
       REDIS_URL?: string;
       KV_URL?: string;
-      KV_REST_API_URL: string;
-      KV_REST_API_TOKEN: string;
-      KV_REST_API_READ_ONLY_TOKEN?: string;
+      Upstash_KV_REST_API_URL: string;
+      Upstash_KV_REST_API_TOKEN: string;
+      Upstash_KV_REST_API_READ_ONLY_TOKEN?: string;
 
       // Sentry
       NEXT_PUBLIC_SENTRY_DSN?: string;

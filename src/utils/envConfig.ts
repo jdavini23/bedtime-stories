@@ -11,25 +11,19 @@ const envSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
 
   // OpenAI
-  OPENAI_API_KEY: process.env.NODE_ENV === 'production' 
-    ? z.string()
-    : z.string().optional(),
+  OPENAI_API_KEY: process.env.NODE_ENV === 'production' ? z.string() : z.string().optional(),
   OPENAI_ORGANIZATION_ID: z.string().optional(),
 
   // Google AI (Gemini)
-  GOOGLE_AI_API_KEY: process.env.NODE_ENV === 'production'
-    ? z.string()
-    : z.string().optional(),
+  GEMINI_API_KEY: process.env.NODE_ENV === 'production' ? z.string() : z.string().optional(),
 
   // Redis/KV
   REDIS_URL: z.string().url().optional(),
   KV_URL: z.string().url().optional(),
-  KV_REST_API_URL: process.env.NODE_ENV === 'production'
-    ? z.string().url()
-    : z.string().url().optional(),
-  KV_REST_API_TOKEN: process.env.NODE_ENV === 'production'
-    ? z.string()
-    : z.string().optional(),
+  Upstash_KV_REST_API_URL:
+    process.env.NODE_ENV === 'production' ? z.string().url() : z.string().url().optional(),
+  Upstash_KV_REST_API_TOKEN:
+    process.env.NODE_ENV === 'production' ? z.string() : z.string().optional(),
   KV_REST_API_READ_ONLY_TOKEN: z.string().optional(),
 
   // Sentry
@@ -59,13 +53,13 @@ export const env = envSchema.parse({
   OPENAI_ORGANIZATION_ID: process.env.OPENAI_ORGANIZATION_ID,
 
   // Google AI (Gemini)
-  GOOGLE_AI_API_KEY: process.env.GOOGLE_AI_API_KEY,
+  GEMINI_API_KEY: process.env.GEMINI_API_KEY,
 
   // Redis/KV
   REDIS_URL: process.env.REDIS_URL,
   KV_URL: process.env.KV_URL,
-  KV_REST_API_URL: process.env.KV_REST_API_URL,
-  KV_REST_API_TOKEN: process.env.KV_REST_API_TOKEN,
+  Upstash_KV_REST_API_URL: process.env.Upstash_KV_REST_API_URL,
+  Upstash_KV_REST_API_TOKEN: process.env.Upstash_KV_REST_API_TOKEN,
   KV_REST_API_READ_ONLY_TOKEN: process.env.KV_REST_API_READ_ONLY_TOKEN,
 
   // Sentry

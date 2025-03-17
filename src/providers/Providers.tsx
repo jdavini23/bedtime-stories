@@ -1,17 +1,19 @@
 'use client';
 
 import { ReactNode } from 'react';
-import { ThemeProvider } from '@/components/ThemeProvider';
+import { ThemeProvider } from './ThemeProvider';
 import { SupabaseAuthProvider } from './SupabaseAuthProvider';
 
-interface ProvidersProps {
+export interface ProvidersProps {
   children: ReactNode;
 }
 
 export function Providers({ children }: ProvidersProps) {
   return (
     <SupabaseAuthProvider>
-      <ThemeProvider>{children}</ThemeProvider>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+        {children}
+      </ThemeProvider>
     </SupabaseAuthProvider>
   );
 }

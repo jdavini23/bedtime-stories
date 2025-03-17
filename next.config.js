@@ -3,6 +3,7 @@
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  distDir: '.next',
   productionBrowserSourceMaps: true,
   reactStrictMode: true,
   swcMinify: true,

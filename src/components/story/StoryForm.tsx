@@ -3,12 +3,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { StoryInput } from '@/types/story';
-import { Select } from '@/components/common/Select';
+import Select from '@/components/common/Select';
+
 interface SelectOption {
   value: string;
   label: string;
 }
-import { Input } from '@/components/common/Input';
+import { Input } from '@/components/ui/Input';
 import { logger } from '@/utils/logger';
 
 const COMMON_INTERESTS = [
@@ -262,7 +263,7 @@ function StoryForm({ onSubmit, isLoading = false }: StoryFormProps) {
           <Select
             options={THEME_OPTIONS}
             value={selectedTheme.value}
-            onChange={(e) => {
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
               const selected = THEME_OPTIONS.find((opt) => opt.value === e.target.value);
               setSelectedTheme(selected || THEME_OPTIONS[0]);
             }}

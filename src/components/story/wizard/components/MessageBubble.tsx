@@ -1,31 +1,41 @@
 'use client';
 
 import React from 'react';
-import { Message } from '../types';
+import { cn } from '@/lib/utils';
+import { colorOpacityClasses } from '@/utils/colors';
 
 interface MessageBubbleProps {
-  message: Message;
+  message: string;
+  isUser?: boolean;
+  className?: string;
 }
 
-export function MessageBubble({ message }: MessageBubbleProps) {
-  const isSystem = message.sender === 'system';
-
+const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isUser = false, className }) => {
   return (
-    <div className={`flex ${isSystem ? 'justify-start' : 'justify-end'} mb-4`}>
-      {isSystem && (
-        <div className="w-8 h-8 rounded-full bg-sky-500/10 flex items-center justify-center mr-3 flex-shrink-0">
-          <span className="text-lg">✨</span>
-        </div>
-      )}
+    <div className={cn('flex items-start mb-4', className)}>
+      {/* Icon container */}
       <div
-        className={`rounded-2xl p-4 max-w-[80%] ${
-          isSystem
-            ? 'bg-sky-900/90 text-white'
-            : 'bg-white/10 backdrop-blur-sm text-gray-800 dark:text-white'
-        }`}
+        className={cn(
+          'w-8 h-8 rounded-full flex items-center justify-center mr-3 flex-shrink-0',
+          colorOpacityClasses.subtle.primary
+        )}
       >
-        <div className="whitespace-pre-wrap">{message.content}</div>
+        {isUser ? '👤' : '🤖'}
+      </div>
+
+      {/* Message bubble */}
+      <div
+        className={cn(
+          'rounded-lg px-4 py-2 max-w-[80%]',
+          isUser
+            ? cn(colorOpacityClasses.overlay.midnight, 'text-text-primary')
+            : cn('bg-background', 'text-text-secondary')
+        )}
+      >
+        {message}
       </div>
     </div>
   );
-}
+};
+
+export default MessageBubble;

@@ -2,9 +2,11 @@
 
 import React, { FC, useState, useCallback, memo } from 'react';
 import { Story } from '@/types/story';
-import { Button } from '../common/Button';
+import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import ReadingTime from './ReadingTime';
+import { cn } from '@/utils/cn';
+import { colorOpacityClasses } from '@/utils/colors';
 
 // TODO: Text-to-speech functionality is temporarily disabled.
 // Will be re-implemented later using the TextToSpeech component.
@@ -24,7 +26,7 @@ const formatStoryParagraphs = (content: string): React.ReactNode[] => {
           duration: 0.5,
           delay: index * 0.2, // Stagger paragraph animations
         }}
-        className="mb-6 text-lg leading-relaxed text-gray-700 dark:text-cloud/90 font-serif"
+        className="mb-6 text-lg leading-relaxed text-text-secondary dark:text-text-primary font-serif"
       >
         {paragraph.trim()}
       </motion.p>
@@ -77,8 +79,8 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
   if (!story || !story.metadata?.input) {
     return (
       <div className="w-full max-w-3xl mx-auto">
-        <div className="bg-white/80 dark:bg-midnight-light/30 backdrop-blur-sm rounded-xl shadow-xl">
-          <p className="text-gray-700 dark:text-cloud/90 p-8">Story not available</p>
+        <div className="bg-background/80 dark:bg-midnight/30 backdrop-blur-sm rounded-xl shadow-dreamy">
+          <p className="text-text-secondary dark:text-text-primary p-8">Story not available</p>
         </div>
       </div>
     );
@@ -91,16 +93,16 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="rounded-xl overflow-hidden bg-white/80 dark:bg-midnight-light/30 backdrop-blur-sm shadow-xl"
+          className="rounded-xl overflow-hidden bg-background/80 dark:bg-midnight/30 backdrop-blur-sm shadow-dreamy"
         >
-          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-sky-500 via-primary to-golden" />
+          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-sky via-primary to-golden" />
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6">
             <div>
               <h2 className="text-2xl sm:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-sky to-primary">
                 {story.metadata.input.childName || 'Your'}&apos;s Bedtime Story
               </h2>
-              <div className="flex items-center gap-2 mt-2 text-sm text-gray-500 dark:text-cloud/70">
+              <div className="flex items-center gap-2 mt-2 text-sm text-text-secondary dark:text-text-primary/70">
                 <span className="text-lg">{getThemeEmoji(story.metadata.input.theme)}</span>
                 <span>•</span>
                 <time dateTime={new Date(story.metadata.timestamp).toISOString()}>
@@ -119,7 +121,7 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
               {story.metadata.input.characters.map((interest) => (
                 <span
                   key={interest}
-                  className="px-3 py-1 text-xs font-medium text-sky-700 dark:text-sky-300 bg-sky-100 dark:bg-sky-900/30 rounded-full shadow-sm"
+                  className="px-3 py-1 text-xs font-medium text-sky dark:text-sky-light bg-sky/10 dark:bg-sky/20 rounded-full shadow-sm"
                 >
                   {interest}
                 </span>
@@ -131,7 +133,7 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
             className="prose prose-lg max-w-none h-[400px] overflow-y-auto px-6 pb-6 custom-scrollbar"
             style={{
               scrollbarWidth: 'thin',
-              scrollbarColor: 'var(--color-primary) rgba(var(--midnight-blue), 0.3)',
+              scrollbarColor: 'var(--primary) var(--midnight)',
             }}
           >
             {formatStoryParagraphs(story.content)}
@@ -142,7 +144,12 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
               <Button
                 variant="outline"
                 onClick={handleCopy}
-                className="transition-all duration-200 bg-gradient-to-r from-sky to-primary hover:from-sky/90 hover:to-primary/90 text-white border-0 shadow-md rounded-lg py-3"
+                className={cn(
+                  'transition-all duration-200',
+                  'bg-gradient-to-r from-sky to-primary',
+                  colorOpacityClasses.hover.sky,
+                  'text-text-primary border-0 shadow-dreamy rounded-lg py-3'
+                )}
               >
                 <motion.div>
                   <motion.span
@@ -158,7 +165,12 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
               <Button
                 variant="outline"
                 onClick={handleShare}
-                className="transition-all duration-200 bg-gradient-to-r from-sky to-primary hover:from-sky/90 hover:to-primary/90 text-white border-0 shadow-md rounded-lg py-3"
+                className={cn(
+                  'transition-all duration-200',
+                  'bg-gradient-to-r from-sky to-primary',
+                  colorOpacityClasses.hover.sky,
+                  'text-text-primary border-0 shadow-dreamy rounded-lg py-3'
+                )}
                 disabled={isSharing}
               >
                 <motion.span

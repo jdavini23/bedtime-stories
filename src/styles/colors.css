@@ -1,0 +1,109 @@
+:root {
+  /* Primary Colors */
+  --primary: #3c6e71;
+  --primary-light: #4f8a8d;
+  --primary-dark: #2c5152;
+
+  /* Sky Colors */
+  --sky: #84b4c8;
+  --sky-light: #9ec8d9;
+  --sky-dark: #6a9fb5;
+
+  /* Golden Colors */
+  --golden: #f2cc8f;
+  --golden-light: #f7dcac;
+  --golden-dark: #e5b96e;
+
+  /* Midnight Colors */
+  --midnight: #284b63;
+  --midnight-light: #345f7d;
+  --midnight-dark: #1d3649;
+  --midnight-deep: #152736;
+
+  /* Cloud Colors */
+  --cloud: #f5f5f5;
+  --cloud-light: #ffffff;
+  --cloud-dark: #e8e8e8;
+
+  /* Text Colors */
+  --text-primary: #fdfdfd;
+  --text-secondary: #353535;
+  --text-inverted: #fdfdfd;
+
+  /* Background Colors */
+  --background: var(--cloud);
+  --background-light: var(--cloud-light);
+  --background-dark: var(--midnight);
+
+  /* Border Colors */
+  --border: #e2e8f0;
+  --border-light: #f1f5f9;
+  --border-dark: #cbd5e1;
+
+  /* Semantic Colors */
+  --success: #22c55e;
+  --success-light: #86efac;
+  --success-dark: #15803d;
+
+  --warning: #f59e0b;
+  --warning-light: #fcd34d;
+  --warning-dark: #b45309;
+
+  --error: #ef4444;
+  --error-light: #fca5a5;
+  --error-dark: #b91c1c;
+
+  --info: #3b82f6;
+  --info-light: #93c5fd;
+  --info-dark: #1d4ed8;
+}
+
+/* Dark mode overrides */
+[data-theme='dark'] {
+  /* Primary Colors */
+  --primary: #4f8a8d;
+  --primary-light: #5fa6a9;
+  --primary-dark: #3c6e71;
+
+  /* Sky Colors */
+  --sky: #9ec8d9;
+  --sky-light: #b8e2f3;
+  --sky-dark: #84b4c8;
+
+  /* Golden Colors */
+  --golden: #f7dcac;
+  --golden-light: #fdebc8;
+  --golden-dark: #f2cc8f;
+
+  /* Text Colors */
+  --text-primary: #fdfdfd;
+  --text-secondary: #d1d5db;
+  --text-inverted: #353535;
+
+  /* Background Colors */
+  --background: var(--midnight);
+  --background-light: var(--midnight-light);
+  --background-dark: var(--midnight-deep);
+
+  /* Border Colors */
+  --border: #1e293b;
+  --border-light: #2d3748;
+  --border-dark: #0f172a;
+
+  /* Semantic Colors - Adjusted for dark mode */
+  --success: #86efac;
+  --success-light: #bbf7d0;
+  --success-dark: #22c55e;
+
+  --warning: #fcd34d;
+  --warning-light: #fde68a;
+  --warning-dark: #f59e0b;
+
+  --error: #fca5a5;
+  --error-light: #fecaca;
+  --error-dark: #ef4444;
+
+  --info: #93c5fd;
+  --info-light: #bfdbfe;
+  --info-dark: #3b82f6;
+}

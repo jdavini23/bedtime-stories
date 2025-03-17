@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSupabase } from '@/providers/SupabaseAuthProvider';
-import DashboardCards from '@/components/dashboard/DashboardCards';
+import { DashboardCards } from '@/components/dashboard/DashboardCards';
 
 export default function DashboardPage() {
   const { user, loading } = useSupabase();

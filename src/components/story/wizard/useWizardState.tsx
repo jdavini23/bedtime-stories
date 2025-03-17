@@ -5,7 +5,7 @@ import { useWizard } from './WizardContext';
 import { MessageType, READING_LEVEL_OPTIONS, ExtendedStoryInput } from './types';
 import { StoryGender, StoryMetadata, StoryTheme } from '@/types/story';
 import { StoryCharacter } from '@/services/personalization';
-import { Button } from '@/components/common/Button';
+import { Button } from '@/components/ui/button';
 
 export function useWizardState() {
   const { dispatch, onComplete, ...state } = useWizard();

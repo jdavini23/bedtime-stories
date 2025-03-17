@@ -3,7 +3,7 @@
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 
-import { Button } from '@/components/common/Button';
+import { Button } from '@/components/ui/button';
 
 // Simple SVG icon components to replace lucide-react
 const AlertIcon = () => (

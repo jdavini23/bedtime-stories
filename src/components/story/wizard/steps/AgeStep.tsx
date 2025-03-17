@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Input } from '@/components/common/Input';
-import { Button } from '@/components/common/Button';
+import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/button';
 import { useWizardState } from '../useWizardState';
 import { useWizardDispatch } from '../WizardContext';
 

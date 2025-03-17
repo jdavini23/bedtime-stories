@@ -42,12 +42,7 @@ export const getUserDisplayName = (user: AppUser | null): string => {
     if (!metadata) return user.email?.split('@')[0] || 'User';
 
     // Try each possible name field in order of preference
-    return (
-      metadata.full_name ||
-      metadata.name ||
-      user.email?.split('@')[0] ||
-      'User'
-    );
+    return metadata.full_name || metadata.name || user.email?.split('@')[0] || 'User';
   } catch (error) {
     logger.error('Error getting user display name', { error, userId: user?.id });
     return 'User';

@@ -1,8 +1,13 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { Button } from '../common/Button';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import Button from '../common/Button';
 import { logger } from '@/utils/loggerInstance';
+import { cn } from '@/lib/utils';
+import { themeClasses } from '@/config/theme';
+import { Card } from '@/components/common/Card';
+import { colorOpacityClasses } from '@/utils/colors';
+import { PauseIcon, PlayIcon, StopIcon, RotateCw } from 'lucide-react';
 
 interface TextToSpeechProps {
   text: string;
@@ -262,172 +267,110 @@ const TextToSpeech: React.FC<TextToSpeechProps> = ({ text }) => {
     [utterance, isPlaying]
   );
 
+  const handleRestart = useCallback(() => {
+    try {
+      handleStop();
+      // Small delay to ensure stop completes
+      setTimeout(() => {
+        handlePlay();
+      }, 100);
+    } catch (err) {
+      logger.error('Error restarting speech:', { error: err });
+      setError('Could not restart audio. Please try again.');
+    }
+  }, [handleStop, handlePlay]);
+
   // If speech synthesis is not supported
   if (typeof window === 'undefined') {
     return null;
   }
 
   return (
-    <div className="px-6 pb-6">
-      <div className="bg-midnight-light/10 dark:bg-midnight-light/20 backdrop-blur-sm rounded-xl p-6">
-        <h3 className="text-lg font-medium text-sky-700 dark:text-sky-300 mb-4">
-          Listen to the Story
-        </h3>
+    <Card className="p-6 space-y-6">
+      {error && <div className="text-error text-sm p-4 rounded-lg bg-error/10">{error}</div>}
 
-        {error && (
-          <div className="mb-4 p-2 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-md text-sm">
-            {error}
-          </div>
-        )}
-
-        <div className="flex flex-wrap gap-3 mb-6">
-          {!isPlaying ? (
-            <Button
-              onClick={handlePlay}
-              className="bg-gradient-to-r from-sky to-primary hover:from-sky/90 hover:to-primary/90 text-white shadow-md rounded-lg transition-all duration-200 flex items-center justify-center"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 mr-2"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              Play
-            </Button>
-          ) : (
-            <>
-              {!isPaused ? (
-                <Button
-                  onClick={handlePause}
-                  className="bg-gradient-to-r from-sky to-primary hover:from-sky/90 hover:to-primary/90 text-white shadow-md rounded-lg transition-all duration-200 flex items-center justify-center"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5 mr-2"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  Pause
-                </Button>
-              ) : (
-                <Button
-                  onClick={handlePlay}
-                  className="bg-gradient-to-r from-sky to-primary hover:from-sky/90 hover:to-primary/90 text-white shadow-md rounded-lg transition-all duration-200 flex items-center justify-center"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5 mr-2"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  Resume
-                </Button>
-              )}
-              <Button
-                onClick={handleStop}
-                className="bg-gradient-to-r from-rose-500 to-red-500 hover:from-rose-500/90 hover:to-red-500/90 text-white shadow-md rounded-lg transition-all duration-200 flex items-center justify-center"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 mr-2"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                Stop
-              </Button>
-            </>
+      <div className="flex gap-2 mt-4">
+        <Button
+          onClick={isPlaying && !isPaused ? handlePause : handlePlay}
+          className={cn(
+            'flex items-center gap-2 px-4 py-2 rounded-lg',
+            isPlaying && !isPaused
+              ? 'bg-primary-600 hover:bg-primary-700 text-white'
+              : 'bg-primary-500 hover:bg-primary-600 text-white'
           )}
-        </div>
+          disabled={!voicesLoaded}
+        >
+          {isPlaying && !isPaused ? (
+            <PauseIcon className="w-5 h-5" />
+          ) : (
+            <PlayIcon className="w-5 h-5" />
+          )}
+          {isPlaying && !isPaused ? 'Pause' : 'Play'}
+        </Button>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="w-full">
-            <label
-              htmlFor="voice-select"
-              className="block text-sm font-medium text-gray-800 dark:text-cloud mb-1"
-            >
-              Voice
-            </label>
-            <select
-              id="voice-select"
-              value={voice?.name || ''}
-              onChange={handleVoiceChange}
-              className="w-full px-3 py-2 border border-sky/30 bg-white/70 dark:bg-midnight-light/30 dark:text-cloud rounded-lg shadow-sm focus:outline-none focus:ring-sky/50 focus:border-sky/50 text-sm"
-            >
-              {voices.length > 0 ? (
-                voices.map((v) => (
-                  <option key={v.name} value={v.name}>
-                    {v.name}
-                  </option>
-                ))
-              ) : (
-                <option value="">Default Voice</option>
-              )}
-            </select>
-          </div>
+        <Button
+          onClick={handleStop}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-error hover:bg-error-dark text-white"
+          disabled={!isPlaying && !isPaused}
+        >
+          <StopIcon className="w-5 h-5" />
+          Stop
+        </Button>
 
-          <div className="w-full">
-            <label
-              htmlFor="rate-slider"
-              className="block text-sm font-semibold text-gray-800 dark:text-cloud mb-1"
-            >
+        <Button
+          onClick={handleRestart}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-cloud-400 hover:bg-cloud-500 text-midnight-900"
+          disabled={!isPlaying && !isPaused}
+        >
+          <RotateCw className="w-5 h-5" />
+          Restart
+        </Button>
+      </div>
+
+      {voices.length > 0 && (
+        <div className="space-y-4">
+          <label className="block text-sm font-medium text-text-secondary dark:text-text-primary mb-1">
+            Voice
+          </label>
+          <select
+            value={voice?.name || ''}
+            onChange={handleVoiceChange}
+            className="w-full px-3 py-2 border border-border bg-background/70 dark:bg-midnight/30 dark:text-text-primary rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-sm"
+          >
+            {voices.map((v) => (
+              <option key={v.name} value={v.name}>
+                {v.name}
+              </option>
+            ))}
+          </select>
+
+          <div>
+            <label className="block text-sm font-semibold text-text-secondary dark:text-text-primary mb-1">
               Speed:{' '}
-              <span className="text-primary-600 dark:text-primary-300">{rate.toFixed(1)}x</span>
+              <span className="text-primary dark:text-primary-light">{rate.toFixed(1)}x</span>
             </label>
-            <div className="relative mt-1">
+
+            <div className="relative pt-1">
               <div className="h-2 bg-sky/10 dark:bg-sky/5 rounded-lg w-full absolute"></div>
               <div
-                className="h-2 bg-gradient-to-r from-sky-400 to-primary rounded-l-lg absolute"
-                style={{ width: `${((rate - 0.5) / 1) * 100}%` }}
+                className="h-2 bg-gradient-to-r from-sky to-primary rounded-l-lg absolute"
+                style={{ width: `${(rate / 2) * 100}%` }}
               ></div>
               <input
-                id="rate-slider"
                 type="range"
                 min="0.5"
-                max="1.5"
+                max="2"
                 step="0.1"
                 value={rate}
                 onChange={handleRateChange}
-                className="w-full h-2 appearance-none cursor-pointer opacity-0 z-10 relative"
-              />
-              <div
-                className="absolute top-0 rounded-full bg-white shadow-md border border-sky/30 z-20"
-                style={{
-                  left: `${((rate - 0.5) / 1) * 100}%`,
-                  transform: 'translateX(-50%)',
-                  width: '16px',
-                  height: '16px',
-                  marginTop: '0px',
-                }}
+                className="absolute top-0 rounded-full bg-background shadow-dreamy border border-border z-20"
+                style={{ width: '100%' }}
               />
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      )}
+    </Card>
   );
 };
 

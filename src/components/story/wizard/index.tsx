@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect } from 'react';
 import { WizardProvider } from './WizardContext';
-import { WelcomeStep } from './steps/WelcomeStep';
+import WelcomeStep from './steps/WelcomeStep';
 import { NameStep } from './steps/NameStep';
 import { AgeStep } from './steps/AgeStep';
 import { GenderStep } from './steps/GenderStep';
@@ -11,7 +11,7 @@ import { TraitsStep } from './steps/TraitsStep';
 import { ReadingLevelStep } from './steps/ReadingLevelStep';
 import { useWizardState } from './useWizardState';
 import { ConversationalWizardProps } from './types';
-import { MessageBubble } from './components/MessageBubble';
+import MessageBubble from './components/MessageBubble';
 import { StepTransition } from './components/StepTransition';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { trapFocus, announceMessage } from './utils/accessibility';

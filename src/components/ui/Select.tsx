@@ -1,52 +1,41 @@
-'use client';
-
 import React from 'react';
-import { cn } from '@/lib/utils';
-
-interface SelectOption {
-  value: string;
-  label: string;
-}
+import { cn } from '@/utils/cn';
 
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
-  options: SelectOption[];
-  defaultValue?: string;
+  options: Array<{ value: string; label: string }>;
+  error?: string;
+  className?: string;
 }
 
-const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
-  ({ className, label, options, defaultValue, ...props }, ref) => {
-    return (
-      <div className="space-y-2">
-        {label && (
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            {label}
-          </label>
+const Select: React.FC<SelectProps> = ({ label, options, error, className, ...props }) => {
+  return (
+    <div className="flex flex-col space-y-2">
+      {label && (
+        <label htmlFor={props.id} className="text-sm font-medium text-gray-700">
+          {label}
+        </label>
+      )}
+      <select
+        {...props}
+        className={cn(
+          'w-full px-3 py-2 border rounded-md',
+          'focus:outline-none focus:ring-2 focus:ring-blue-500',
+          'text-gray-900 placeholder-gray-500',
+          error ? 'border-red-500' : 'border-gray-300',
+          className
         )}
-        <select
-          className={cn(
-            'block w-full rounded-xl border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-700 dark:bg-midnight dark:text-white',
-            className
-          )}
-          ref={ref}
-          {...props}
-        >
-          {defaultValue && (
-            <option value="" disabled>
-              {defaultValue}
-            </option>
-          )}
-          {options.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </div>
-    );
-  }
-);
-
-Select.displayName = 'Select';
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+    </div>
+  );
+};
 
 export { Select };
+export default Select;

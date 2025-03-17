@@ -5,7 +5,7 @@ import { ConversationalWizardWithProvider as ConversationalWizard } from '@/comp
 import { StoryDisplay } from '@/components/story/StoryDisplay';
 import { StoryInput, Story } from '@/types/story';
 import Link from 'next/link';
-import { Button } from '@/components/common/Button';
+import { Button } from '@/components/ui/button';
 import { StoryGenerator } from '@/services/personalization/storyGeneration';
 import { useSupabase } from '@/providers/SupabaseAuthProvider';
 import { useRouter } from 'next/navigation';

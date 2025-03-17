@@ -1,50 +1,64 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import { Button } from '@/components/common/Button';
-import { useWizardState } from '../useWizardState';
+import React from 'react';
+import { cn } from '@/lib/utils';
+import { colorOpacityClasses, textOpacityClasses, borderOpacityClasses } from '@/utils/colors';
 import { THEME_OPTIONS } from '../types';
 import { StoryTheme } from '@/types/story';
 
-export function WelcomeStep() {
-  const { handleThemeSelect, addMessage, messages } = useWizardState();
+interface WelcomeStepProps {
+  onThemeSelect: (theme: StoryTheme) => void;
+  selectedTheme?: StoryTheme;
+  className?: string;
+}
 
-  useEffect(() => {
-    // Only send welcome messages if there are no messages yet
-    if (messages.length > 0) return;
-
-    const welcomeTimeout = setTimeout(() => {
-      addMessage({
-        content:
-          "Hi there! 👋\n\nI'm your story assistant, and I'll help you create a personalized bedtime story.\n\nLet's start by choosing a theme for your story.",
-        sender: 'system',
-        type: 'welcome',
-      });
-    }, 100);
-
-    return () => clearTimeout(welcomeTimeout);
-  }, [addMessage, messages.length]);
-
+const WelcomeStep: React.FC<WelcomeStepProps> = ({ onThemeSelect, selectedTheme, className }) => {
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-4">
+    <div className={cn('space-y-6', className)}>
+      <div className={cn('space-y-2', textOpacityClasses.primary.DEFAULT)}>
+        <h2 className="text-2xl font-bold">Welcome to Story Creator!</h2>
+        <p className={textOpacityClasses.primary.muted}>
+          Let's create a magical story together. First, choose a theme for your adventure:
+        </p>
+      </div>
+
+      <div className="space-y-3">
         {THEME_OPTIONS.map((theme) => (
-          <Button
+          <button
             key={theme.value}
-            variant="outline"
-            className="flex items-center space-x-3 h-auto py-4 px-5 text-left bg-sky-800/50 hover:bg-sky-700/50 border-sky-600/30 hover:border-sky-500/50 transition-all duration-200 rounded-xl group"
-            onClick={() => handleThemeSelect(theme.value as StoryTheme)}
+            onClick={() => onThemeSelect(theme.value)}
+            className={cn(
+              'w-full flex items-center space-x-3 h-auto py-4 px-5 text-left rounded-xl transition-all duration-200 group',
+              'border',
+              selectedTheme === theme.value
+                ? cn(
+                    colorOpacityClasses.overlay.primary,
+                    borderOpacityClasses.primary.DEFAULT,
+                    textOpacityClasses.primary.DEFAULT
+                  )
+                : cn(
+                    colorOpacityClasses.subtle.primary,
+                    borderOpacityClasses.primary.subtle,
+                    textOpacityClasses.primary.muted
+                  ),
+              'hover:' + colorOpacityClasses.overlay.primary,
+              'hover:' + borderOpacityClasses.primary.muted
+            )}
           >
-            <span className="text-2xl group-hover:scale-110 transition-transform duration-200">
+            <span className="text-2xl group-hover:scale-110 transition-transform">
               {theme.emoji}
             </span>
-            <div>
-              <div className="font-semibold text-lg text-white">{theme.label}</div>
-              <div className="text-sm text-sky-100/70">{theme.description}</div>
+            <div className="flex-1">
+              <div className="font-semibold">{theme.label}</div>
+              <div className={cn('text-sm', textOpacityClasses.primary.muted)}>
+                {theme.description}
+              </div>
             </div>
-          </Button>
+          </button>
         ))}
       </div>
     </div>
   );
-}
+};
+
+export default WelcomeStep;

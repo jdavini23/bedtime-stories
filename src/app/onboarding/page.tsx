@@ -4,8 +4,8 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useSupabase } from '@/providers/SupabaseAuthProvider';
 import { redirect } from 'next/navigation';
-import { Button } from '@/components/common/Button';
-import { Input } from '@/components/common/Input';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { logger } from '@/utils/loggerInstance';
 

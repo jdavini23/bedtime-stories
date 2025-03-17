@@ -1,7 +1,9 @@
 import { screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { WelcomeStep } from '@/components/story/wizard/steps/WelcomeStep';
+import WelcomeStep from '@/components/story/wizard/steps/WelcomeStep';
 import { renderWithWizardContext, mockWizardState } from '@/test/utils';
+import { themeClasses } from '@/config/theme';
+import { StoryTheme } from '@/types/story';
 
 // Mock the useWizardState hook
 vi.mock('@/components/story/wizard/useWizardState', () => ({
@@ -22,7 +24,13 @@ describe('WelcomeStep', () => {
   });
 
   const renderComponent = () => {
-    return renderWithWizardContext(<WelcomeStep />);
+    return renderWithWizardContext(
+      <WelcomeStep
+        onThemeSelect={function (theme: StoryTheme): void {
+          throw new Error('Function not implemented.');
+        }}
+      />
+    );
   };
 
   it('should render welcome message', async () => {
@@ -58,7 +66,7 @@ describe('WelcomeStep', () => {
     await vi.runAllTimersAsync();
     const adventureButton = await waitFor(() => screen.getByText(/Adventure/i));
     fireEvent.click(adventureButton);
-    expect(adventureButton).toHaveClass('bg-blue-500');
+    expect(adventureButton).toHaveClass(themeClasses.primary);
   });
 
   it('should show continue button after theme selection', async () => {
