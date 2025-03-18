@@ -204,7 +204,7 @@ function StoryForm({ onSubmit, isLoading = false }: StoryFormProps) {
 
   return (
     <motion.div
-      className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl p-8 mb-8"
+      className="bg-gray-900/80 backdrop-blur-sm rounded-2xl shadow-xl dark:shadow-dreamy p-8 mb-8"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.8 }}
@@ -215,6 +215,17 @@ function StoryForm({ onSubmit, isLoading = false }: StoryFormProps) {
         role="form"
         aria-label="Story Generation Form"
       >
+        <Input
+          label="Child's Name"
+          id="characterName"
+          value={characterName}
+          onChange={(e) => setCharacterName(e.target.value)}
+          required
+          error={errors.characterName}
+          placeholder="Enter child's name"
+          className="bg-gray-800/50 border-gray-700 text-white placeholder-gray-400"
+        />
+
         <Input
           label="Interests"
           id="interests"
@@ -230,6 +241,7 @@ function StoryForm({ onSubmit, isLoading = false }: StoryFormProps) {
           required
           error={errors.interests}
           placeholder="Enter interests (comma-separated)"
+          className="bg-gray-800/50 border-gray-700 text-white placeholder-gray-400"
         />
 
         {showSuggestions && suggestions.length > 0 && (
@@ -238,7 +250,7 @@ function StoryForm({ onSubmit, isLoading = false }: StoryFormProps) {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2 }}
-            className="absolute z-50 left-0 right-0 mt-1 bg-white rounded-md shadow-lg border border-gray-200"
+            className="absolute z-50 left-0 right-0 mt-1 bg-gray-800 rounded-md shadow-lg border border-gray-700"
             role="listbox"
             aria-label="Interest Suggestions"
           >
@@ -246,11 +258,10 @@ function StoryForm({ onSubmit, isLoading = false }: StoryFormProps) {
               <motion.button
                 key={suggestion}
                 type="button"
-                whileHover={{ backgroundColor: '#EEF2FF' }}
+                whileHover={{ backgroundColor: 'rgba(79, 70, 229, 0.1)' }}
                 onClick={() => addSuggestion(suggestion)}
-                className="w-full px-4 py-2 text-left text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 first:rounded-t-md last:rounded-b-md transition-colors duration-150"
+                className="w-full px-4 py-2 text-left text-white hover:text-violet-300 transition-colors"
                 role="option"
-                aria-selected={false}
               >
                 {suggestion}
               </motion.button>
@@ -258,41 +269,48 @@ function StoryForm({ onSubmit, isLoading = false }: StoryFormProps) {
           </motion.div>
         )}
 
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">Story Theme</label>
+        <div className="space-y-4">
           <Select
+            label="Story Theme"
+            id="theme"
+            value={selectedTheme}
+            onChange={setSelectedTheme}
             options={THEME_OPTIONS}
-            value={selectedTheme.value}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-              const selected = THEME_OPTIONS.find((opt) => opt.value === e.target.value);
-              setSelectedTheme(selected || THEME_OPTIONS[0]);
-            }}
-            className="w-full"
+            error={errors.theme}
+            className="bg-gray-800/50 border-gray-700 text-white"
           />
-        </div>
 
-        <div className="relative">
+          <Select
+            label="Character Gender"
+            id="gender"
+            value={selectedGender}
+            onChange={setSelectedGender}
+            options={GENDER_OPTIONS}
+            error={errors.gender}
+            className="bg-gray-800/50 border-gray-700 text-white"
+          />
+
           <Input
             label="Favorite Characters"
             id="favoriteCharacters"
             value={favoriteCharacters}
             onChange={(e) => setFavoriteCharacters(e.target.value)}
-            placeholder="Enter favorite characters (comma-separated)"
             error={errors.favoriteCharacters}
+            placeholder="Enter favorite characters (comma-separated)"
+            className="bg-gray-800/50 border-gray-700 text-white placeholder-gray-400"
           />
         </div>
+
+        {errors.submit && (
+          <div className="text-red-400 text-sm mt-2" role="alert">
+            {errors.submit}
+          </div>
+        )}
 
         <button
           type="submit"
           disabled={isLoading}
-          className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white transition-all duration-200
-            ${
-              isLoading
-                ? 'bg-gradient-to-r from-purple-300 to-pink-300 cursor-not-allowed'
-                : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500'
-            }`}
-          aria-busy={isLoading}
-          aria-live="polite"
+          className="w-full px-4 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-medium shadow-md hover:from-violet-500 hover:to-indigo-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? 'Generating Story...' : 'Generate Story'}
         </button>

@@ -3,22 +3,67 @@
 import Link from 'next/link';
 import { Book } from 'lucide-react';
 import SignInForm from '@/components/auth/sign-in-form';
-import { useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useSupabase } from '@/providers/SupabaseAuthProvider';
 
 export default function LoginPage() {
-  const { user } = useSupabase();
-  const router = useRouter();
+  const { user, loading } = useSupabase();
   const searchParams = useSearchParams();
+  const [redirectAttempted, setRedirectAttempted] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      const redirectUrl = searchParams?.get('redirect_url');
-      router.push(redirectUrl || '/dashboard');
-    }
-  }, [user, router, searchParams]);
+    // Log auth state changes
+    console.log('Auth state in login page', {
+      hasUser: !!user,
+      loading,
+      pathname: window.location.pathname,
+      timestamp: new Date().toISOString(),
+    });
 
+    // Let middleware handle initial redirect
+    // Only attempt client-side redirect as fallback after 1 second
+    if (user && !loading && !redirectAttempted) {
+      const timeoutId = setTimeout(() => {
+        console.log('Client-side redirect fallback triggered after timeout');
+        setRedirectAttempted(true);
+
+        // Check if we're still on the login page before redirecting
+        if (window.location.pathname === '/auth/login') {
+          const redirectUrl = searchParams?.get('redirect_url');
+          const targetPath = redirectUrl || '/dashboard';
+          console.log('Performing client-side redirect to:', targetPath);
+          window.location.replace(targetPath);
+        }
+      }, 1000);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [user, loading, searchParams, redirectAttempted]);
+
+  // Show loading state while checking auth
+  if (loading) {
+    return (
+      <div className="w-full max-w-md">
+        <div className="text-center">
+          <p className="text-gray-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If user is authenticated, show redirecting message
+  if (user) {
+    return (
+      <div className="w-full max-w-md">
+        <div className="text-center">
+          <p className="text-gray-400">Redirecting to dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show login form for unauthenticated users
   return (
     <div className="w-full max-w-md">
       {/* Logo and branding */}

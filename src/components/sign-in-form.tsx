@@ -1,110 +1,119 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { Loader2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
-import { authenticateUser } from "@/lib/auth"
+import { useState, FormEvent, ChangeEvent } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+// import { authenticateUser } from "@/lib/auth"
+
+interface FormData {
+  username: string;
+  password: string;
+  rememberMe: boolean;
+}
 
 export default function SignInForm() {
-  const router = useRouter()
-  const [formData, setFormData] = useState({
-    username: "",
-    password: "",
+  const router = useRouter();
+  const [formData, setFormData] = useState<FormData>({
+    username: '',
+    password: '',
     rememberMe: false,
-  })
+  });
   const [errors, setErrors] = useState({
-    username: "",
-    password: "",
-    general: "",
-  })
-  const [isLoading, setIsLoading] = useState(false)
+    username: '',
+    password: '',
+    general: '',
+  });
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
       [name]: value,
-    })
+    });
 
     // Clear error when user starts typing
-    if (errors[name]) {
+    if (errors[name as keyof typeof errors]) {
       setErrors({
         ...errors,
-        [name]: "",
-      })
+        [name as keyof typeof errors]: '',
+      });
     }
-  }
+  };
 
-  const handleCheckboxChange = (checked) => {
+  const handleCheckboxChange = (checked: boolean) => {
     setFormData({
       ...formData,
       rememberMe: checked,
-    })
-  }
+    });
+  };
 
   const validateForm = () => {
-    let isValid = true
+    let isValid = true;
     const newErrors = {
-      username: "",
-      password: "",
-      general: "",
-    }
+      username: '',
+      password: '',
+      general: '',
+    };
 
     if (!formData.username.trim()) {
-      newErrors.username = "Username is required"
-      isValid = false
+      newErrors.username = 'Username is required';
+      isValid = false;
     }
 
     if (!formData.password) {
-      newErrors.password = "Password is required"
-      isValid = false
+      newErrors.password = 'Password is required';
+      isValid = false;
     }
 
-    setErrors(newErrors)
-    return isValid
-  }
+    setErrors(newErrors);
+    return isValid;
+  };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
 
     if (!validateForm()) {
-      return
+      return;
     }
 
-    setIsLoading(true)
-    setErrors({ ...errors, general: "" })
+    setIsLoading(true);
+    setErrors({ ...errors, general: '', username: '', password: '' });
 
     try {
-      const success = await authenticateUser(formData.username, formData.password)
+      const success = await authenticateUser(formData.username, formData.password);
 
       if (success) {
-        // Redirect to dashboard on successful sign-in
-        router.push("/dashboard")
+        router.push('/dashboard');
       } else {
         setErrors({
-          ...errors,
-          general: "Invalid username or password. Please try again.",
-        })
+          username: '',
+          password: '',
+          general: 'Invalid username or password. Please try again.',
+        });
       }
     } catch (error) {
       setErrors({
-        ...errors,
-        general: "An error occurred. Please try again later.",
-      })
+        username: '',
+        password: '',
+        general: 'An error occurred. Please try again later.',
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Error message */}
-      {errors.general && <div className="bg-red-50 text-red-600 px-4 py-3 rounded-lg text-sm">{errors.general}</div>}
+      {/* General Error message */}
+      {errors.general && (
+        <div className="bg-red-50 text-red-600 px-4 py-3 rounded-lg text-sm">{errors.general}</div>
+      )}
 
       {/* Username field */}
       <div className="space-y-2">
@@ -118,7 +127,7 @@ export default function SignInForm() {
           autoComplete="username"
           value={formData.username}
           onChange={handleChange}
-          className={`h-12 ${errors.username ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+          className={`h-12 ${errors.username ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
           placeholder="Enter your username or email"
           disabled={isLoading}
         />
@@ -142,7 +151,7 @@ export default function SignInForm() {
           autoComplete="current-password"
           value={formData.password}
           onChange={handleChange}
-          className={`h-12 ${errors.password ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+          className={`h-12 ${errors.password ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
           placeholder="Enter your password"
           disabled={isLoading}
         />
@@ -173,10 +182,19 @@ export default function SignInForm() {
             <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Signing in...
           </>
         ) : (
-          "Sign in"
+          'Sign in'
         )}
       </Button>
     </form>
-  )
+  );
+}
+function authenticateUser(username: string, password: string) {
+  throw new Error('Function not implemented.');
+}
+function setErrors(newErrors: { username: string; password: string; general: string }) {
+  throw new Error('Function not implemented.');
 }
 
+function setIsLoading(arg0: boolean) {
+  throw new Error('Function not implemented.');
+}

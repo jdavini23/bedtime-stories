@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useSupabase } from '@/providers/SupabaseAuthProvider';
@@ -14,6 +15,7 @@ export default function SignIn() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { supabase } = useSupabase();
+  const router = useRouter();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -27,6 +29,7 @@ export default function SignIn() {
       });
       if (error) throw error;
       logger.info('User signed in successfully');
+      router.push('/dashboard');
     } catch (error: any) {
       logger.error('Sign in error', { error });
       setError(error?.message || 'Failed to sign in');

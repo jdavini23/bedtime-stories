@@ -14,10 +14,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="flex flex-col space-y-2">
         {label && (
-          <label
-            htmlFor={props.id}
-            className="text-sm font-medium text-text-secondary dark:text-text-primary"
-          >
+          <label htmlFor={props.id} className="text-sm font-medium text-foreground">
             {label}
           </label>
         )}
@@ -26,15 +23,15 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           suppressHydrationWarning
           className={cn(
-            'w-full px-3 py-2 border rounded-md',
+            'w-full px-3 py-2 rounded-md',
             'focus:outline-none focus:ring-2 focus:ring-primary',
-            'text-text-secondary dark:text-text-primary placeholder-slate-500 dark:placeholder-slate-400',
-            'bg-white dark:bg-midnight',
-            error ? 'border-red-500' : 'border-slate-200 dark:border-slate-800',
+            'text-foreground placeholder-muted-foreground',
+            'bg-secondary border-input',
+            error ? 'border-destructive' : 'border',
             className
           )}
         />
-        {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+        {error && <p className="text-xs text-destructive mt-1">{error}</p>}
       </div>
     );
   }

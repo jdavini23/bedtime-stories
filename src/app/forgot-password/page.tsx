@@ -1,7 +1,7 @@
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Book } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/label';
 
 export default function ForgotPasswordPage() {
@@ -12,7 +12,7 @@ export default function ForgotPasswordPage() {
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center justify-center mb-4">
             <div className="h-12 w-12 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 flex items-center justify-center mr-3 shadow-md">
-              <BookOpen className="h-6 w-6 text-white" />
+              <Book className="h-6 w-6 text-white" />
             </div>
             <span className="text-2xl font-bold text-slate-900">Step Into Storytime</span>
           </Link>

@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { Users, Star } from 'lucide-react';
+import { Star, Users2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 
 export default function TestimonialsSection() {
@@ -8,7 +8,7 @@ export default function TestimonialsSection() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <div className="inline-flex items-center px-3 py-1 rounded-full bg-violet-100 text-violet-800 text-sm font-medium mb-4">
-            <Users className="h-4 w-4 mr-2" />
+            <Users2 className="h-4 w-4 mr-2" />
             <span>Happy Families</span>
           </div>
           <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">

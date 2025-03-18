@@ -89,7 +89,7 @@ export default function SignInForm() {
         return;
       }
 
-      router.push('/dashboard');
+      // Successful login - let the login page handle the redirect
     } catch (error) {
       logger.error('Unexpected error during sign in:', error);
       setErrors({

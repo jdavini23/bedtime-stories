@@ -1,9 +1,19 @@
 'use client';
 
 import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
-import { createClient, User, Session, SupabaseClient } from '@supabase/supabase-js';
+import {
+  User,
+  Session,
+  SupabaseClient,
+} from '@supabase/supabase-js';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { clearCookiesByPrefix } from '@/utils/cookies';
+import {
+  safeSignInWithPassword, 
+  safeSignUp, 
+  safeSignOut
+} from '@/utils/supabaseAuth';
 import { useRouter } from 'next/navigation';
-import { logger } from '@/utils/logger';
 
 // Define the context types
 type SupabaseContextType = {
@@ -22,24 +32,9 @@ type SupabaseContextType = {
   error: Error | null;
 };
 
-// Initialize Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
-}
-
-const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-  },
-});
-
 // Create the context with default values
 const SupabaseContext = createContext<SupabaseContextType>({
-  supabase,
+  supabase: createClientComponentClient(),
   user: null,
   signIn: async () => ({ user: null, session: null, error: null }),
   signUp: async () => ({ user: null, session: null, error: null }),
@@ -51,76 +46,132 @@ const SupabaseContext = createContext<SupabaseContextType>({
 // Hook to use the Supabase context
 export const useSupabase = () => {
   const context = useContext(SupabaseContext);
-  logger.info('useSupabase hook called', {
-    hasContext: !!context,
-    loading: context.loading,
-    hasUser: !!context.user,
-  });
+  if (!context) {
+    throw new Error('useSupabase must be used within a SupabaseAuthProvider');
+  }
   return context;
 };
 
 // Provider component
 export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
-  logger.info('SupabaseAuthProvider initializing');
-
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  
+  // Use our enhanced Supabase client with robust cookie handling
+  const [supabase, setSupabase] = useState(createClientComponentClient());
   const router = useRouter();
 
-  // Setup auth state listener
+  // Clear legacy auth cookies on mount (only once)
   useEffect(() => {
-    try {
-      logger.info('Setting up auth state listener');
-
-      // Setup auth state listener
-      const {
-        data: { subscription },
-      } = supabase.auth.onAuthStateChange(async (event, session) => {
-        logger.info('Auth state changed', { event, hasSession: !!session });
-        setUser(session?.user || null);
-        setLoading(false);
-        router.refresh();
-      });
-
-      // Get initial session
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        logger.info('Initial session retrieved', { hasSession: !!session });
-        setUser(session?.user || null);
-        setLoading(false);
-      });
-
-      return () => {
-        subscription.unsubscribe();
-      };
-    } catch (err) {
-      const error = err instanceof Error ? err : new Error('Unknown error initializing Supabase');
-      logger.error('Error initializing Supabase client', {
-        error: {
-          message: error.message,
-          stack: error.stack,
-        },
-      });
-      setError(error);
-      setLoading(false);
+    // Clear any Clerk cookies that might be causing conflicts
+    console.log('[Auth] Clearing legacy Clerk cookies on mount');
+    clearCookiesByPrefix('__clerk');
+    clearCookiesByPrefix('__session');
+    
+    // Log all cookies for debugging
+    if (typeof document !== 'undefined') {
+      console.log('[Auth] Current cookies:', document.cookie);
     }
-  }, [router]);
+  }, []);
+
+  // Auth setup - only runs once
+  useEffect(() => {
+    let mounted = true;
+    
+
+    // Function to initialize auth
+    const initializeAuth = async () => {
+      if (!mounted) return;
+
+      try {
+        // Get initial session
+        console.log('[Auth] Fetching initial session');
+        const { data: { session }, error } = await supabase.auth.getSession();
+
+        if (error) {
+          console.error('[Auth] Session error:', error.message);
+        }
+
+        console.log('[Auth] Initial session data:', session);
+
+        if (mounted) {
+          if (session) {
+            console.log('[Auth] Session exists, User ID:', session.user?.id);
+            setUser(session.user);
+          } else {
+            console.log('[Auth] No valid session found');
+            setUser(null);
+          }
+          setLoading(false);
+        }
+
+        // Setup auth state change listener (only if mounted)
+        supabase.auth.onAuthStateChange(async (event, session) => {
+          if (!mounted) return;
+
+          console.log('[Auth] Auth state changed:', {
+            event,
+            hasSession: !!session,
+            userId: session?.user?.id || 'none',
+            timestamp: new Date().toISOString(),
+          });
+
+          console.log('[Auth] Auth state session data:', session);
+
+          setUser(session?.user || null);
+          setLoading(false);
+        });
+      } catch (err) {
+        console.error('[Auth] Error initializing auth:', err);
+        if (mounted) {
+          setError(err instanceof Error ? err : new Error('Unknown error initializing auth'));
+          setLoading(false);
+        }
+      }
+    };
+
+    // Initialize auth
+    initializeAuth();
+
+    // Cleanup function
+    return () => {
+      console.log('[Auth] Cleaning up auth listener');
+      mounted = false;
+    };
+  }, [supabase.auth]);
 
   // Authentication methods
   async function signIn(email: string, password: string) {
+    console.log('[Auth] Attempting sign in:', { email });
     try {
-      const { data, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      // Clear any legacy cookies before sign in
+      console.log('[Auth] Clearing legacy cookies before sign in');
+      clearCookiesByPrefix('__clerk');
+      clearCookiesByPrefix('__session');
+
+      const { user: authUser, session, error: authError } =
+        await safeSignInWithPassword(supabase, email, password);
+
+      console.log('[Auth] Sign in result:', {
+        success: !authError,
+        hasUser: !!authUser,
+        hasSession: !!session,
+        timestamp: new Date().toISOString(),
       });
 
-      return {
-        user: data?.user || null,
-        session: data?.session || null,
-        error: authError ? new Error(authError.message) : null,
+      if (authError) throw authError;
+
+      const result = {
+        user: authUser,
+        session,
+        error: null,
       };
+
+      router.push('/dashboard');
+      return result;
     } catch (err) {
-      logger.error('Sign in error', { error: err });
+      console.error('[Auth] Sign in error:', err instanceof Error ? err.message : 'Unknown error');
       return {
         user: null,
         session: null,
@@ -130,19 +181,34 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function signUp(email: string, password: string) {
+    console.log('[Auth] Attempting sign up:', { email });
     try {
-      const { data, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
+      // Clear any legacy cookies before sign up
+      console.log('[Auth] Clearing legacy cookies before sign up');
+      clearCookiesByPrefix('__clerk');
+      clearCookiesByPrefix('__session');
+      
+      const { user: authUser, session, error: authError } =
+        await safeSignUp(supabase, email, password);
+
+      console.log('[Auth] Sign up result:', {
+        success: !authError,
+        hasUser: !!authUser,
+        hasSession: !!session,
+        timestamp: new Date().toISOString(),
       });
 
+      if (authError) throw authError;
+
+      router.push('/auth/verify-email');
+
       return {
-        user: data?.user || null,
-        session: data?.session || null,
-        error: authError ? new Error(authError.message) : null,
+        user: authUser,
+        session,
+        error: null,
       };
     } catch (err) {
-      logger.error('Sign up error', { error: err });
+      console.error('[Auth] Sign up error:', err instanceof Error ? err.message : 'Unknown error');
       return {
         user: null,
         session: null,
@@ -152,10 +218,23 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function signOut() {
+    console.log('[Auth] Attempting sign out');
     try {
-      await supabase.auth.signOut();
+      // Clear any legacy cookies during sign out
+      console.log('[Auth] Clearing legacy cookies during sign out');
+      clearCookiesByPrefix('__clerk');
+      clearCookiesByPrefix('__session');
+      
+      const { error: signOutError } = await safeSignOut(supabase);
+      
+      if (signOutError) {
+        throw signOutError;
+      }
+      
+      console.log('[Auth] Sign out successful');
+      // No navigation - let middleware handle redirects
     } catch (err) {
-      logger.error('Sign out error', { error: err });
+      console.error('[Auth] Sign out error:', err instanceof Error ? err.message : 'Unknown error');
       throw err instanceof Error ? err : new Error('Unknown error during sign out');
     }
   }

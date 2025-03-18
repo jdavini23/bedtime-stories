@@ -1,14 +1,20 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
 import { NextResponse, type NextRequest } from 'next/server';
 
 // Protected routes that require authentication
-const protectedPaths = ['/dashboard', '/admin', '/api/story'];
+const protectedPaths = ['/dashboard', '/admin', '/api/story', '/settings', '/profile'];
 
-// Auth routes that should redirect to dashboard if already logged in
-const authPaths = ['/auth/login', '/auth/signup', '/auth/forgot-password'];
+// Auth routes that should NEVER be redirected
+const authPaths = [
+  '/auth/login', 
+  '/auth/signup', 
+  '/auth/forgot-password',
+  '/auth/callback', // Critical: NEVER redirect the callback
+  '/auth/reset-password',
+];
 
 // Legacy routes to redirect to new auth paths
-const legacyAuthPaths = {
+const legacyAuthPaths: Record<string, string> = {
   '/login': '/auth/login',
   '/sign-in': '/auth/login',
   '/signin': '/auth/login',
@@ -16,87 +22,112 @@ const legacyAuthPaths = {
   '/sign-up': '/auth/signup',
 };
 
-export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
-  });
+// Paths that should bypass auth checks entirely
+const bypassPaths = [
+  '/_next',
+  '/favicon.ico',
+  '/api/auth',
+  '/static',
+  '/images',
+  '/public',
+  '/assets',
+  '/debug', // Add a debug path for testing
+];
 
-  // Handle legacy route redirects
+export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
-  const legacyRedirect = legacyAuthPaths[pathname as keyof typeof legacyAuthPaths];
+  
+  // DEBUG LOGGING
+  console.log(`[Middleware] Processing request for: ${pathname}`);
+  
+  // Check for port mismatch in the request
+  const host = request.headers.get('host') || '';
+  const referer = request.headers.get('referer') || '';
+  console.log(`[Middleware] Host: ${host}, Referer: ${referer}`);
+  
+  // Log cookies in a safe way (not showing values)
+  const cookieHeader = request.headers.get('cookie') || '';
+  const cookieNames = cookieHeader
+    .split(';')
+    .map(cookie => cookie.trim().split('=')[0])
+    .filter(Boolean);
+  console.log(`[Middleware] Cookie names present: ${JSON.stringify(cookieNames)}`);
+  
+  // STEP 1: Skip middleware entirely for bypassed paths
+  if (bypassPaths.some(path => pathname.startsWith(path))) {
+    console.log(`[Middleware] Bypassing auth check for: ${pathname}`);
+    return NextResponse.next();
+  }
+  
+  // STEP 2: Handle legacy route redirects
+  const legacyRedirect = legacyAuthPaths[pathname];
   if (legacyRedirect) {
+    console.log(`[Middleware] Redirecting legacy path: ${pathname} -> ${legacyRedirect}`);
     const url = new URL(legacyRedirect, request.url);
-    // Preserve any query parameters
     url.search = request.nextUrl.search;
     return NextResponse.redirect(url);
   }
-
-  // Check if Supabase environment variables are available
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  // If Supabase credentials are not available, just continue without auth checks
-  if (!supabaseUrl || !supabaseAnonKey) {
-    console.warn('Supabase credentials not available. Skipping auth checks.');
-    return response;
+  
+  // STEP 3: CRITICAL - Never redirect auth paths
+  if (authPaths.some(path => pathname.startsWith(path))) {
+    console.log(`[Middleware] Auth path detected, skipping redirect: ${pathname}`);
+    return NextResponse.next();
   }
-
+  
+  // STEP 4: Only check auth for protected paths
+  const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path));
+  if (!isProtectedPath) {
+    console.log(`[Middleware] Non-protected path, skipping auth check: ${pathname}`);
+    return NextResponse.next();
+  }
+  
+  // STEP 5: Initialize response and Supabase client
+  const res = NextResponse.next();
+  
   try {
-    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
-        },
-        set(name: string, value: string, options: CookieOptions) {
-          response.cookies.set({
-            name,
-            value,
-            ...options,
-          });
-        },
-        remove(name: string, options: CookieOptions) {
-          response.cookies.set({
-            name,
-            value: '',
-            ...options,
-          });
-        },
-      },
-    });
-
-    const {
-      data: { session },
-      error,
-    } = await supabase.auth.getSession();
-
-    // Protected routes
-    const isProtectedPath = protectedPaths.some((path) =>
-      request.nextUrl.pathname.startsWith(path)
-    );
-    // Auth routes
-    const isAuthPath = authPaths.some((path) => request.nextUrl.pathname.startsWith(path));
-
-    // Redirect if accessing auth routes while logged in
-    if (isAuthPath && session) {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
+    // Create Supabase client
+    console.log(`[Middleware] Creating Supabase client for: ${pathname}`);
+    const supabase = createMiddlewareClient({ req: request, res });
+    
+    // Get session without refreshing to avoid potential redirect loops
+    console.log(`[Middleware] Checking session for: ${pathname}`);
+    const { data: { session }, error } = await supabase.auth.getSession();
+    
+    if (error) {
+      console.error(`[Middleware] Session error: ${error.message}`);
     }
-
-    // Redirect if accessing protected routes while logged out
-    if (isProtectedPath && !session) {
-      const url = new URL('/auth/login', request.url);
-      url.searchParams.set('redirect_url', request.nextUrl.pathname);
-      return NextResponse.redirect(url);
+    
+    // Log session status without exposing sensitive data
+    console.log(`[Middleware] Session exists: ${!!session}, User ID: ${session?.user?.id ? 'present' : 'none'}`);
+    
+    // STEP 6: Only redirect if no session and on protected path
+    if (!session && isProtectedPath) {
+      // Redirect to login
+      console.log(`[Middleware] No session for protected path, redirecting to login: ${pathname}`);
+      const redirectUrl = new URL('/auth/login', request.url);
+      
+      // Store original URL for post-login redirect (but sanitize it)
+      const sanitizedPath = pathname.replace(/[^\w\-/?=&%]/g, '');
+      redirectUrl.searchParams.set('redirect_url', sanitizedPath);
+      
+      return NextResponse.redirect(redirectUrl);
     }
-  } catch (error) {
-    console.error('Error in middleware:', error);
-    // Continue without auth in case of errors
+    
+    console.log(`[Middleware] Request proceeding normally for: ${pathname}`);
+    return res;
+  } catch (err) {
+    // On error, allow the request to proceed but log the error
+    console.error(`[Middleware] Error: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    return NextResponse.next();
   }
-
-  return response;
 }
 
+// Exclude static assets from middleware processing
 export const config = {
-  matcher: ['/((?!.+\\.[\\w]+$|_next).*)', '/', '/(api|trpc)(.*)'],
+  matcher: [
+    /*
+     * Match all request paths except for static assets and files with extensions
+     */
+    '/((?!_next/static|_next/image|favicon.ico|images|public|.*\\..*$).*)',
+  ],
 };

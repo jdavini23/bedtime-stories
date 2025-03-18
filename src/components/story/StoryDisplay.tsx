@@ -93,16 +93,16 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="rounded-xl overflow-hidden bg-background/80 dark:bg-midnight/30 backdrop-blur-sm shadow-dreamy"
+          className="rounded-2xl overflow-hidden bg-gray-900/80 dark:bg-gray-900/30 backdrop-blur-sm shadow-xl dark:shadow-dreamy"
         >
-          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-sky via-primary to-golden" />
+          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-violet-600 via-indigo-600 to-violet-600" />
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6">
             <div>
-              <h2 className="text-2xl sm:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-sky to-primary">
+              <h2 className="text-2xl sm:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-indigo-400">
                 {story.metadata.input.childName || 'Your'}&apos;s Bedtime Story
               </h2>
-              <div className="flex items-center gap-2 mt-2 text-sm text-text-secondary dark:text-text-primary/70">
+              <div className="flex items-center gap-2 mt-2 text-sm text-gray-400">
                 <span className="text-lg">{getThemeEmoji(story.metadata.input.theme)}</span>
                 <span>•</span>
                 <time dateTime={new Date(story.metadata.timestamp).toISOString()}>
@@ -121,7 +121,7 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
               {story.metadata.input.characters.map((interest) => (
                 <span
                   key={interest}
-                  className="px-3 py-1 text-xs font-medium text-sky dark:text-sky-light bg-sky/10 dark:bg-sky/20 rounded-full shadow-sm"
+                  className="px-3 py-1 text-xs font-medium text-violet-300 bg-violet-500/10 rounded-full shadow-sm"
                 >
                   {interest}
                 </span>
@@ -130,10 +130,10 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
           </div>
 
           <div
-            className="prose prose-lg max-w-none h-[400px] overflow-y-auto px-6 pb-6 custom-scrollbar"
+            className="prose prose-lg prose-invert max-w-none h-[400px] overflow-y-auto px-6 pb-6 custom-scrollbar"
             style={{
               scrollbarWidth: 'thin',
-              scrollbarColor: 'var(--primary) var(--midnight)',
+              scrollbarColor: 'var(--violet-600) var(--gray-900)',
             }}
           >
             {formatStoryParagraphs(story.content)}
@@ -146,9 +146,9 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
                 onClick={handleCopy}
                 className={cn(
                   'transition-all duration-200',
-                  'bg-gradient-to-r from-sky to-primary',
-                  colorOpacityClasses.hover.sky,
-                  'text-text-primary border-0 shadow-dreamy rounded-lg py-3'
+                  'bg-gradient-to-r from-violet-600 to-indigo-600',
+                  'hover:from-violet-500 hover:to-indigo-500',
+                  'text-white border-0 shadow-dreamy rounded-xl py-3'
                 )}
               >
                 <motion.div>
@@ -167,9 +167,9 @@ const StoryDisplay: FC<StoryDisplayProps> = memo(({ story }) => {
                 onClick={handleShare}
                 className={cn(
                   'transition-all duration-200',
-                  'bg-gradient-to-r from-sky to-primary',
-                  colorOpacityClasses.hover.sky,
-                  'text-text-primary border-0 shadow-dreamy rounded-lg py-3'
+                  'bg-gradient-to-r from-violet-600 to-indigo-600',
+                  'hover:from-violet-500 hover:to-indigo-500',
+                  'text-white border-0 shadow-dreamy rounded-xl py-3'
                 )}
                 disabled={isSharing}
               >
